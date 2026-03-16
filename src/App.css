@@ -18,16 +18,71 @@
 
 body {
   font-family: 'Inter', 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(180deg, #87CEEB 0%, #B5E8B5 50%, #7BC67E 100%);
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%,
+    #A8D8EA 18%,
+    #C5E6A8 30%,
+    #8BC34A 42%,
+    #6DAF3A 52%,
+    #5A9E2F 62%,
+    #4A8725 75%,
+    #3D7220 100%
+  );
   color: #2D1B4E;
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Decorative hills silhouette */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 180% 60% at 15% 38%, rgba(107, 142, 35, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 200% 50% at 85% 35%, rgba(85, 130, 25, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(100, 160, 40, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 120% 20% at 30% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 15% at 70% 28%, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+}
+
+/* Subtle field rows pattern */
+body::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 28px,
+      rgba(0, 0, 0, 0.03) 28px,
+      rgba(0, 0, 0, 0.03) 30px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(255, 255, 255, 0.02) 80px,
+      rgba(255, 255, 255, 0.02) 82px
+    );
 }
 
 #root {
   height: 100vh;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* ===== Layout ===== */
