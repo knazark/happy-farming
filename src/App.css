@@ -865,10 +865,10 @@ body::after {
   text-align: center;
 }
 
-/* Winter fertilizer shop section */
+/* Fertilizer shop section */
 .shop-fertilizer-section {
-  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-  border: 2px solid #90CAF9;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border: 2px solid #81C784;
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 14px;
@@ -876,21 +876,31 @@ body::after {
   overflow: hidden;
 }
 .shop-fertilizer-section::before {
-  content: '❄️';
+  content: '🌱';
   position: absolute;
   top: -6px;
   right: 8px;
   font-size: 28px;
   opacity: 0.25;
 }
+.shop-fertilizer-section--winter {
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  border-color: #90CAF9;
+}
+.shop-fertilizer-section--winter::before {
+  content: '❄️';
+}
 .shop-subtitle {
   font-size: 15px;
   margin-bottom: 6px;
+  color: #2E7D32;
+}
+.shop-fertilizer-section--winter .shop-subtitle {
   color: #1565C0;
 }
 .shop-fertilizer-hint {
   font-size: 12px;
-  color: #5C6BC0;
+  color: #558B2F;
   margin-bottom: 10px;
   line-height: 1.4;
 }

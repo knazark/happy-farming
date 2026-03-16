@@ -13,12 +13,11 @@ export function ShopPanel() {
 
   return (
     <div className="shop-panel">
-      {/* Winter fertilizer shop */}
-      {isWinter && (
-        <div className="shop-fertilizer-section">
-          <h3 className="shop-subtitle">❄️ Зимовий магазинчик добрив</h3>
+      {/* Fertilizer shop */}
+      <div className={`shop-fertilizer-section ${isWinter ? 'shop-fertilizer-section--winter' : ''}`}>
+          <h3 className="shop-subtitle">{isWinter ? '❄️ Зимовий магазинчик добрив' : '🧪 Добрива'}</h3>
           <p className="shop-fertilizer-hint">
-            Зимою ріст сповільнюється вдвічі! Добрива прискорюють ріст на 50%
+            {isWinter ? 'Зимою ріст сповільнюється вдвічі! ' : ''}Добрива прискорюють ріст на 50%
           </p>
           <div className="shop-fertilizer-row">
             <span className="shop-fertilizer-info">
@@ -52,7 +51,7 @@ export function ShopPanel() {
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       <div className="shop-header">
         <h2 className="shop-title">🏪 Ринок тварин</h2>
