@@ -1,4 +1,4 @@
-export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry';
+export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry' | 'watermelon' | 'melon';
 
 export interface CropDef {
   id: CropId;
@@ -10,6 +10,7 @@ export interface CropDef {
   sellPrice: number;
   unlockLevel: number;
   xpReward: number;
+  seasonOnly?: Season;
 }
 
 export type AnimalId = 'chicken' | 'cow' | 'pig' | 'sheep' | 'rabbit' | 'goat' | 'duck' | 'cat' | 'dog';

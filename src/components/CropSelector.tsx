@@ -1,5 +1,6 @@
 import { CROP_LIST, CROPS } from '../constants/crops';
 import { useGame } from '../state/GameContext';
+import { SEASON_INFO } from '../constants/seasons';
 import { spawnPlantParticles } from '../canvas/particles';
 import { showToast } from './Toast';
 import type { CropId } from '../types';
@@ -21,6 +22,21 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
     onClose();
   };
 
+  const isWinter = state.season === 'winter';
+
+  if (isWinter) {
+    return (
+      <div className="crop-selector-overlay" onClick={onClose}>
+        <div className="crop-selector" onClick={(e) => e.stopPropagation()}>
+          <h3 className="crop-selector-title">❄️ Зима</h3>
+          <p style={{ textAlign: 'center', padding: '20px', color: '#666', fontSize: '14px' }}>
+            Взимку не можна садити рослини!<br />Зачекайте на весну 🌸
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="crop-selector-overlay" onClick={onClose}>
       <div
@@ -31,9 +47,11 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
         <div className="crop-selector-grid-3col">
           {CROP_LIST.map((crop) => {
             const locked = crop.unlockLevel > state.level;
+            const wrongSeason = crop.seasonOnly && crop.seasonOnly !== state.season;
             const canAfford = state.coins >= crop.seedPrice;
-            const disabled = locked || !canAfford;
+            const disabled = locked || wrongSeason || !canAfford;
             const profit = crop.sellPrice - crop.seedPrice;
+            const seasonInfo = crop.seasonOnly ? SEASON_INFO[crop.seasonOnly] : null;
             return (
               <button
                 key={crop.id}
@@ -43,9 +61,14 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
               >
                 <span className="crop-row-emoji">{locked ? '🔒' : crop.emoji}</span>
                 <span className="crop-row-info">
-                  <span className="crop-row-name">{crop.name}</span>
+                  <span className="crop-row-name">
+                    {crop.name}
+                    {seasonInfo && <span className="crop-row-season">{seasonInfo.emoji}</span>}
+                  </span>
                   {locked ? (
                     <span className="crop-row-meta crop-row-lock">Рівень {crop.unlockLevel}</span>
+                  ) : wrongSeason ? (
+                    <span className="crop-row-meta crop-row-lock">Тільки {seasonInfo!.emoji} {seasonInfo!.name.toLowerCase()}</span>
                   ) : (
                     <span className="crop-row-meta">
                       ⏱ {crop.growthTime >= 60 ? `${Math.floor(crop.growthTime / 60)}хв${crop.growthTime % 60 ? ` ${crop.growthTime % 60}с` : ''}` : `${crop.growthTime}с`} · 💰 {crop.seedPrice} → {crop.sellPrice}
@@ -53,7 +76,7 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
                     </span>
                   )}
                 </span>
-                {!locked && (
+                {!locked && !wrongSeason && (
                   <span className={`crop-row-price ${!canAfford ? 'crop-row-price-no' : ''}`}>
                     {crop.seedPrice}💰
                   </span>

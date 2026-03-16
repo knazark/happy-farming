@@ -167,8 +167,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!plot || plot.status !== 'empty') return state;
 
       const crop = CROPS[cropId];
+      if (state.season === 'winter') return state; // No planting in winter
       if (state.coins < crop.seedPrice) return state;
       if (crop.unlockLevel > state.level) return state;
+      if (crop.seasonOnly && crop.seasonOnly !== state.season) return state;
 
       // Apply season + weather growth multipliers
       let growthTime = crop.growthTime * SEASON_CROP_MULTIPLIER[state.season] * WEATHER_CROP_MULTIPLIER[state.weather.type];

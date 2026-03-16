@@ -1259,6 +1259,11 @@ body::after {
   font-weight: 800;
 }
 
+.crop-row-season {
+  margin-left: 4px;
+  font-size: 11px;
+}
+
 .crop-row-price {
   font-size: 13px;
   font-weight: 800;
