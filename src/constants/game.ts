@@ -32,6 +32,10 @@ export function craftingUpgradeCost(currentSlots: number): number {
   return CRAFTING_UPGRADE_COST_BASE * currentSlots; // 200, 400, 600...
 }
 
+// Tractor
+export const TRACTOR_PRICE = 10000;
+export const TRACTOR_REQUIRED_CRAFTS = ['royal_feast', 'golden_honey', 'gourmet_dish'] as const;
+
 export function xpForLevel(level: number): number {
   return Math.floor(XP_BASE * Math.pow(level, XP_EXPONENT));
 }

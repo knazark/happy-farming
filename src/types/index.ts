@@ -157,6 +157,7 @@ export interface GameState {
   totalCrafted: number;
   totalOrdersFulfilled: number;
   maxAnimals: number;
+  hasTractor: boolean;
 }
 
 export type GameAction =
@@ -182,5 +183,6 @@ export type GameAction =
   | { type: 'CLAIM_QUEST'; questId: string }
   | { type: 'SELL_ANIMAL'; animalIndex: number }
   | { type: 'UPGRADE_PEN' }
+  | { type: 'BUY_TRACTOR' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };

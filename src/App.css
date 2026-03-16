@@ -1032,6 +1032,22 @@ body::after {
   font-weight: 600;
 }
 
+/* Tractor requirements */
+.tractor-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+}
+.tractor-req {
+  font-size: 13px;
+  color: #999;
+  padding: 3px 0;
+}
+.tractor-req--done {
+  color: #2E7D32;
+}
+
 .shop-sell-section {
   margin-top: 14px;
   padding-top: 10px;

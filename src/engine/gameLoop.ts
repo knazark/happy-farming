@@ -1,4 +1,4 @@
-import type { GameState, PlotState, NpcOrder, ItemId, WeatherType } from '../types';
+import type { GameState, PlotState, NpcOrder, ItemId, WeatherType, Inventory } from '../types';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { NPC_CUSTOMERS, getMaxOrders, ORDER_EXPIRE_TIME, ORDER_REWARD_MULTIPLIER, MARKET_FLUCTUATION_MIN, MARKET_FLUCTUATION_MAX, MARKET_UPDATE_INTERVAL } from '../constants/recipes';
@@ -71,6 +71,41 @@ export function tick(state: GameState, now: number): GameState {
 
   if (changed) {
     newState = { ...newState, plots: newPlots };
+  }
+
+  // Tractor: auto-harvest ready crops
+  if (newState.hasTractor) {
+    let tractorHarvested = false;
+    const tractorPlots: PlotState[] = newState.plots.map((plot) => {
+      if (plot.status === 'ready') {
+        tractorHarvested = true;
+        return { status: 'empty' as const };
+      }
+      return plot;
+    });
+
+    if (tractorHarvested) {
+      let inv: Inventory = { ...newState.inventory };
+      let earned = 0;
+      let harvestCount = 0;
+
+      for (const plot of newState.plots) {
+        if (plot.status === 'ready') {
+          const crop = CROPS[plot.cropId];
+          inv = { ...inv, [plot.cropId]: (inv[plot.cropId] ?? 0) + 1 };
+          earned += crop.sellPrice;
+          harvestCount++;
+        }
+      }
+
+      newState = {
+        ...newState,
+        plots: tractorPlots,
+        inventory: inv,
+        totalEarned: newState.totalEarned + earned,
+        totalHarvested: newState.totalHarvested + harvestCount,
+      };
+    }
   }
 
   // Remove expired orders

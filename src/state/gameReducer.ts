@@ -2,7 +2,7 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, FEED_PRICE, FEED_DURATION, FEED_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, FEED_PRICE, FEED_DURATION, FEED_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS } from '../constants/game';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -59,6 +59,7 @@ export function migrateSave(state: any): GameState {
     totalCrafted: state.totalCrafted ?? 0,
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
     maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
+    hasTractor: state.hasTractor ?? false,
   } as GameState);
 }
 
@@ -96,6 +97,7 @@ export function createInitialState(): GameState {
     totalCrafted: 0,
     totalOrdersFulfilled: 0,
     maxAnimals: MAX_ANIMALS,
+    hasTractor: false,
   };
 }
 
@@ -338,13 +340,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'USE_FEED': {
-      if (state.animalFeed <= 0) return state;
+      // Need 1 feed per animal (min 1)
+      const feedNeeded = Math.max(1, state.animals.length);
+      if (state.animalFeed < feedNeeded) return state;
       // If feed already active, extend duration; otherwise start from now
       const now = Date.now();
       const currentEnd = state.feedActiveUntil > now ? state.feedActiveUntil : now;
       return {
         ...state,
-        animalFeed: state.animalFeed - 1,
+        animalFeed: state.animalFeed - feedNeeded,
         feedActiveUntil: currentEnd + FEED_DURATION * 1000,
       };
     }
@@ -550,6 +554,34 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         coins: state.coins - cost,
         maxAnimals: state.maxAnimals + PEN_UPGRADE_AMOUNT,
+      };
+    }
+
+    case 'BUY_TRACTOR': {
+      if (state.hasTractor) return state;
+      if (state.coins < TRACTOR_PRICE) return state;
+
+      // Must have crafted all 3 required items (at least 1 in inventory)
+      for (const craftId of TRACTOR_REQUIRED_CRAFTS) {
+        if ((state.inventory[craftId] ?? 0) < 1) return state;
+      }
+
+      // Consume the required crafts
+      const newInventory = { ...state.inventory };
+      for (const craftId of TRACTOR_REQUIRED_CRAFTS) {
+        const remaining = (newInventory[craftId] ?? 0) - 1;
+        if (remaining <= 0) {
+          delete newInventory[craftId];
+        } else {
+          newInventory[craftId] = remaining;
+        }
+      }
+
+      return {
+        ...state,
+        coins: state.coins - TRACTOR_PRICE,
+        inventory: newInventory,
+        hasTractor: true,
       };
     }
 
