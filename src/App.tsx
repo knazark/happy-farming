@@ -12,14 +12,13 @@ import { HUD } from './components/HUD';
 import { Inventory } from './components/Inventory';
 import { ShopPanel } from './components/ShopPanel';
 import { CropSelector } from './components/CropSelector';
-import { NeighborsPanel } from './components/NeighborsPanel';
 import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
 import { QuestsPanel } from './components/QuestsPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import './App.css';
 
-type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'neighbors' | 'inventory' | null;
+type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'inventory' | null;
 
 function GameContent() {
   const { state, dispatch } = useGame();
@@ -169,13 +168,6 @@ function GameContent() {
           {readyOrders > 0 && <span className="bar-badge">{readyOrders}</span>}
         </button>
         <button
-          className={`bar-btn ${activePanel === 'neighbors' ? 'bar-btn-active' : ''}`}
-          onClick={() => togglePanel('neighbors')}
-        >
-          <span className="bar-btn-icon">🌾</span>
-          <span className="bar-btn-label">Друзі</span>
-        </button>
-        <button
           className={`bar-btn ${activePanel === 'inventory' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('inventory')}
         >
@@ -194,7 +186,6 @@ function GameContent() {
             {activePanel === 'quests' && <QuestsPanel />}
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
-            {activePanel === 'neighbors' && <NeighborsPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
           </div>
         </div>

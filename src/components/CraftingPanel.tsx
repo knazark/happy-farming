@@ -74,49 +74,50 @@ export function CraftingPanel() {
         </div>
       )}
 
-      <div className="recipe-list">
+      <div className="recipe-grid-3col">
         {recipes.map((recipe) => {
           const locked = recipe.unlockLevel > state.level;
           const max = maxCraftable(recipe.id);
           const qty = Math.min(getQty(recipe.id), max || 1);
           return (
-            <div key={recipe.id} className={`recipe-item ${locked ? 'shop-item-locked' : ''}`}>
-              <div>
-                <span className="recipe-emoji">{recipe.emoji}</span>
-                <strong>{recipe.name}</strong>
-                {locked && <span className="shop-item-lock"> 🔒 Рівень {recipe.unlockLevel}</span>}
-                <div className="recipe-ingredients">
-                  {Object.entries(recipe.ingredients).map(([itemId, baseQty]) => {
-                    const need = (baseQty ?? 0) * qty;
-                    const have = state.inventory[itemId as ItemId] ?? 0;
-                    const enough = have >= need;
-                    return (
-                      <span key={itemId} className={`recipe-ingredient ${enough ? 'ingredient-ok' : 'ingredient-missing'}`}>
-                        {getItemEmoji(itemId)} {have}/{need}
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className="shop-item-details">
-                  ⏱ {recipe.craftTime >= 60 ? `${Math.floor(recipe.craftTime / 60)}хв${recipe.craftTime % 60 ? ` ${recipe.craftTime % 60}с` : ''}` : `${recipe.craftTime}с`} · 💰 {recipe.sellPrice} · ⭐ {recipe.xpReward} XP
-                </div>
-              </div>
-              <div className="craft-actions">
-                {!locked && max > 1 && (
-                  <div className="craft-qty">
-                    <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)}>−</button>
-                    <span className="craft-qty-val">{qty}</span>
-                    <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)}>+</button>
+            <div key={recipe.id} className={`recipe-card ${locked ? 'recipe-card--locked' : ''} ${max >= 1 ? 'recipe-card--available' : ''}`}>
+              <div className="recipe-card__emoji">{recipe.emoji}</div>
+              <span className="recipe-card__name">{recipe.name}</span>
+              {locked ? (
+                <span className="recipe-card__lock">🔒 Рів.{recipe.unlockLevel}</span>
+              ) : (
+                <>
+                  <div className="recipe-card__ingredients">
+                    {Object.entries(recipe.ingredients).map(([itemId, baseQty]) => {
+                      const need = (baseQty ?? 0) * qty;
+                      const have = state.inventory[itemId as ItemId] ?? 0;
+                      const enough = have >= need;
+                      return (
+                        <span key={itemId} className={`recipe-card__ing ${enough ? 'ingredient-ok' : 'ingredient-missing'}`}>
+                          {getItemEmoji(itemId)}{have}/{need}
+                        </span>
+                      );
+                    })}
                   </div>
-                )}
-                <button
-                  className="btn btn-buy"
-                  disabled={max < 1}
-                  onClick={() => dispatch({ type: 'START_CRAFT', recipeId: recipe.id, quantity: qty })}
-                >
-                  {qty > 1 ? `Крафт ×${qty}` : 'Крафтити'}
-                </button>
-              </div>
+                  <span className="recipe-card__info">
+                    💰{recipe.sellPrice} · ⭐{recipe.xpReward}
+                  </span>
+                  {max > 1 && (
+                    <div className="craft-qty">
+                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)}>−</button>
+                      <span className="craft-qty-val">{qty}</span>
+                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)}>+</button>
+                    </div>
+                  )}
+                  <button
+                    className="btn btn-buy recipe-card__btn"
+                    disabled={max < 1}
+                    onClick={() => dispatch({ type: 'START_CRAFT', recipeId: recipe.id, quantity: qty })}
+                  >
+                    {qty > 1 ? `×${qty}` : 'Крафт'}
+                  </button>
+                </>
+              )}
             </div>
           );
         })}

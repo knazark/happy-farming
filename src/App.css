@@ -893,6 +893,12 @@ body {
   gap: 5px;
 }
 
+.crop-selector-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+}
+
 .crop-row {
   display: flex;
   align-items: center;
@@ -998,6 +1004,111 @@ body {
 .crop-selector-grid-2col .crop-row-price {
   font-size: 11px;
   padding: 3px 8px;
+}
+
+/* Compact crop rows for 3-column grid */
+.crop-selector-grid-3col .crop-row {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  padding: 8px 4px;
+}
+
+.crop-selector-grid-3col .crop-row-emoji {
+  font-size: 28px;
+  width: auto;
+}
+
+.crop-selector-grid-3col .crop-row-info {
+  align-items: center;
+}
+
+.crop-selector-grid-3col .crop-row-name {
+  font-size: 11px;
+}
+
+.crop-selector-grid-3col .crop-row-meta {
+  font-size: 9px;
+}
+
+.crop-selector-grid-3col .crop-row-price {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+/* ===== Recipe Grid 3-col ===== */
+.recipe-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.recipe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px 8px;
+  background: #FAFAFE;
+  border: 2px solid #E8E0F0;
+  border-radius: 16px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.recipe-card--available {
+  background: #FFFFFF;
+  border-color: #C8E6C9;
+}
+
+.recipe-card--locked {
+  opacity: 0.35;
+}
+
+.recipe-card__emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.recipe-card__name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #2D1B4E;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.recipe-card__lock {
+  font-size: 9px;
+  font-weight: 700;
+  color: #C4B0D8;
+}
+
+.recipe-card__ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+}
+
+.recipe-card__ing {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.recipe-card__info {
+  font-size: 9px;
+  color: #9E86B8;
+}
+
+.recipe-card__btn {
+  padding: 4px 10px;
+  font-size: 10px;
+  width: 100%;
 }
 
 /* ===== Profile ===== */
