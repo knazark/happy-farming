@@ -1,63 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useGame } from '../state/GameContext';
 import { showToast } from './Toast';
 import {
-  HELP_XP_REWARD,
-  HELP_COIN_REWARD,
-  GIFT_COIN_REWARD,
-} from '../constants/neighbors';
-import {
   getFarmerId,
-  getFarmer,
-  getNeighborProfiles,
   getLeaderboard,
-  recordHelp,
-  recordGiftCollect,
-  getInteraction,
   type FarmerProfile,
 } from '../firebase/db';
 
-type Tab = 'neighbors' | 'leaderboard' | 'invite';
+type Tab = 'leaderboard' | 'invite';
 
 export function NeighborsPanel() {
-  const { dispatch } = useGame();
-  const [activeTab, setActiveTab] = useState<Tab>('neighbors');
-  const [friends, setFriends] = useState<FarmerProfile[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>('leaderboard');
   const [leaderboard, setLeaderboard] = useState<FarmerProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [interactions, setInteractions] = useState<Record<string, { helpedToday: boolean; giftCollectedToday: boolean }>>({});
   const [copied, setCopied] = useState(false);
 
   const myId = getFarmerId();
-
-  // Fetch friends on mount
-  useEffect(() => {
-    setLoading(true);
-    getFarmer(myId)
-      .then((me) => {
-        if (me && me.neighborIds && me.neighborIds.length > 0) {
-          return getNeighborProfiles(me.neighborIds);
-        }
-        return [];
-      })
-      .then((profiles) => {
-        setFriends(profiles);
-        return Promise.all(
-          profiles.map((p) =>
-            getInteraction(myId, p.id).then((inter) => ({ id: p.id, ...inter }))
-          )
-        );
-      })
-      .then((inters) => {
-        const map: Record<string, { helpedToday: boolean; giftCollectedToday: boolean }> = {};
-        for (const i of inters) {
-          map[i.id] = { helpedToday: i.helpedToday, giftCollectedToday: i.giftCollectedToday };
-        }
-        setInteractions(map);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [myId]);
 
   // Fetch leaderboard when tab switches
   useEffect(() => {
@@ -69,26 +26,6 @@ export function NeighborsPanel() {
         .finally(() => setLoading(false));
     }
   }, [activeTab]);
-
-  const handleHelp = async (neighborId: string) => {
-    await recordHelp(myId, neighborId).catch(() => {});
-    setInteractions((prev) => ({
-      ...prev,
-      [neighborId]: { ...prev[neighborId], helpedToday: true },
-    }));
-    dispatch({ type: 'HELP_NEIGHBOR', neighborId });
-    showToast(`🌧️ Допомога другу! +${HELP_COIN_REWARD}💰 +${HELP_XP_REWARD}XP`, 'earn');
-  };
-
-  const handleGift = async (neighborId: string) => {
-    await recordGiftCollect(myId, neighborId).catch(() => {});
-    setInteractions((prev) => ({
-      ...prev,
-      [neighborId]: { ...prev[neighborId], giftCollectedToday: true },
-    }));
-    dispatch({ type: 'COLLECT_GIFT', neighborId });
-    showToast(`🎁 Подарунок! +${GIFT_COIN_REWARD}💰`, 'earn');
-  };
 
   const inviteUrl = `${window.location.origin}?invite=${myId}`;
 
@@ -102,16 +39,10 @@ export function NeighborsPanel() {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">🌾 Друзі фермери</h2>
+      <h2 className="panel-title">🌾 Рейтинг фермерів</h2>
 
       {/* Tabs */}
       <div className="neighbor-tabs">
-        <button
-          className={`neighbor-tab ${activeTab === 'neighbors' ? 'neighbor-tab-active' : ''}`}
-          onClick={() => setActiveTab('neighbors')}
-        >
-          👥 Друзі
-        </button>
         <button
           className={`neighbor-tab ${activeTab === 'leaderboard' ? 'neighbor-tab-active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
@@ -125,58 +56,6 @@ export function NeighborsPanel() {
           📨 Запросити
         </button>
       </div>
-
-      {/* Tab: Friends */}
-      {activeTab === 'neighbors' && (
-        <div className="neighbor-list">
-          {loading && <p style={{ textAlign: 'center', color: '#999' }}>Завантаження...</p>}
-
-          {!loading && friends.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: '#999' }}>
-              <p style={{ fontSize: '32px', marginBottom: '8px' }}>👥</p>
-              <p style={{ fontSize: '14px' }}>У вас ще немає друзів-фермерів</p>
-              <p style={{ fontSize: '13px', marginTop: '4px' }}>
-                Перейдіть на вкладку «📨 Запросити» і надішліть посилання друзям!
-              </p>
-            </div>
-          )}
-
-          {friends.map((n) => {
-            const inter = interactions[n.id] || { helpedToday: false, giftCollectedToday: false };
-            const allDone = inter.helpedToday && inter.giftCollectedToday;
-            return (
-              <div key={n.id} className="neighbor-item">
-                <span className="neighbor-info">
-                  <span className="neighbor-avatar">{n.avatar}</span>
-                  <span>
-                    {n.name}
-                    <span style={{ color: '#999', fontSize: '12px', marginLeft: '6px' }}>
-                      ⭐{n.level} 🏆{n.score}
-                    </span>
-                  </span>
-                  {allDone && <span className="neighbor-done">✅</span>}
-                </span>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    className="btn btn-buy"
-                    disabled={inter.helpedToday}
-                    onClick={() => handleHelp(n.id)}
-                  >
-                    {inter.helpedToday ? '✅' : `🌧️ +${HELP_COIN_REWARD}💰`}
-                  </button>
-                  <button
-                    className="btn btn-sell"
-                    disabled={inter.giftCollectedToday}
-                    onClick={() => handleGift(n.id)}
-                  >
-                    {inter.giftCollectedToday ? '✅' : `🎁 +${GIFT_COIN_REWARD}💰`}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Tab: Leaderboard */}
       {activeTab === 'leaderboard' && (
@@ -223,9 +102,6 @@ export function NeighborsPanel() {
           >
             {copied ? '✅ Скопійовано!' : '📋 Копіювати посилання'}
           </button>
-          <p style={{ marginTop: '16px', color: '#999', fontSize: '13px' }}>
-            👥 Друзів-фермерів: {friends.length}
-          </p>
         </div>
       )}
     </div>

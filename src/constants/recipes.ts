@@ -181,6 +181,26 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 7,
     xpReward: 45,
   },
+  royal_feast: {
+    id: 'royal_feast',
+    name: 'Королівський бенкет',
+    emoji: '👑',
+    ingredients: { gourmet_dish: 1, cake: 1, borscht: 1, cheese: 1 },
+    craftTime: 900,       // 15 хв
+    sellPrice: 800,
+    unlockLevel: 10,
+    xpReward: 100,
+  },
+  golden_honey: {
+    id: 'golden_honey',
+    name: 'Золотий мед',
+    emoji: '🍯',
+    ingredients: { jam: 2, butter: 1, sunflower: 3, strawberry: 3 },
+    craftTime: 720,       // 12 хв
+    sellPrice: 600,
+    unlockLevel: 9,
+    xpReward: 75,
+  },
 };
 
 export const STORAGE_BASE = 50;

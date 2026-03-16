@@ -19,6 +19,14 @@ export const MAX_LEVEL = 10;
 export const FERTILIZER_PRICE = 30;
 export const FERTILIZER_SPEED_MULTIPLIER = 0.5; // cuts growth time in half
 
+// Crafting slots
+export const CRAFTING_SLOTS_BASE = 1;
+export const CRAFTING_SLOTS_MAX = 4;
+export const CRAFTING_UPGRADE_COST_BASE = 200; // cost for 2nd slot, scales up
+export function craftingUpgradeCost(currentSlots: number): number {
+  return CRAFTING_UPGRADE_COST_BASE * currentSlots; // 200, 400, 600...
+}
+
 export function xpForLevel(level: number): number {
   return Math.floor(XP_BASE * Math.pow(level, XP_EXPONENT));
 }

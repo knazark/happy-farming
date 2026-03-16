@@ -33,7 +33,7 @@ export type PlotState =
   | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean }
   | { status: 'ready'; cropId: CropId };
 
-export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie';
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey';
 
 export type ItemId = CropId | `${AnimalId}_product` | CraftedId;
 
@@ -141,7 +141,8 @@ export interface GameState {
   profile: PlayerProfile;
   neighbors: NeighborState[];
   lastDailyReset: number;
-  crafting: CraftingSlot | null;
+  crafting: CraftingSlot[];
+  craftingSlots: number;
   orders: NpcOrder[];
   storageCapacity: number;
   marketPriceMultiplier: number;
@@ -170,7 +171,8 @@ export type GameAction =
   | { type: 'HELP_NEIGHBOR'; neighborId: string }
   | { type: 'COLLECT_GIFT'; neighborId: string }
   | { type: 'START_CRAFT'; recipeId: CraftedId; quantity?: number }
-  | { type: 'COLLECT_CRAFT' }
+  | { type: 'COLLECT_CRAFT'; slotIndex: number }
+  | { type: 'UPGRADE_CRAFTING' }
   | { type: 'FULFILL_ORDER'; orderId: string }
   | { type: 'UPGRADE_STORAGE' }
   | { type: 'CLAIM_QUEST'; questId: string }

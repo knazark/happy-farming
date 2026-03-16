@@ -123,11 +123,9 @@ function GameContent() {
       ([itemId, needed]) => (state.inventory[itemId as keyof typeof state.inventory] ?? 0) >= (needed ?? 0)
     );
   }).length;
-  const craftReady = state.crafting
-    ? (Date.now() - state.crafting.startedAt) / 1000 >= state.crafting.craftTime
-      ? 1
-      : 0
-    : 0;
+  const craftReady = state.crafting.filter(
+    (slot) => (Date.now() - slot.startedAt) / 1000 >= slot.craftTime
+  ).length;
 
 
   return (

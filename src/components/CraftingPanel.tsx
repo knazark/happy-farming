@@ -3,6 +3,8 @@ import { useGame } from '../state/GameContext';
 import { RECIPES } from '../constants/recipes';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
+import { CRAFTING_SLOTS_MAX, craftingUpgradeCost } from '../constants/game';
+import { showToast } from './Toast';
 import type { CraftedId, ItemId } from '../types';
 
 function getItemEmoji(itemId: string): string {
@@ -20,16 +22,17 @@ export function CraftingPanel() {
   const recipes = Object.values(RECIPES);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  const craftingProgress = state.crafting
-    ? Math.min(1, (Date.now() - state.crafting.startedAt) / 1000 / state.crafting.craftTime)
-    : 0;
-  const craftingReady = state.crafting && craftingProgress >= 1;
-  const craftingRecipe = state.crafting ? RECIPES[state.crafting.recipeId] : null;
+  const activeSlots = state.crafting;
+  const slotsUsed = activeSlots.length;
+  const totalSlots = state.craftingSlots;
+  const canStartNew = slotsUsed < totalSlots;
+  const upgradeCost = craftingUpgradeCost(totalSlots);
+  const canUpgrade = totalSlots < CRAFTING_SLOTS_MAX && state.coins >= upgradeCost;
 
   const maxCraftable = (recipeId: CraftedId): number => {
     const recipe = RECIPES[recipeId];
     if (recipe.unlockLevel > state.level) return 0;
-    if (state.crafting) return 0;
+    if (!canStartNew) return 0;
     let max = Infinity;
     for (const [itemId, needed] of Object.entries(recipe.ingredients)) {
       const have = state.inventory[itemId as ItemId] ?? 0;
@@ -46,32 +49,53 @@ export function CraftingPanel() {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">🔨 Крафт</h2>
+      <h2 className="panel-title">🔨 Крафт ({slotsUsed}/{totalSlots})</h2>
 
-      {state.crafting && craftingRecipe && (
-        <div className="crafting-active">
-          <div className="crafting-active-header">
-            <span className="crafting-active-emoji">{craftingRecipe.emoji}</span>
-            <span>{craftingRecipe.name}{state.crafting.quantity && state.crafting.quantity > 1 ? ` ×${state.crafting.quantity}` : ''}</span>
+      {/* Active crafting slots */}
+      {activeSlots.map((slot, idx) => {
+        const recipe = RECIPES[slot.recipeId];
+        const progress = Math.min(1, (Date.now() - slot.startedAt) / 1000 / slot.craftTime);
+        const ready = progress >= 1;
+
+        return (
+          <div key={`slot-${idx}`} className="crafting-active">
+            <div className="crafting-active-header">
+              <span className="crafting-active-emoji">{recipe.emoji}</span>
+              <span>{recipe.name}{slot.quantity && slot.quantity > 1 ? ` ×${slot.quantity}` : ''}</span>
+            </div>
+            <div className="crafting-progress-bar">
+              <div className="crafting-progress-fill" style={{ width: `${progress * 100}%` }} />
+            </div>
+            {ready ? (
+              <button className="btn btn-sell" onClick={() => dispatch({ type: 'COLLECT_CRAFT', slotIndex: idx })}>
+                Забрати!
+              </button>
+            ) : (
+              <span className="crafting-time">
+                {(() => {
+                  const secs = Math.ceil(slot.craftTime - (Date.now() - slot.startedAt) / 1000);
+                  const m = Math.floor(secs / 60);
+                  const s = secs % 60;
+                  return m > 0 ? `${m}хв ${s}с` : `${secs}с`;
+                })()}
+              </span>
+            )}
           </div>
-          <div className="crafting-progress-bar">
-            <div className="crafting-progress-fill" style={{ width: `${craftingProgress * 100}%` }} />
-          </div>
-          {craftingReady ? (
-            <button className="btn btn-sell" onClick={() => dispatch({ type: 'COLLECT_CRAFT' })}>
-              Забрати!
-            </button>
-          ) : (
-            <span className="crafting-time">
-              {(() => {
-                const secs = Math.ceil(state.crafting!.craftTime - (Date.now() - state.crafting!.startedAt) / 1000);
-                const m = Math.floor(secs / 60);
-                const s = secs % 60;
-                return m > 0 ? `${m}хв ${s}с` : `${secs}с`;
-              })()}
-            </span>
-          )}
-        </div>
+        );
+      })}
+
+      {/* Upgrade crafting slots */}
+      {totalSlots < CRAFTING_SLOTS_MAX && (
+        <button
+          className="btn btn-buy crafting-upgrade-btn"
+          disabled={!canUpgrade}
+          onClick={() => {
+            dispatch({ type: 'UPGRADE_CRAFTING' });
+            showToast(`🔨 Крафт збільшено! Слотів: ${totalSlots + 1} −${upgradeCost}💰`, 'spend');
+          }}
+        >
+          ⬆️ Збільшити слоти крафту → {totalSlots + 1} ({upgradeCost}💰)
+        </button>
       )}
 
       <div className="recipe-grid-3col">
