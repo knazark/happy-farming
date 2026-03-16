@@ -1,7 +1,7 @@
-export const GRID_COLS = 8;
+export const GRID_COLS = 6;
 export const GRID_ROWS = 4;
 export const TOTAL_PLOTS = GRID_COLS * GRID_ROWS;
-export const INITIAL_UNLOCKED = 10;
+export const INITIAL_UNLOCKED = 7;
 export const CELL_SIZE = 135;
 export const GRID_PADDING = 14;
 export const GRID_Y_START = GRID_PADDING;
