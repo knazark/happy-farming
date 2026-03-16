@@ -962,6 +962,19 @@ body {
 }
 
 /* ===== Neighbors ===== */
+.neighbor-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.neighbor-tab { flex: 1; padding: 8px; border: none; border-radius: 10px; background: #F0EBF8; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.15s; }
+.neighbor-tab:hover { background: #E0D5F0; }
+.neighbor-tab-active { background: #7C4DFF; color: white; }
+
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-row td { padding: 8px 4px; border-bottom: 1px solid #F0EBF8; font-size: 14px; }
+.leaderboard-me td { background: #FFF3E0; }
+.leaderboard-me td:first-child { border-radius: 8px 0 0 8px; }
+.leaderboard-me td:last-child { border-radius: 0 8px 8px 0; }
+
+.invite-url { word-break: break-all; background: #F0EBF8; padding: 10px; border-radius: 10px; font-size: 12px; margin: 8px 0; color: #5C3D99; font-family: monospace; }
+
 .neighbor-list {
   display: flex;
   flex-direction: column;
