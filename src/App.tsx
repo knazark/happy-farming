@@ -73,15 +73,15 @@ function GameContent() {
         case 'locked': {
           const cost = getUnlockCost(state.plots);
           const reqLevel = getUnlockLevel(state.plots);
-          if (state.coins >= cost && state.level >= reqLevel) {
+          if (state.level < reqLevel) {
+            showToast(`🔒 Потрібен рівень ${reqLevel}`, 'info');
+          } else if (state.coins < cost) {
+            showToast(`🔒 Потрібно ${cost}💰`, 'info');
+          } else {
             spawnUnlockParticles(plotIndex);
             showToast(`🔓 Нова ділянка! −${cost}💰`, 'spend');
-          } else if (state.level < reqLevel) {
-            showToast(`🔒 Потрібен рівень ${reqLevel}`, 'info');
-          } else {
-            showToast(`🔒 Потрібно ${cost}💰`, 'info');
+            dispatch({ type: 'UNLOCK_PLOT', plotIndex });
           }
-          dispatch({ type: 'UNLOCK_PLOT', plotIndex });
           break;
         }
         case 'growing':

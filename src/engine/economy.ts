@@ -16,10 +16,10 @@ export function getUnlockLevel(plots: PlotState[]): number {
 }
 
 /** Calculate per-plot unlock costs for all locked plots (each subsequent one is more expensive) */
-export function getPerPlotUnlockInfo(plots: PlotState[], playerLevel: number): Map<number, { cost: number; level: number; playerLevel: number }> {
+export function getPerPlotUnlockInfo(plots: PlotState[], playerLevel: number, playerCoins: number): Map<number, { cost: number; level: number; playerLevel: number; playerCoins: number }> {
   const unlockedCount = plots.filter((p) => p.status !== 'locked').length;
   const baseTimesUnlocked = Math.max(0, unlockedCount - INITIAL_UNLOCKED);
-  const result = new Map<number, { cost: number; level: number; playerLevel: number }>();
+  const result = new Map<number, { cost: number; level: number; playerLevel: number; playerCoins: number }>();
 
   let offset = 0;
   for (let i = 0; i < plots.length; i++) {
@@ -29,6 +29,7 @@ export function getPerPlotUnlockInfo(plots: PlotState[], playerLevel: number): M
         cost: Math.floor(UNLOCK_COST_BASE * Math.pow(UNLOCK_COST_MULTIPLIER, t)),
         level: Math.max(1, 2 + Math.floor(t / 2)),
         playerLevel,
+        playerCoins,
       });
       offset++;
     }

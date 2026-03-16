@@ -189,7 +189,7 @@ export function drawFrame(
   animals: AnimalSlot[],
   hoveredPlot: number | null,
   now: number,
-  unlockMap?: Map<number, { cost: number; level: number; playerLevel: number }>,
+  unlockMap?: Map<number, { cost: number; level: number; playerLevel: number; playerCoins: number }>,
   _farmName?: string,
   season?: string,
 ) {
@@ -364,7 +364,7 @@ function drawSoilBed(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
 }
 
 /* ===== Plot ===== */
-function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number, now: number, unlockInfo?: { cost: number; level: number; playerLevel: number }) {
+function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number, now: number, unlockInfo?: { cost: number; level: number; playerLevel: number; playerCoins: number }) {
   const { x: rawX, y: rawY } = plotIndexToPixel(index);
   const x = rawX + GAP / 2;
   const y = rawY + GAP / 2;
@@ -404,14 +404,16 @@ function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number,
       ctx.globalAlpha = 1;
 
       if (unlockInfo) {
-        const canAfford = unlockInfo.playerLevel >= unlockInfo.level;
+        const hasLevel = unlockInfo.playerLevel >= unlockInfo.level;
+        const hasCoins = (unlockInfo.playerCoins ?? 0) >= unlockInfo.cost;
+        const canAfford = hasLevel && hasCoins;
         ctx.fillStyle = canAfford ? 'rgba(146, 64, 14, 0.75)' : 'rgba(100, 80, 60, 0.5)';
         ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(`${unlockInfo.cost}💰`, cx, y + INNER * 0.62);
 
-        if (!canAfford) {
+        if (!hasLevel) {
           ctx.fillStyle = 'rgba(153, 27, 27, 0.6)';
           ctx.font = '500 9px sans-serif';
           ctx.fillText(`Рів. ${unlockInfo.level}`, cx, y + INNER * 0.78);

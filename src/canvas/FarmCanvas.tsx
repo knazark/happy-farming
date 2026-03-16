@@ -37,7 +37,7 @@ export function FarmCanvas({ onPlotClick, onAnimalClick }: FarmCanvasProps) {
     canvas.style.height = `${CANVAS_HEIGHT}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const unlockMap = getPerPlotUnlockInfo(state.plots, state.level);
+    const unlockMap = getPerPlotUnlockInfo(state.plots, state.level, state.coins);
 
     let animId: number;
     const draw = () => {
