@@ -954,6 +954,44 @@ body::after {
   white-space: nowrap;
 }
 
+/* Market Panel */
+.market-item {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border: 2px solid #81C784;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.market-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.market-item-emoji {
+  font-size: 28px;
+}
+.market-item-desc {
+  display: block;
+  font-size: 11px;
+  color: #888;
+}
+.market-item-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+.market-item-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.market-item-buttons .btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
 .shop-sell-section {
   margin-top: 14px;
   padding-top: 10px;
