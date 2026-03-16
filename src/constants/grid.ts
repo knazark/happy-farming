@@ -4,6 +4,6 @@ export const TOTAL_PLOTS = GRID_COLS * GRID_ROWS;
 export const INITIAL_UNLOCKED = 7;
 export const CELL_SIZE = 135;
 export const GRID_PADDING = 14;
-export const GRID_Y_START = GRID_PADDING + 44;
+export const GRID_Y_START = GRID_PADDING;
 export const UNLOCK_COST_BASE = 50;
 export const UNLOCK_COST_MULTIPLIER = 1.3;
