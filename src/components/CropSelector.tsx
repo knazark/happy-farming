@@ -28,7 +28,7 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="crop-selector-title">🌱 Оберіть культуру</h3>
-        <div className="crop-selector-list">
+        <div className="crop-selector-grid-2col">
           {CROP_LIST.map((crop) => {
             const locked = crop.unlockLevel > state.level;
             const canAfford = state.coins >= crop.seedPrice;
@@ -66,3 +66,5 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
     </div>
   );
 }
+
+/* CSS-in-JS not used; styles added to App.css */

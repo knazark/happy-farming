@@ -1,18 +1,19 @@
 import { useGame } from '../state/GameContext';
-import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS } from '../constants/game';
+import { ANIMAL_LIST, ANIMALS } from '../constants/animals';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT } from '../constants/game';
 import { showToast } from './Toast';
 
 export function ShopPanel() {
   const { state, dispatch } = useGame();
+  const maxAnimals = state.maxAnimals ?? MAX_ANIMALS;
   const ownedCount = (id: string) => state.animals.filter((a) => a.animalId === id).length;
-  const isFull = state.animals.length >= MAX_ANIMALS;
+  const isFull = state.animals.length >= maxAnimals;
 
   return (
     <div className="shop-panel">
       <div className="shop-header">
         <h2 className="shop-title">🏪 Ринок тварин</h2>
-        <span className="shop-capacity">{state.animals.length}/{MAX_ANIMALS}</span>
+        <span className="shop-capacity">{state.animals.length}/{maxAnimals}</span>
       </div>
 
       <div className="shop-grid">
@@ -54,6 +55,45 @@ export function ShopPanel() {
 
       {isFull && (
         <p className="shop-full">Загін повний!</p>
+      )}
+
+      {/* Upgrade pen capacity */}
+      <button
+        className="btn btn-buy shop-upgrade-btn"
+        disabled={state.coins < PEN_UPGRADE_COST}
+        onClick={() => {
+          dispatch({ type: 'UPGRADE_PEN' });
+          showToast(`🏠 Загін збільшено! +${PEN_UPGRADE_AMOUNT} місць −${PEN_UPGRADE_COST}💰`, 'spend');
+        }}
+      >
+        🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰)
+      </button>
+
+      {/* Sell animals section */}
+      {state.animals.length > 0 && (
+        <div className="shop-sell-section">
+          <h3 className="shop-sell-title">💰 Продати тварин</h3>
+          <div className="shop-sell-list">
+            {state.animals.map((slot, idx) => {
+              const animal = ANIMALS[slot.animalId];
+              const sellPrice = Math.floor(animal.buyPrice * 0.5);
+              return (
+                <div key={idx} className="shop-sell-item">
+                  <span>{animal.emoji} {animal.name}</span>
+                  <button
+                    className="btn btn-sell"
+                    onClick={() => {
+                      dispatch({ type: 'SELL_ANIMAL', animalIndex: idx });
+                      showToast(`${animal.emoji} ${animal.name} продано! +${sellPrice}💰`, 'earn');
+                    }}
+                  >
+                    Продати {sellPrice}💰
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );

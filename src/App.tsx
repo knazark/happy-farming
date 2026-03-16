@@ -16,11 +16,10 @@ import { NeighborsPanel } from './components/NeighborsPanel';
 import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
 import { QuestsPanel } from './components/QuestsPanel';
-import { AchievementsPanel } from './components/AchievementsPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import './App.css';
 
-type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'neighbors' | 'achievements' | 'inventory' | null;
+type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'neighbors' | 'inventory' | null;
 
 function GameContent() {
   const { state, dispatch } = useGame();
@@ -177,13 +176,6 @@ function GameContent() {
           <span className="bar-btn-label">Друзі</span>
         </button>
         <button
-          className={`bar-btn ${activePanel === 'achievements' ? 'bar-btn-active' : ''}`}
-          onClick={() => togglePanel('achievements')}
-        >
-          <span className="bar-btn-icon">🏆</span>
-          <span className="bar-btn-label">Нагороди</span>
-        </button>
-        <button
           className={`bar-btn ${activePanel === 'inventory' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('inventory')}
         >
@@ -203,7 +195,6 @@ function GameContent() {
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
             {activePanel === 'neighbors' && <NeighborsPanel />}
-            {activePanel === 'achievements' && <AchievementsPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
           </div>
         </div>

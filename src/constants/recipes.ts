@@ -45,9 +45,9 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     id: 'butter',
     name: 'Масло',
     emoji: '🧈',
-    ingredients: { cow_product: 3 },
+    ingredients: { cow_product: 2, sunflower: 2 },
     craftTime: 180,       // 3 хв
-    sellPrice: 160,
+    sellPrice: 170,
     unlockLevel: 4,
     xpReward: 22,
   },
@@ -55,9 +55,9 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     id: 'cheese',
     name: 'Сир',
     emoji: '🧀',
-    ingredients: { goat_product: 2 },
+    ingredients: { goat_product: 2, wheat: 1, parsley: 1 },
     craftTime: 240,       // 4 хв
-    sellPrice: 150,
+    sellPrice: 165,
     unlockLevel: 5,
     xpReward: 25,
   },
@@ -90,6 +90,56 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     sellPrice: 120,
     unlockLevel: 8,
     xpReward: 35,
+  },
+  jam: {
+    id: 'jam',
+    name: 'Варення',
+    emoji: '🍯',
+    ingredients: { strawberry: 3, blueberry: 1 },
+    craftTime: 200,       // 3.3 хв
+    sellPrice: 140,
+    unlockLevel: 6,
+    xpReward: 20,
+  },
+  pizza: {
+    id: 'pizza',
+    name: 'Піца',
+    emoji: '🍕',
+    ingredients: { wheat: 2, tomato: 2, cheese: 1 },
+    craftTime: 300,       // 5 хв
+    sellPrice: 220,
+    unlockLevel: 6,
+    xpReward: 28,
+  },
+  borscht: {
+    id: 'borscht',
+    name: 'Борщ',
+    emoji: '🍲',
+    ingredients: { cabbage: 2, potato: 1, carrot: 2, tomato: 1 },
+    craftTime: 360,       // 6 хв
+    sellPrice: 250,
+    unlockLevel: 5,
+    xpReward: 32,
+  },
+  juice: {
+    id: 'juice',
+    name: 'Сік',
+    emoji: '🧃',
+    ingredients: { strawberry: 2, carrot: 2 },
+    craftTime: 120,       // 2 хв
+    sellPrice: 95,
+    unlockLevel: 3,
+    xpReward: 14,
+  },
+  pirozhki: {
+    id: 'pirozhki',
+    name: 'Пиріжки',
+    emoji: '🥟',
+    ingredients: { wheat: 3, cabbage: 1, chicken_product: 1 },
+    craftTime: 240,       // 4 хв
+    sellPrice: 130,
+    unlockLevel: 4,
+    xpReward: 18,
   },
   gourmet_dish: {
     id: 'gourmet_dish',

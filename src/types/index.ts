@@ -33,7 +33,7 @@ export type PlotState =
   | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean }
   | { status: 'ready'; cropId: CropId };
 
-export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish';
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki';
 
 export type ItemId = CropId | `${AnimalId}_product` | CraftedId;
 
@@ -82,6 +82,7 @@ export interface CraftingSlot {
   recipeId: CraftedId;
   startedAt: number;
   craftTime: number;
+  quantity?: number;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -152,6 +153,7 @@ export interface GameState {
   totalHarvested: number;
   totalCrafted: number;
   totalOrdersFulfilled: number;
+  maxAnimals: number;
 }
 
 export type GameAction =
@@ -167,10 +169,12 @@ export type GameAction =
   | { type: 'SET_PROFILE'; profile: PlayerProfile }
   | { type: 'HELP_NEIGHBOR'; neighborId: string }
   | { type: 'COLLECT_GIFT'; neighborId: string }
-  | { type: 'START_CRAFT'; recipeId: CraftedId }
+  | { type: 'START_CRAFT'; recipeId: CraftedId; quantity?: number }
   | { type: 'COLLECT_CRAFT' }
   | { type: 'FULFILL_ORDER'; orderId: string }
   | { type: 'UPGRADE_STORAGE' }
   | { type: 'CLAIM_QUEST'; questId: string }
+  | { type: 'SELL_ANIMAL'; animalIndex: number }
+  | { type: 'UPGRADE_PEN' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };

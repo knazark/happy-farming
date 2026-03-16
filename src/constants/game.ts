@@ -7,6 +7,8 @@ export const ANIMAL_CELL_H = 65; // animal cell height (half-height of crop cell
 export const ANIMAL_PEN_HEIGHT = 24 + ANIMAL_CELL_H * 2 + 18; // label + 2 rows + padding
 export const ANIMAL_PEN_COLS = GRID_COLS; // match farm grid columns
 export const MAX_ANIMALS = 16;
+export const PEN_UPGRADE_COST = 300;
+export const PEN_UPGRADE_AMOUNT = 4;
 
 // Level system: XP needed = BASE * level^EXPONENT
 export const XP_BASE = 50;

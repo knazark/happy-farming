@@ -2,7 +2,7 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL } from '../constants/game';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -55,6 +55,7 @@ export function migrateSave(state: any): GameState {
     totalHarvested: state.totalHarvested ?? 0,
     totalCrafted: state.totalCrafted ?? 0,
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
+    maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
   } as GameState);
 }
 
@@ -88,6 +89,7 @@ export function createInitialState(): GameState {
     totalHarvested: 0,
     totalCrafted: 0,
     totalOrdersFulfilled: 0,
+    maxAnimals: MAX_ANIMALS,
   };
 }
 
@@ -219,7 +221,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_ANIMAL': {
       const { animalId } = action;
-      if (state.animals.length >= MAX_ANIMALS) return state;
+      if (state.animals.length >= (state.maxAnimals ?? MAX_ANIMALS)) return state;
 
       const animal = ANIMALS[animalId];
       if (state.coins < animal.buyPrice) return state;
@@ -358,21 +360,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'START_CRAFT': {
-      const { recipeId } = action;
+      const { recipeId, quantity: rawQty } = action;
+      const qty = Math.max(1, rawQty ?? 1);
       if (state.crafting) return state;
 
       const recipe = RECIPES[recipeId];
       if (recipe.unlockLevel > state.level) return state;
 
-      // Check ingredients
+      // Check ingredients × qty
       for (const [itemId, needed] of Object.entries(recipe.ingredients)) {
-        if ((state.inventory[itemId as ItemId] ?? 0) < (needed ?? 0)) return state;
+        if ((state.inventory[itemId as ItemId] ?? 0) < (needed ?? 0) * qty) return state;
       }
 
-      // Deduct ingredients
+      // Deduct ingredients × qty
       const newInventory = { ...state.inventory };
       for (const [itemId, needed] of Object.entries(recipe.ingredients)) {
-        const remaining = (newInventory[itemId as ItemId] ?? 0) - (needed ?? 0);
+        const remaining = (newInventory[itemId as ItemId] ?? 0) - (needed ?? 0) * qty;
         if (remaining <= 0) {
           delete newInventory[itemId as ItemId];
         } else {
@@ -383,7 +386,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         inventory: newInventory,
-        crafting: { recipeId, startedAt: Date.now(), craftTime: recipe.craftTime },
+        crafting: { recipeId, startedAt: Date.now(), craftTime: recipe.craftTime * qty, quantity: qty },
       };
     }
 
@@ -394,18 +397,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (elapsed < state.crafting.craftTime) return state;
 
       const recipe = RECIPES[state.crafting.recipeId];
+      const qty = state.crafting.quantity ?? 1;
       const totalItems = Object.values(state.inventory).reduce((sum, n) => sum + (n ?? 0), 0);
       if (totalItems >= state.storageCapacity) return state;
 
       let crafted: GameState = {
         ...state,
         crafting: null,
-        inventory: addToInventory(state.inventory, state.crafting.recipeId, 1),
-        totalCrafted: state.totalCrafted + 1,
+        inventory: addToInventory(state.inventory, state.crafting.recipeId, qty),
+        totalCrafted: state.totalCrafted + qty,
       };
 
-      crafted = addXp(crafted, recipe.xpReward);
-      crafted = progressQuests(crafted, 'craft', 1);
+      crafted = addXp(crafted, recipe.xpReward * qty);
+      crafted = progressQuests(crafted, 'craft', qty);
       return checkAchievements(crafted);
     }
 
@@ -476,6 +480,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
 
       return addXp(claimed, quest.xpReward);
+    }
+
+    case 'SELL_ANIMAL': {
+      const { animalIndex } = action;
+      const slot = state.animals[animalIndex];
+      if (!slot) return state;
+
+      const animal = ANIMALS[slot.animalId];
+      const sellPrice = Math.floor(animal.buyPrice * 0.5);
+      const newAnimals = state.animals.filter((_, i) => i !== animalIndex);
+
+      return { ...state, animals: newAnimals, coins: state.coins + sellPrice };
+    }
+
+    case 'UPGRADE_PEN': {
+      const cost = PEN_UPGRADE_COST;
+      if (state.coins < cost) return state;
+
+      return {
+        ...state,
+        coins: state.coins - cost,
+        maxAnimals: state.maxAnimals + PEN_UPGRADE_AMOUNT,
+      };
     }
 
     case 'LOAD_SAVE':

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { RECIPES } from '../constants/recipes';
 import { CROPS } from '../constants/crops';
@@ -17,6 +18,7 @@ function getItemEmoji(itemId: string): string {
 export function CraftingPanel() {
   const { state, dispatch } = useGame();
   const recipes = Object.values(RECIPES);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const craftingProgress = state.crafting
     ? Math.min(1, (Date.now() - state.crafting.startedAt) / 1000 / state.crafting.craftTime)
@@ -24,14 +26,22 @@ export function CraftingPanel() {
   const craftingReady = state.crafting && craftingProgress >= 1;
   const craftingRecipe = state.crafting ? RECIPES[state.crafting.recipeId] : null;
 
-  const canCraft = (recipeId: CraftedId): boolean => {
+  const maxCraftable = (recipeId: CraftedId): number => {
     const recipe = RECIPES[recipeId];
-    if (recipe.unlockLevel > state.level) return false;
-    if (state.crafting) return false;
+    if (recipe.unlockLevel > state.level) return 0;
+    if (state.crafting) return 0;
+    let max = Infinity;
     for (const [itemId, needed] of Object.entries(recipe.ingredients)) {
-      if ((state.inventory[itemId as ItemId] ?? 0) < (needed ?? 0)) return false;
+      const have = state.inventory[itemId as ItemId] ?? 0;
+      max = Math.min(max, Math.floor(have / (needed ?? 1)));
     }
-    return true;
+    return max === Infinity ? 0 : max;
+  };
+
+  const getQty = (id: string) => quantities[id] || 1;
+
+  const setQty = (id: string, val: number) => {
+    setQuantities(prev => ({ ...prev, [id]: Math.max(1, val) }));
   };
 
   return (
@@ -42,7 +52,7 @@ export function CraftingPanel() {
         <div className="crafting-active">
           <div className="crafting-active-header">
             <span className="crafting-active-emoji">{craftingRecipe.emoji}</span>
-            <span>{craftingRecipe.name}</span>
+            <span>{craftingRecipe.name}{state.crafting.quantity && state.crafting.quantity > 1 ? ` ×${state.crafting.quantity}` : ''}</span>
           </div>
           <div className="crafting-progress-bar">
             <div className="crafting-progress-fill" style={{ width: `${craftingProgress * 100}%` }} />
@@ -67,6 +77,8 @@ export function CraftingPanel() {
       <div className="recipe-list">
         {recipes.map((recipe) => {
           const locked = recipe.unlockLevel > state.level;
+          const max = maxCraftable(recipe.id);
+          const qty = Math.min(getQty(recipe.id), max || 1);
           return (
             <div key={recipe.id} className={`recipe-item ${locked ? 'shop-item-locked' : ''}`}>
               <div>
@@ -74,9 +86,9 @@ export function CraftingPanel() {
                 <strong>{recipe.name}</strong>
                 {locked && <span className="shop-item-lock"> 🔒 Рівень {recipe.unlockLevel}</span>}
                 <div className="recipe-ingredients">
-                  {Object.entries(recipe.ingredients).map(([itemId, qty]) => {
+                  {Object.entries(recipe.ingredients).map(([itemId, baseQty]) => {
+                    const need = (baseQty ?? 0) * qty;
                     const have = state.inventory[itemId as ItemId] ?? 0;
-                    const need = qty ?? 0;
                     const enough = have >= need;
                     return (
                       <span key={itemId} className={`recipe-ingredient ${enough ? 'ingredient-ok' : 'ingredient-missing'}`}>
@@ -89,13 +101,22 @@ export function CraftingPanel() {
                   ⏱ {recipe.craftTime >= 60 ? `${Math.floor(recipe.craftTime / 60)}хв${recipe.craftTime % 60 ? ` ${recipe.craftTime % 60}с` : ''}` : `${recipe.craftTime}с`} · 💰 {recipe.sellPrice} · ⭐ {recipe.xpReward} XP
                 </div>
               </div>
-              <button
-                className="btn btn-buy"
-                disabled={!canCraft(recipe.id)}
-                onClick={() => dispatch({ type: 'START_CRAFT', recipeId: recipe.id })}
-              >
-                Крафтити
-              </button>
+              <div className="craft-actions">
+                {!locked && max > 1 && (
+                  <div className="craft-qty">
+                    <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)}>−</button>
+                    <span className="craft-qty-val">{qty}</span>
+                    <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)}>+</button>
+                  </div>
+                )}
+                <button
+                  className="btn btn-buy"
+                  disabled={max < 1}
+                  onClick={() => dispatch({ type: 'START_CRAFT', recipeId: recipe.id, quantity: qty })}
+                >
+                  {qty > 1 ? `Крафт ×${qty}` : 'Крафтити'}
+                </button>
+              </div>
             </div>
           );
         })}
