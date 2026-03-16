@@ -16,9 +16,10 @@ import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
+import { NeighborsPanel } from './components/NeighborsPanel';
 import './App.css';
 
-type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | null;
+type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | 'friends' | null;
 
 function GameContent() {
   const { state, dispatch } = useGame();
@@ -172,6 +173,13 @@ function GameContent() {
           <span className="bar-btn-label">Інвентар</span>
           {inventoryCount > 0 && <span className="bar-badge">{inventoryCount}</span>}
         </button>
+        <button
+          className={`bar-btn ${activePanel === 'friends' ? 'bar-btn-active' : ''}`}
+          onClick={() => togglePanel('friends')}
+        >
+          <span className="bar-btn-icon">🏆</span>
+          <span className="bar-btn-label">Рейтинг</span>
+        </button>
       </div>
 
       {/* Panel popup */}
@@ -183,6 +191,7 @@ function GameContent() {
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
+            {activePanel === 'friends' && <NeighborsPanel />}
           </div>
         </div>
       )}
