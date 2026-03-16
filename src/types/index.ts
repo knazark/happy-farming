@@ -138,6 +138,8 @@ export interface GameState {
   xp: number;
   level: number;
   fertilizers: number;
+  animalFeed: number;
+  feedActiveUntil: number; // timestamp — when feed effect expires
   profile: PlayerProfile;
   neighbors: NeighborState[];
   lastDailyReset: number;
@@ -167,6 +169,8 @@ export type GameAction =
   | { type: 'SELL_ITEM'; itemId: ItemId; quantity: number }
   | { type: 'BUY_FERTILIZER'; quantity: number }
   | { type: 'USE_FERTILIZER'; plotIndex: number }
+  | { type: 'BUY_FEED'; quantity: number }
+  | { type: 'USE_FEED' }
   | { type: 'SET_PROFILE'; profile: PlayerProfile }
   | { type: 'HELP_NEIGHBOR'; neighborId: string }
   | { type: 'COLLECT_GIFT'; neighborId: string }

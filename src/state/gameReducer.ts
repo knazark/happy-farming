@@ -2,7 +2,7 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, FEED_PRICE, FEED_DURATION, FEED_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost } from '../constants/game';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -40,6 +40,8 @@ export function migrateSave(state: any): GameState {
     xp: state.xp ?? 0,
     level: state.level ?? 1,
     fertilizers: state.fertilizers ?? 0,
+    animalFeed: state.animalFeed ?? 0,
+    feedActiveUntil: state.feedActiveUntil ?? 0,
     profile: state.profile ?? { name: '', avatar: '👨‍🌾' },
     neighbors: state.neighbors ?? DEFAULT_NEIGHBORS.map((n) => ({ ...n })),
     lastDailyReset: state.lastDailyReset ?? Date.now(),
@@ -75,6 +77,8 @@ export function createInitialState(): GameState {
     xp: 0,
     level: 1,
     fertilizers: 0,
+    animalFeed: 0,
+    feedActiveUntil: 0,
     profile: { name: '', avatar: '👨‍🌾' },
     neighbors: DEFAULT_NEIGHBORS.map((n) => ({ ...n })),
     lastDailyReset: Date.now(),
@@ -243,8 +247,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!slot) return state;
 
       const animal = ANIMALS[slot.animalId];
+      const isFeedActive = Date.now() < state.feedActiveUntil;
+      const effectiveProductionTime = isFeedActive ? animal.productionTime * FEED_SPEED_MULTIPLIER : animal.productionTime;
       const elapsed = (Date.now() - slot.lastCollectedAt) / 1000;
-      if (elapsed < animal.productionTime) return state;
+      if (elapsed < effectiveProductionTime) return state;
 
       const newAnimals = [...state.animals];
       newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now() };
@@ -317,6 +323,30 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newPlots[plotIndex] = { ...plot, growthTime: newGrowthTime, fertilized: true };
 
       return { ...state, plots: newPlots, fertilizers: state.fertilizers - 1 };
+    }
+
+    case 'BUY_FEED': {
+      const { quantity } = action;
+      const cost = FEED_PRICE * quantity;
+      if (state.coins < cost) return state;
+
+      return {
+        ...state,
+        coins: state.coins - cost,
+        animalFeed: state.animalFeed + quantity,
+      };
+    }
+
+    case 'USE_FEED': {
+      if (state.animalFeed <= 0) return state;
+      // If feed already active, extend duration; otherwise start from now
+      const now = Date.now();
+      const currentEnd = state.feedActiveUntil > now ? state.feedActiveUntil : now;
+      return {
+        ...state,
+        animalFeed: state.animalFeed - 1,
+        feedActiveUntil: currentEnd + FEED_DURATION * 1000,
+      };
     }
 
     case 'SET_PROFILE':

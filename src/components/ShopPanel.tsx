@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE } from '../constants/game';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FEED_PRICE, FEED_DURATION } from '../constants/game';
 import { showToast } from './Toast';
 import { playAnimalSound } from '../utils/sounds';
 
@@ -9,22 +9,23 @@ export function ShopPanel() {
   const maxAnimals = state.maxAnimals ?? MAX_ANIMALS;
   const ownedCount = (id: string) => state.animals.filter((a) => a.animalId === id).length;
   const isFull = state.animals.length >= maxAnimals;
-  const isWinter = state.season === 'winter';
+  const isFeedActive = Date.now() < state.feedActiveUntil;
+  const feedTimeLeft = isFeedActive ? Math.ceil((state.feedActiveUntil - Date.now()) / 1000) : 0;
 
   return (
     <div className="shop-panel">
-      {/* Fertilizer shop */}
-      <div className={`shop-fertilizer-section ${isWinter ? 'shop-fertilizer-section--winter' : ''}`}>
-          <h3 className="shop-subtitle">{isWinter ? '❄️ Зимовий магазинчик добрив' : '🧪 Добрива'}</h3>
-          <p className="shop-fertilizer-hint">
-            {isWinter ? 'Зимою ріст сповільнюється вдвічі! ' : ''}Добрива прискорюють ріст на 50%
-          </p>
+      {/* Fertilizer & Feed shop */}
+      <div className="shop-fertilizer-section">
+          <h3 className="shop-subtitle">🛒 Магазинчик</h3>
+
+          {/* Fertilizer */}
           <div className="shop-fertilizer-row">
             <span className="shop-fertilizer-info">
               <span className="shop-fertilizer-emoji">🧪</span>
               <span>
                 <strong>Добриво</strong>
                 <span className="shop-fertilizer-owned">У вас: {state.fertilizers ?? 0}</span>
+                <span className="shop-fertilizer-desc">Ріст рослин ×2</span>
               </span>
             </span>
             <div className="shop-fertilizer-buttons">
@@ -50,6 +51,62 @@ export function ShopPanel() {
               </button>
             </div>
           </div>
+
+          {/* Animal feed */}
+          <div className="shop-fertilizer-row" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+            <span className="shop-fertilizer-info">
+              <span className="shop-fertilizer-emoji">🌾</span>
+              <span>
+                <strong>Корм</strong>
+                <span className="shop-fertilizer-owned">У вас: {state.animalFeed ?? 0}</span>
+                <span className="shop-fertilizer-desc">Продукція тварин ×2 ({FEED_DURATION / 60}хв)</span>
+              </span>
+            </span>
+            <div className="shop-fertilizer-buttons">
+              <button
+                className="btn btn-buy"
+                disabled={state.coins < FEED_PRICE}
+                onClick={() => {
+                  dispatch({ type: 'BUY_FEED', quantity: 1 });
+                  showToast(`🌾 Корм ×1 куплено! −${FEED_PRICE}💰`, 'spend');
+                }}
+              >
+                ×1 ({FEED_PRICE}💰)
+              </button>
+              <button
+                className="btn btn-buy"
+                disabled={state.coins < FEED_PRICE * 5}
+                onClick={() => {
+                  dispatch({ type: 'BUY_FEED', quantity: 5 });
+                  showToast(`🌾 Корм ×5 куплено! −${FEED_PRICE * 5}💰`, 'spend');
+                }}
+              >
+                ×5 ({FEED_PRICE * 5}💰)
+              </button>
+            </div>
+          </div>
+
+          {/* Use feed button */}
+          {(state.animalFeed > 0 || isFeedActive) && (
+            <div style={{ marginTop: '8px', textAlign: 'center' }}>
+              {isFeedActive ? (
+                <span className="feed-active-badge">
+                  🌾 Корм активний! {Math.floor(feedTimeLeft / 60)}хв {feedTimeLeft % 60}с
+                </span>
+              ) : (
+                <button
+                  className="btn btn-sell"
+                  style={{ width: '100%', padding: '8px' }}
+                  onClick={() => {
+                    dispatch({ type: 'USE_FEED' });
+                    showToast('🌾 Корм активовано! Тварини виробляють вдвічі швидше!', 'earn');
+                  }}
+                >
+                  🌾 Активувати корм ({FEED_DURATION / 60}хв)
+                </button>
+              )}
+            </div>
+          )}
       </div>
 
       <div className="shop-header">

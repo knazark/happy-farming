@@ -41,12 +41,12 @@ export function FarmCanvas({ onPlotClick, onAnimalClick }: FarmCanvasProps) {
 
     let animId: number;
     const draw = () => {
-      drawFrame(ctx, state.plots, state.animals, hoveredPlot, Date.now(), unlockMap, undefined, state.season);
+      drawFrame(ctx, state.plots, state.animals, hoveredPlot, Date.now(), unlockMap, undefined, state.season, state.feedActiveUntil);
       animId = requestAnimationFrame(draw);
     };
     animId = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animId);
-  }, [state.plots, state.animals, state.level, state.season, hoveredPlot]);
+  }, [state.plots, state.animals, state.level, state.season, state.feedActiveUntil, hoveredPlot]);
 
   // Convert mouse event to logical canvas coordinates
   const getCanvasCoords = useCallback(
@@ -77,7 +77,7 @@ export function FarmCanvas({ onPlotClick, onAnimalClick }: FarmCanvasProps) {
 
       // Check animal pen click (cell-sized layout)
       const now = Date.now();
-      const groups = groupAnimals(state.animals, now);
+      const groups = groupAnimals(state.animals, now, state.feedActiveUntil);
       if (groups.length > 0) {
         const { startY, cols, cellW, cellH } = getAnimalPenLayout(state.animals.length);
         const startX = GRID_PADDING;
@@ -93,9 +93,11 @@ export function FarmCanvas({ onPlotClick, onAnimalClick }: FarmCanvasProps) {
           if (groupIndex >= 0 && groupIndex < groups.length && col < cols) {
             const group = groups[groupIndex];
             const animal = ANIMALS[group.animalId];
+            const isFeedActive = now < state.feedActiveUntil;
+            const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
             const readySlotIdx = state.animals.findIndex(
               (s) => s.animalId === group.animalId &&
-                (now - s.lastCollectedAt) / 1000 >= animal.productionTime,
+                (now - s.lastCollectedAt) / 1000 >= effectiveTime,
             );
             if (readySlotIdx !== -1) {
               const cardCenterX = startX + col * cellW + cellW / 2;
@@ -113,7 +115,7 @@ export function FarmCanvas({ onPlotClick, onAnimalClick }: FarmCanvasProps) {
   const isOverAnimalCard = useCallback(
     (coords: { x: number; y: number }): boolean => {
       const now = Date.now();
-      const groups = groupAnimals(state.animals, now);
+      const groups = groupAnimals(state.animals, now, state.feedActiveUntil);
       if (groups.length === 0) return false;
       const { startY, cols, cellW, cellH } = getAnimalPenLayout(state.animals.length);
       const startX = GRID_PADDING;

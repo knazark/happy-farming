@@ -192,6 +192,7 @@ export function drawFrame(
   unlockMap?: Map<number, { cost: number; level: number; playerLevel: number; playerCoins: number }>,
   _farmName?: string,
   season?: string,
+  feedActiveUntil?: number,
 ) {
   const dpr = window.devicePixelRatio || 1;
   const w = ctx.canvas.width / dpr;
@@ -236,7 +237,7 @@ export function drawFrame(
   }
 
   // Animal pen
-  drawAnimalPen(ctx, animals, now);
+  drawAnimalPen(ctx, animals, now, feedActiveUntil);
 
   // Particles
   updateAndDrawParticles(ctx);
@@ -625,8 +626,9 @@ export interface AnimalGroup {
   slots: AnimalSlot[];
 }
 
-export function groupAnimals(animals: AnimalSlot[], now: number): AnimalGroup[] {
+export function groupAnimals(animals: AnimalSlot[], now: number, feedActiveUntil = 0): AnimalGroup[] {
   const map = new Map<string, AnimalGroup>();
+  const isFeedActive = now < feedActiveUntil;
   for (const slot of animals) {
     let group = map.get(slot.animalId);
     if (!group) {
@@ -636,7 +638,8 @@ export function groupAnimals(animals: AnimalSlot[], now: number): AnimalGroup[] 
     group.count++;
     group.slots.push(slot);
     const animal = ANIMALS[slot.animalId];
-    if ((now - slot.lastCollectedAt) / 1000 >= animal.productionTime) {
+    const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
+    if ((now - slot.lastCollectedAt) / 1000 >= effectiveTime) {
       group.readyCount++;
     }
   }
@@ -660,7 +663,7 @@ export function getAnimalPenLayout(_animalCount: number) {
   return { penY, labelH, startY, cols, cellW: ACW, cellH: ACH };
 }
 
-function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now: number) {
+function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now: number, feedActiveUntil = 0) {
   const { penY, startY, cols } = getAnimalPenLayout(animals.length);
   const penW = GRID_COLS * CELL_SIZE;
   const penX = GRID_PADDING;
@@ -681,7 +684,8 @@ function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now
     return;
   }
 
-  const groups = groupAnimals(animals, now);
+  const groups = groupAnimals(animals, now, feedActiveUntil);
+  const isFeedActive = now < feedActiveUntil;
 
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
@@ -816,10 +820,11 @@ function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now
       // Product emoji + time
       let minRemaining = Infinity;
       let totalProgress = 0;
+      const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
       for (const slot of group.slots) {
         const elapsed = (now - slot.lastCollectedAt) / 1000;
-        totalProgress += Math.min(1, elapsed / animal.productionTime);
-        const rem = Math.max(0, animal.productionTime - elapsed);
+        totalProgress += Math.min(1, elapsed / effectiveTime);
+        const rem = Math.max(0, effectiveTime - elapsed);
         if (rem < minRemaining) minRemaining = rem;
       }
       const avg = totalProgress / group.count;

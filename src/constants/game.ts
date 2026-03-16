@@ -19,6 +19,11 @@ export const MAX_LEVEL = 10;
 export const FERTILIZER_PRICE = 30;
 export const FERTILIZER_SPEED_MULTIPLIER = 0.5; // cuts growth time in half
 
+// Animal feed
+export const FEED_PRICE = 25;
+export const FEED_SPEED_MULTIPLIER = 0.5; // cuts production time in half
+export const FEED_DURATION = 120; // seconds — feed lasts 2 minutes
+
 // Crafting slots
 export const CRAFTING_SLOTS_BASE = 1;
 export const CRAFTING_SLOTS_MAX = 4;

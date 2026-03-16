@@ -102,9 +102,11 @@ function GameContent() {
         const animal = ANIMALS[slot.animalId];
         // Count ready products for this animal type
         const now = Date.now();
+        const isFeedActive = now < state.feedActiveUntil;
+        const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
         const readyCount = state.animals.filter(
           (s) => s.animalId === slot.animalId &&
-            (now - s.lastCollectedAt) / 1000 >= animal.productionTime,
+            (now - s.lastCollectedAt) / 1000 >= effectiveTime,
         ).length;
         const cx = cardCenterX ?? 350;
         const cy = cardCenterY ?? 550;
