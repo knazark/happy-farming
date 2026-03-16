@@ -15,6 +15,7 @@ import { CropSelector } from './components/CropSelector';
 import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
 import { ProfileEditor } from './components/ProfileEditor';
+import { SeasonalBackground } from './components/SeasonalBackground';
 import './App.css';
 
 type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | null;
@@ -125,6 +126,7 @@ function GameContent() {
 
   return (
     <div className="game-layout-v2">
+      <SeasonalBackground />
       <ToastContainer />
       <HUD onProfileClick={() => setShowProfile(true)} />
 
