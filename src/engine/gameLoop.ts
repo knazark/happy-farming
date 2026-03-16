@@ -1,7 +1,7 @@
 import type { GameState, PlotState, NpcOrder, ItemId, WeatherType } from '../types';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
-import { NPC_CUSTOMERS, MAX_ORDERS, ORDER_EXPIRE_TIME, ORDER_REWARD_MULTIPLIER, MARKET_FLUCTUATION_MIN, MARKET_FLUCTUATION_MAX, MARKET_UPDATE_INTERVAL } from '../constants/recipes';
+import { NPC_CUSTOMERS, getMaxOrders, ORDER_EXPIRE_TIME, ORDER_REWARD_MULTIPLIER, MARKET_FLUCTUATION_MIN, MARKET_FLUCTUATION_MAX, MARKET_UPDATE_INTERVAL } from '../constants/recipes';
 import { SEASON_DURATION, SEASON_ORDER, WEATHER_BY_SEASON, WEATHER_DURATION_MIN, WEATHER_DURATION_MAX } from '../constants/seasons';
 
 function generateOrder(level: number, now: number): NpcOrder {
@@ -9,21 +9,28 @@ function generateOrder(level: number, now: number): NpcOrder {
   const items: Partial<Record<ItemId, number>> = {};
   let baseValue = 0;
 
-  // Pick 1-2 random items the player can produce at their level
+  // Difficulty scales with level: more items, higher quantities
   const availableCrops = Object.values(CROPS).filter((c) => c.unlockLevel <= level);
   const availableAnimals = Object.values(ANIMALS).filter((a) => a.unlockLevel <= level);
 
-  const numItems = Math.random() < 0.5 ? 1 : 2;
+  // Lv1-2: 1-2 items, Lv3-5: 1-3 items, Lv6+: 2-3 items
+  const minItems = level >= 6 ? 2 : 1;
+  const maxItems = level >= 3 ? 3 : 2;
+  const numItems = minItems + Math.floor(Math.random() * (maxItems - minItems + 1));
+
+  // Quantity scales: base 1-3, +1 per 3 levels
+  const qtyBonus = Math.floor(level / 3);
+
   for (let i = 0; i < numItems; i++) {
     if (Math.random() < 0.6 && availableCrops.length > 0) {
       const crop = availableCrops[Math.floor(Math.random() * availableCrops.length)];
-      const qty = Math.floor(Math.random() * 3) + 1;
+      const qty = Math.floor(Math.random() * 3) + 1 + qtyBonus;
       items[crop.id] = (items[crop.id] ?? 0) + qty;
       baseValue += crop.sellPrice * qty;
     } else if (availableAnimals.length > 0) {
       const animal = availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
       const itemId: ItemId = `${animal.id}_product`;
-      const qty = Math.floor(Math.random() * 2) + 1;
+      const qty = Math.floor(Math.random() * 2) + 1 + Math.floor(qtyBonus / 2);
       items[itemId] = (items[itemId] ?? 0) + qty;
       baseValue += animal.productSellPrice * qty;
     }
@@ -72,10 +79,11 @@ export function tick(state: GameState, now: number): GameState {
     newState = { ...newState, orders: activeOrders };
   }
 
-  // Generate new orders if below max
-  if (newState.orders.length < MAX_ORDERS) {
+  // Generate new orders if below max (scales with level)
+  const maxOrders = getMaxOrders(newState.level);
+  if (newState.orders.length < maxOrders) {
     const newOrders = [...newState.orders];
-    while (newOrders.length < MAX_ORDERS) {
+    while (newOrders.length < maxOrders) {
       newOrders.push(generateOrder(newState.level, now));
     }
     newState = { ...newState, orders: newOrders };

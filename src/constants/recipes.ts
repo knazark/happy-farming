@@ -151,6 +151,36 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 9,
     xpReward: 60,
   },
+  ratatouille: {
+    id: 'ratatouille',
+    name: 'Рататуй',
+    emoji: '🍆',
+    ingredients: { eggplant: 2, tomato: 2, parsley: 1 },
+    craftTime: 270,       // 4.5 хв
+    sellPrice: 190,
+    unlockLevel: 5,
+    xpReward: 26,
+  },
+  smoothie: {
+    id: 'smoothie',
+    name: 'Смузі',
+    emoji: '🥤',
+    ingredients: { strawberry: 2, blueberry: 2, carrot: 1 },
+    craftTime: 90,        // 1.5 хв
+    sellPrice: 110,
+    unlockLevel: 4,
+    xpReward: 16,
+  },
+  farmer_pie: {
+    id: 'farmer_pie',
+    name: 'Фермерський пиріг',
+    emoji: '🫓',
+    ingredients: { potato: 2, corn: 2, chicken_product: 2, wheat: 1 },
+    craftTime: 420,       // 7 хв
+    sellPrice: 300,
+    unlockLevel: 7,
+    xpReward: 45,
+  },
 };
 
 export const STORAGE_BASE = 50;
@@ -162,7 +192,11 @@ export const MARKET_FLUCTUATION_MAX = 1.4;
 export const MARKET_UPDATE_INTERVAL = 300; // seconds
 
 export const ORDER_EXPIRE_TIME = 600; // seconds
-export const MAX_ORDERS = 3;
+export const MAX_ORDERS_BASE = 2;
+export function getMaxOrders(level: number): number {
+  // Lv1-2: 2, Lv3-4: 3, Lv5-6: 4, Lv7-8: 5, Lv9-10: 6
+  return MAX_ORDERS_BASE + Math.floor(level / 2);
+}
 export const ORDER_REWARD_MULTIPLIER = 1.5;
 
 export const NPC_CUSTOMERS = [

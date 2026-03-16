@@ -33,7 +33,7 @@ export type PlotState =
   | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean }
   | { status: 'ready'; cropId: CropId };
 
-export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki';
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie';
 
 export type ItemId = CropId | `${AnimalId}_product` | CraftedId;
 
