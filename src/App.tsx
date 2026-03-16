@@ -16,11 +16,10 @@ import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
-import { MarketPanel } from './components/MarketPanel';
 import { NeighborsPanel } from './components/NeighborsPanel';
 import './App.css';
 
-type PanelId = 'shop' | 'market' | 'crafting' | 'orders' | 'inventory' | 'friends' | null;
+type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | 'friends' | null;
 
 function GameContent() {
   const { state, dispatch } = useGame();
@@ -151,13 +150,6 @@ function GameContent() {
           <span className="bar-btn-label">Ринок</span>
         </button>
         <button
-          className={`bar-btn ${activePanel === 'market' ? 'bar-btn-active' : ''}`}
-          onClick={() => togglePanel('market')}
-        >
-          <span className="bar-btn-icon">🛒</span>
-          <span className="bar-btn-label">Магазин</span>
-        </button>
-        <button
           className={`bar-btn ${activePanel === 'crafting' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('crafting')}
         >
@@ -196,7 +188,6 @@ function GameContent() {
           <div className="panel-popup" onClick={(e) => e.stopPropagation()}>
             <button className="panel-popup-close" onClick={() => setActivePanel(null)}>✕</button>
             {activePanel === 'shop' && <ShopPanel />}
-            {activePanel === 'market' && <MarketPanel />}
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
