@@ -4,7 +4,7 @@ import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { ANIMAL_PEN_COLS, ANIMAL_CELL_H } from '../constants/game';
 import { plotIndexToPixel } from './interaction';
-import { updateAndDrawParticles } from './particles';
+import { updateAndDrawParticles, updateSeasonalParticles } from './particles';
 
 /* ===== Bright & Playful Palette ===== */
 const C = {
@@ -97,6 +97,37 @@ function drawCachedBackground(ctx: CanvasRenderingContext2D, w: number, h: numbe
     bg.stroke();
   }
 
+  // Decorative margin emojis
+  const decoEmojis: Record<string, string[]> = {
+    spring: ['🌸', '🌷', '🌼', '🦋'],
+    summer: ['🌻', '🌺', '🌿', '🦗'],
+    autumn: ['🍂', '🍁', '🍄', '🌰'],
+    winter: ['⛄', '❄️', '🎄', '🐦'],
+  };
+  const emojis = decoEmojis[season] || decoEmojis.spring;
+  bg.font = '16px serif';
+  bg.textAlign = 'center';
+  bg.textBaseline = 'middle';
+  bg.globalAlpha = 0.6;
+  for (let i = 0; i < 10; i++) {
+    // Place in margins - left, right, bottom areas
+    const hash = (seed * (i + 300) * 5471) % 10000;
+    const side = hash % 3; // 0=left, 1=right, 2=bottom
+    let dx: number, dy: number;
+    if (side === 0) {
+      dx = ((hash * 3) % 12);
+      dy = ((seed * (i + 400) * 3917) % (h * 100)) / 100;
+    } else if (side === 1) {
+      dx = w - ((hash * 3) % 12);
+      dy = ((seed * (i + 400) * 3917) % (h * 100)) / 100;
+    } else {
+      dx = ((seed * (i + 500) * 2713) % (w * 100)) / 100;
+      dy = h - ((hash * 5) % 30) - 10;
+    }
+    bg.fillText(emojis[i % emojis.length], dx, dy);
+  }
+  bg.globalAlpha = 1;
+
   // Winter: add snowflake dots
   if (season === 'winter') {
     bg.fillStyle = 'rgba(255,255,255,0.5)';
@@ -113,6 +144,51 @@ function drawCachedBackground(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
   bg.globalAlpha = 1;
   ctx.drawImage(bgCache, 0, 0);
+}
+
+/* ===== Farm Header ===== */
+function drawFarmHeader(ctx: CanvasRenderingContext2D, farmX: number, farmY: number, farmW: number) {
+  const headerY = farmY - 40;
+
+  // Farmhouse emoji on the left
+  ctx.font = '28px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🏠', farmX + 20, headerY + 16);
+
+  // Windmill emoji on the right
+  ctx.fillText('🌾', farmX + farmW - 20, headerY + 16);
+
+  // Wooden banner in the middle
+  const bannerW = 160;
+  const bannerH = 28;
+  const bannerX = farmX + (farmW - bannerW) / 2;
+  const bannerY = headerY + 2;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.15)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetY = 2;
+  const woodGrad = ctx.createLinearGradient(bannerX, bannerY, bannerX, bannerY + bannerH);
+  woodGrad.addColorStop(0, '#C4A882');
+  woodGrad.addColorStop(0.5, '#A68B6B');
+  woodGrad.addColorStop(1, '#8D6E4C');
+  ctx.fillStyle = woodGrad;
+  rr(ctx, bannerX, bannerY, bannerW, bannerH, 8);
+  ctx.fill();
+  ctx.restore();
+
+  // Banner text
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Моя ферма', bannerX + bannerW / 2, bannerY + bannerH / 2);
+
+  // Small flower emojis near edges
+  ctx.font = '14px serif';
+  ctx.fillText('🌻', farmX + 52, headerY + 18);
+  ctx.fillText('🌷', farmX + farmW - 52, headerY + 18);
 }
 
 /* ===== Wooden Fence ===== */
@@ -208,6 +284,9 @@ export function drawFrame(
   const farmW = GRID_COLS * CELL_SIZE;
   const farmH = GRID_ROWS * CELL_SIZE;
 
+  // Farm header with decorative elements
+  drawFarmHeader(ctx, farmX, farmY, farmW);
+
   // Wooden fence around farm plots
   drawFence(ctx, farmX, farmY, farmW, farmH);
 
@@ -241,6 +320,7 @@ export function drawFrame(
 
   // Particles
   updateAndDrawParticles(ctx);
+  updateSeasonalParticles(ctx, sid);
 
 }
 
@@ -426,11 +506,18 @@ function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number,
 
     case 'empty': {
       drawSoilBed(ctx, x, y, INNER, INNER);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      const breathScale = 1 + Math.sin(now / 1000 + index * 0.5) * 0.15;
+      const plusAlpha = 0.25 + Math.sin(now / 1200 + index * 0.7) * 0.1;
+      ctx.save();
+      ctx.globalAlpha = plusAlpha;
+      ctx.translate(x + INNER / 2, y + INNER / 2);
+      ctx.scale(breathScale, breathScale);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.font = '500 30px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('+', x + INNER / 2, y + INNER / 2);
+      ctx.fillText('+', 0, 0);
+      ctx.restore();
       break;
     }
 
@@ -515,7 +602,8 @@ function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number,
       const barH = 6;
       const barX = x + 12;
       const barY = y + INNER - 18;
-      drawProgress(ctx, barX, barY, barW, barH, progress, C.progressFill);
+      const barColor = lerpColor('#2E7D32', '#C0CA33', progress);
+      drawProgress(ctx, barX, barY, barW, barH, progress, barColor);
 
       ctx.fillStyle = C.text2;
       ctx.font = '500 9px sans-serif';
