@@ -155,6 +155,11 @@ body::after {
 .game-center {
   position: relative;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== HUD — Colorful Bubble Header ===== */
@@ -2073,4 +2078,38 @@ body::after {
 .shop-item-lock {
   font-size: 11px;
   color: #C4B0D8;
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 500px) {
+  .hud {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 14px;
+  }
+  .hud-left { gap: 6px; }
+  .hud-profile-btn { width: 30px; height: 30px; font-size: 18px; }
+  .hud-title { font-size: 13px; }
+  .hud-level-badge { font-size: 11px; padding: 2px 8px; }
+  .hud-xp-bar { width: 50px; height: 6px; }
+  .hud-xp-label { font-size: 10px; }
+  .hud-right { gap: 4px; }
+  .hud-env-item { padding: 2px 6px; }
+  .hud-env-emoji { font-size: 13px; }
+  .hud-env-name { font-size: 10px; }
+  .hud-env-desc { font-size: 8px; }
+  .hud-env-timer { font-size: 8px; }
+  .hud-mod { font-size: 9px; padding: 1px 5px; }
+  .hud-coins { font-size: 12px; padding: 3px 8px; }
+  .hud-fertilizers { font-size: 12px; padding: 3px 8px; }
+
+  .bottom-bar { padding: 2px 4px; }
+  .bar-btn { font-size: 11px; padding: 4px 6px; }
+  .bar-btn-icon { font-size: 18px; }
+  .bar-btn-label { font-size: 9px; }
+
+  .panel-popup { max-height: 75vh; }
+
+  .toast { font-size: 12px; padding: 8px 16px; }
 }

@@ -1,7 +1,6 @@
 import { CROP_LIST, CROPS } from '../constants/crops';
 import { useGame } from '../state/GameContext';
 import { SEASON_INFO } from '../constants/seasons';
-import { spawnPlantParticles } from '../canvas/particles';
 import { showToast } from './Toast';
 import type { CropId } from '../types';
 
@@ -18,7 +17,6 @@ export function CropSelector({ plotIndex, onClose, isBottomRow }: CropSelectorPr
 
   const handleSelect = (cropId: CropId) => {
     const crop = CROPS[cropId];
-    spawnPlantParticles(plotIndex, crop.emoji);
     showToast(`${crop.emoji} ${crop.name} посаджено! −${crop.seedPrice}💰`, 'spend');
     dispatch({ type: 'PLANT_CROP', plotIndex, cropId });
     onClose();

@@ -1,0 +1,554 @@
+/* ===== Farm View Container ===== */
+.farm-view {
+  position: relative;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  /* Default grass background (spring) */
+  background: linear-gradient(to bottom, #7BC67E, #4CAF50);
+}
+
+/* Season-specific grass backgrounds */
+.season-spring .farm-view { background: linear-gradient(to bottom, #7BC67E, #4CAF50); }
+.season-summer .farm-view { background: linear-gradient(to bottom, #5DAE3B, #3D8B2A); }
+.season-autumn .farm-view { background: linear-gradient(to bottom, #C4A04E, #8B7530); }
+.season-winter .farm-view { background: linear-gradient(to bottom, #D8E8F0, #B0C8D8); }
+
+/* ===== Plot Grid ===== */
+.farm-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 135px);
+  justify-content: center;
+  gap: 5px;
+  padding: 14px;
+}
+
+.plot-cell {
+  position: relative;
+  aspect-ratio: 1;
+  max-height: 135px;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.plot-cell:hover {
+  transform: translateY(-1px);
+}
+
+.plot-hovered {
+  box-shadow: 0 0 12px rgba(62, 142, 65, 0.4);
+  outline: 2.5px solid #4CAF50;
+  outline-offset: -1px;
+}
+
+/* ===== Locked Plot ===== */
+.plot-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.plot-locked {
+  background: linear-gradient(to bottom, #7A6E5E, #9E9080);
+}
+
+.plot-crosshatch {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    rgba(0,0,0,0.07) 7px,
+    rgba(0,0,0,0.07) 8px
+  );
+}
+
+.plot-lock-emoji {
+  font-size: 28px;
+  opacity: 0.5;
+  position: relative;
+  z-index: 1;
+}
+
+.plot-lock-cost {
+  font-size: 11px;
+  font-weight: bold;
+  color: rgba(100, 80, 60, 0.5);
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+}
+
+.plot-lock-cost.can-afford {
+  color: rgba(146, 64, 14, 0.75);
+}
+
+.plot-lock-level {
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(153, 27, 27, 0.6);
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Empty Plot ===== */
+.plot-empty {
+  background: linear-gradient(to bottom, #A0845A, #7A6240);
+}
+
+.plot-furrows {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 16px,
+    rgba(0,0,0,0.08) 16px,
+    rgba(0,0,0,0.08) 17.5px
+  );
+  border-radius: 14px;
+}
+
+.plot-empty::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: rgba(255,255,255,0.12);
+}
+
+.plot-plus {
+  font-size: 30px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.3);
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Growing Plot ===== */
+.plot-growing {
+  background: linear-gradient(to bottom, #A0845A, #7A6240);
+}
+
+.plot-soil-mound {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: 28px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  background: rgba(90, 65, 35, 0.3);
+  border-radius: 50%;
+}
+
+.plot-emoji-disc {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.75);
+  border-radius: 50%;
+}
+
+.plot-plant {
+  position: relative;
+  z-index: 2;
+  display: block;
+  text-align: center;
+  line-height: 1;
+  margin-top: -10%;
+}
+
+.plot-plant.stage-2,
+.plot-plant.stage-3,
+.plot-plant.stage-4 {
+  animation: plant-sway 3s ease-in-out infinite;
+}
+
+.plot-plant.stage-1,
+.plot-plant.stage-2,
+.plot-plant.stage-3,
+.plot-plant.stage-4 {
+  animation: plant-breathe 2.5s ease-in-out infinite;
+}
+
+@keyframes plant-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes plant-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.plot-time-pill {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.45);
+  color: #FFF;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.plot-progress-bar {
+  position: absolute;
+  bottom: 8%;
+  left: 10%;
+  right: 10%;
+  height: 6px;
+  background: #E8E0F0;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 0.5px solid rgba(42, 30, 18, 0.2);
+  z-index: 3;
+}
+
+.plot-progress-fill {
+  height: 100%;
+  background: #4CAF50;
+  border-radius: 3px;
+  transition: width 0.3s linear;
+}
+
+/* ===== Ready Plot ===== */
+.plot-ready {
+  background: linear-gradient(to bottom, #D4A843 0%, #C49538 40%, #A87D30 70%, #8B6528 100%);
+  animation: ready-glow-border 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes ready-glow-border {
+  0% { box-shadow: 0 0 8px rgba(198, 124, 47, 0.3), inset 0 0 0 2px #FF6B35; }
+  100% { box-shadow: 0 0 18px rgba(198, 124, 47, 0.6), inset 0 0 0 2px #FF6B35; }
+}
+
+.plot-ready-emoji {
+  font-size: 40px;
+  position: relative;
+  z-index: 2;
+  animation: ready-bounce 0.8s ease-in-out infinite;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+}
+
+@keyframes ready-bounce {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+.plot-ready-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.sparkle {
+  position: absolute;
+  color: #FFD700;
+  font-size: 10px;
+  animation: sparkle-orbit 2.5s linear infinite;
+  opacity: 0.7;
+}
+.sparkle.s1 { top: 15%; left: 10%; animation-delay: 0s; }
+.sparkle.s2 { top: 10%; right: 15%; animation-delay: -0.6s; }
+.sparkle.s3 { bottom: 25%; right: 10%; animation-delay: -1.2s; }
+.sparkle.s4 { bottom: 20%; left: 15%; animation-delay: -1.8s; }
+
+@keyframes sparkle-orbit {
+  0% { transform: scale(0.5) rotate(0deg); opacity: 0.4; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.9; }
+  100% { transform: scale(0.5) rotate(360deg); opacity: 0.4; }
+}
+
+.plot-harvest-pill {
+  position: absolute;
+  bottom: 5%;
+  left: 6%;
+  right: 6%;
+  background: #FF6B35;
+  color: #FFF;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 11px;
+  z-index: 3;
+  box-shadow: 0 2px 4px rgba(180, 120, 0, 0.3);
+  animation: pill-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pill-pulse {
+  0% { opacity: 0.75; }
+  100% { opacity: 1; }
+}
+
+/* ===== Greenhouse tint ===== */
+.plot-greenhouse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(100, 220, 150, 0.12);
+  border-radius: 14px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.plot-greenhouse-icon {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 12px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ===== Animal Pen ===== */
+.animal-pen {
+  padding: 4px 14px 12px;
+  min-height: 160px;  /* reserve space for 2 rows of animal cards */
+}
+
+.animal-pen-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1a1a1a;
+  padding: 4px 4px 8px;
+}
+
+.animal-pen-empty {
+  text-align: center;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 16px 0;
+}
+
+.animal-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+/* ===== Animal Card ===== */
+.animal-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #FFF8E1, #FFECB3);
+  border: 1.5px solid #FFD54F;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.07);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 56px;
+}
+
+/* Hay texture */
+.animal-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 213, 79, 0.15) 6px,
+    rgba(255, 213, 79, 0.15) 7px
+  );
+  pointer-events: none;
+}
+
+.animal-ready {
+  background: linear-gradient(to bottom, #FFF3E0, #FFE0B2);
+  border-color: #FF6B35;
+  border-width: 2px;
+  animation: animal-ready-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes animal-ready-glow {
+  0% { box-shadow: 0 0 4px rgba(255, 107, 53, 0.2); }
+  100% { box-shadow: 0 0 12px rgba(255, 107, 53, 0.5); }
+}
+
+.animal-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.animal-emoji-disc {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.animal-emoji-disc.disc-ready {
+  background: rgba(255,255,255,0.85);
+}
+
+.animal-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.animal-bounce {
+  animation: ready-bounce 0.8s ease-in-out infinite;
+}
+
+.animal-sparkles {
+  position: absolute;
+  inset: -8px;
+}
+
+.animal-sparkles .sparkle {
+  font-size: 7px;
+}
+
+.animal-sparkles .sparkle.s1 {
+  top: 0; left: -2px;
+}
+.animal-sparkles .sparkle.s2 {
+  bottom: 0; right: -2px;
+}
+
+.animal-count {
+  font-size: 10px;
+  font-weight: bold;
+  color: #9E86B8;
+}
+
+.animal-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.animal-collect-pill {
+  background: #FF6B35;
+  color: #FFF;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(180, 120, 0, 0.25);
+  animation: pill-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.animal-timer {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9E86B8;
+}
+
+.animal-progress-bar {
+  width: 100%;
+  height: 5px;
+  background: #E8E0F0;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 0.5px solid rgba(42, 30, 18, 0.2);
+}
+
+.animal-progress-fill {
+  height: 100%;
+  background: #4CAF50;
+  border-radius: 3px;
+  transition: width 0.5s linear;
+}
+
+/* ===== Plot leaves decoration ===== */
+.plot-leaves {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.plot-leaves::before,
+.plot-leaves::after {
+  content: '🍃';
+  position: absolute;
+  font-size: 10px;
+  opacity: 0.4;
+  animation: leaf-sway 3s ease-in-out infinite alternate;
+}
+
+.plot-leaves::before {
+  top: 25%;
+  left: 12%;
+}
+
+.plot-leaves::after {
+  bottom: 35%;
+  right: 12%;
+  animation-delay: -1.5s;
+}
+
+@keyframes leaf-sway {
+  0% { transform: rotate(-10deg) scale(0.9); }
+  100% { transform: rotate(10deg) scale(1.1); }
+}
+
+/* ===== Responsive: scale down on small screens ===== */
+@media (max-width: 850px) {
+  .farm-grid { grid-template-columns: repeat(6, 1fr); }
+  .plot-cell { max-height: none; }
+  .plot-lock-emoji { font-size: 22px; }
+  .plot-lock-cost { font-size: 10px; }
+  .plot-plus { font-size: 24px; }
+  .plot-ready-emoji { font-size: 32px; }
+  .plot-harvest-pill { font-size: 9px; padding: 3px 4px; }
+  .plot-time-pill { font-size: 9px; padding: 1px 5px; }
+  .animal-emoji { font-size: 18px; }
+  .animal-emoji-disc { width: 30px; height: 30px; }
+  .animal-collect-pill { font-size: 9px; padding: 2px 5px; }
+  .animal-timer { font-size: 9px; }
+  .animal-card { min-height: 44px; padding: 4px; }
+}
+
+@media (max-width: 500px) {
+  /* Switch to 3 columns on mobile */
+  .farm-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px; }
+  .animal-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .animal-pen { padding: 4px 8px 8px; }
+  .plot-lock-emoji { font-size: 22px; }
+  .plot-lock-cost { font-size: 10px; }
+  .plot-lock-level { font-size: 9px; }
+  .plot-plus { font-size: 26px; }
+  .plot-ready-emoji { font-size: 34px; }
+  .plot-harvest-pill { font-size: 10px; padding: 3px 5px; }
+  .plot-time-pill { font-size: 10px; padding: 2px 6px; }
+  .plot-progress-bar { height: 5px; }
+  .animal-card { min-height: 50px; }
+}

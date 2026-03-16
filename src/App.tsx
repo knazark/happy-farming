@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameProvider, useGame } from './state/GameContext';
 import { getFarmerId, addNeighbor, ensureProfile } from './firebase/db';
-import { FarmCanvas } from './canvas/FarmCanvas';
-import { spawnHarvestParticles, spawnCollectParticles, spawnUnlockParticles } from './canvas/particles';
+import { FarmView } from './components/FarmView';
 import { ToastContainer, showToast } from './components/Toast';
 import { getUnlockCost, getUnlockLevel } from './engine/economy';
 import { ANIMALS } from './constants/animals';
@@ -19,6 +18,7 @@ import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
 import { NeighborsPanel } from './components/NeighborsPanel';
 import './App.css';
+import './styles/farm.css';
 
 type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | 'friends' | null;
 
@@ -70,7 +70,6 @@ function GameContent() {
           break;
         case 'ready': {
           const crop = CROPS[plot.cropId];
-          spawnHarvestParticles(plotIndex, crop.emoji, crop.sellPrice);
           showToast(`${crop.emoji} ${crop.name} зібрано! +${crop.sellPrice}💰`, 'earn');
           dispatch({ type: 'HARVEST', plotIndex });
           break;
@@ -83,7 +82,6 @@ function GameContent() {
           } else if (state.coins < cost) {
             showToast(`🔒 Потрібно ${cost}💰`, 'info');
           } else {
-            spawnUnlockParticles(plotIndex);
             showToast(`🔓 Нова ділянка! −${cost}💰`, 'spend');
             dispatch({ type: 'UNLOCK_PLOT', plotIndex });
           }
@@ -97,21 +95,10 @@ function GameContent() {
   );
 
   const handleAnimalClick = useCallback(
-    (animalIndex: number, cardCenterX?: number, cardCenterY?: number) => {
+    (animalIndex: number) => {
       const slot = state.animals[animalIndex];
       if (slot) {
         const animal = ANIMALS[slot.animalId];
-        // Count ready products for this animal type
-        const now = Date.now();
-        const isFeedActive = now < state.feedActiveUntil;
-        const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
-        const readyCount = state.animals.filter(
-          (s) => s.animalId === slot.animalId &&
-            (now - s.lastCollectedAt) / 1000 >= effectiveTime,
-        ).length;
-        const cx = cardCenterX ?? 350;
-        const cy = cardCenterY ?? 550;
-        spawnCollectParticles(cx, cy, animal.productEmoji, animal.productSellPrice, Math.min(readyCount, 1));
         showToast(`${animal.productEmoji} ${animal.productName} зібрано! +${animal.productSellPrice}💰`, 'earn');
       }
       dispatch({ type: 'COLLECT_PRODUCT', animalIndex });
@@ -138,7 +125,7 @@ function GameContent() {
       <HUD onProfileClick={() => setShowProfile(true)} />
 
       <div className="game-center">
-        <FarmCanvas onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} />
+        <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} />
       </div>
 
       {/* Bottom bar */}
