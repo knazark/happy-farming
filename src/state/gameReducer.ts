@@ -48,8 +48,8 @@ export function migrateSave(state: any): GameState {
     orders: state.orders ?? [],
     storageCapacity: state.storageCapacity ?? STORAGE_BASE,
     marketPriceMultiplier: state.marketPriceMultiplier ?? 1,
-    season: state.season ?? 'spring',
-    seasonStartedAt: state.seasonStartedAt ?? Date.now(),
+    season: 'winter', // TEMP: force winter for testing
+    seasonStartedAt: Date.now(),
     weather: state.weather ?? { type: 'sunny' as const, changesAt: Date.now() + 120000 },
     achievements: state.achievements ?? [],
     dailyQuests: state.dailyQuests ?? generateDailyQuests(),
