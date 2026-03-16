@@ -13,7 +13,7 @@ export interface CropDef {
   seasonOnly?: Season;
 }
 
-export type AnimalId = 'chicken' | 'cow' | 'pig' | 'sheep' | 'rabbit' | 'goat' | 'duck' | 'cat' | 'dog';
+export type AnimalId = 'chicken' | 'cow' | 'pig' | 'sheep' | 'rabbit' | 'goat' | 'duck' | 'cat' | 'dog' | 'horse' | 'turkey' | 'bee' | 'goose';
 
 export interface AnimalDef {
   id: AnimalId;
@@ -34,7 +34,7 @@ export type PlotState =
   | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean }
   | { status: 'ready'; cropId: CropId };
 
-export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey';
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey' | 'honey_cake' | 'roast_turkey' | 'down_pillow' | 'horse_carriage';
 
 export type ItemId = CropId | `${AnimalId}_product` | CraftedId;
 

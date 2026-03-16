@@ -109,6 +109,54 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 8,
     xpReward: 50,
   },
+  goose: {
+    id: 'goose',
+    name: 'Гуска',
+    emoji: '🦢',
+    productEmoji: '🪶',
+    productName: 'Гусячий пух',
+    productionTime: 360,    // 6 хв
+    buyPrice: 400,
+    productSellPrice: 30,
+    unlockLevel: 4,
+    xpReward: 18,
+  },
+  turkey: {
+    id: 'turkey',
+    name: 'Індик',
+    emoji: '🦃',
+    productEmoji: '🍗',
+    productName: 'Індичатина',
+    productionTime: 420,    // 7 хв
+    buyPrice: 600,
+    productSellPrice: 45,
+    unlockLevel: 5,
+    xpReward: 22,
+  },
+  bee: {
+    id: 'bee',
+    name: 'Бджоли',
+    emoji: '🐝',
+    productEmoji: '🍯',
+    productName: 'Мед',
+    productionTime: 300,    // 5 хв
+    buyPrice: 800,
+    productSellPrice: 50,
+    unlockLevel: 6,
+    xpReward: 28,
+  },
+  horse: {
+    id: 'horse',
+    name: 'Кінь',
+    emoji: '🐴',
+    productEmoji: '🏇',
+    productName: 'Верхова їзда',
+    productionTime: 540,    // 9 хв
+    buyPrice: 1200,
+    productSellPrice: 75,
+    unlockLevel: 7,
+    xpReward: 35,
+  },
 };
 
 export const ANIMAL_LIST: AnimalDef[] = Object.values(ANIMALS).sort((a, b) => a.unlockLevel - b.unlockLevel || a.buyPrice - b.buyPrice);

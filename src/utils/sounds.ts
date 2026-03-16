@@ -395,6 +395,144 @@ function playDogSound() {
   }
 }
 
+function playGooseSound() {
+  const t = audioCtx.currentTime;
+  // Га-га-га: honking with nasal resonance
+  for (let i = 0; i < 3; i++) {
+    const start = t + i * 0.25;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const bp = audioCtx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, start);
+    osc.frequency.linearRampToValueAtTime(300, start + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(200, start + 0.18);
+
+    bp.type = 'bandpass';
+    bp.frequency.value = 1200;
+    bp.Q.value = 2.5;
+
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.12, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.2);
+
+    osc.connect(bp);
+    bp.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(start);
+    osc.stop(start + 0.22);
+  }
+}
+
+function playTurkeySound() {
+  const t = audioCtx.currentTime;
+  // Кулу-лу: gobbling with rapid frequency modulation
+  const osc = audioCtx.createOscillator();
+  const tremolo = audioCtx.createOscillator();
+  const tremoloGain = audioCtx.createGain();
+  const gain = audioCtx.createGain();
+  const bp = audioCtx.createBiquadFilter();
+
+  tremolo.frequency.value = 20;
+  tremoloGain.gain.value = 60;
+  tremolo.connect(tremoloGain);
+  tremoloGain.connect(osc.frequency);
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(300, t);
+  osc.frequency.linearRampToValueAtTime(400, t + 0.2);
+  osc.frequency.linearRampToValueAtTime(350, t + 0.5);
+  osc.frequency.linearRampToValueAtTime(280, t + 0.8);
+
+  bp.type = 'bandpass';
+  bp.frequency.value = 1000;
+  bp.Q.value = 2;
+
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.1, t + 0.03);
+  gain.gain.setValueAtTime(0.1, t + 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+
+  osc.connect(bp);
+  bp.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  tremolo.start(t);
+  osc.stop(t + 1.0);
+  tremolo.stop(t + 1.0);
+}
+
+function playBeeSound() {
+  const t = audioCtx.currentTime;
+  // Бзз: buzzing with two oscillators
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc1.type = 'sawtooth';
+  osc1.frequency.setValueAtTime(150, t);
+  osc1.frequency.linearRampToValueAtTime(180, t + 0.3);
+  osc1.frequency.linearRampToValueAtTime(140, t + 0.8);
+
+  osc2.type = 'square';
+  osc2.frequency.setValueAtTime(153, t);
+  osc2.frequency.linearRampToValueAtTime(183, t + 0.3);
+
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.06, t + 0.05);
+  gain.gain.setValueAtTime(0.06, t + 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+
+  osc1.connect(gain);
+  osc2.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc1.start(t);
+  osc2.start(t);
+  osc1.stop(t + 1.0);
+  osc2.stop(t + 1.0);
+}
+
+function playHorseSound() {
+  const t = audioCtx.currentTime;
+  // Іго-го: neighing with rising-falling frequency
+  const osc = audioCtx.createOscillator();
+  const vibrato = audioCtx.createOscillator();
+  const vibratoGain = audioCtx.createGain();
+  const gain = audioCtx.createGain();
+  const lp = audioCtx.createBiquadFilter();
+
+  vibrato.frequency.value = 6;
+  vibratoGain.gain.value = 30;
+  vibrato.connect(vibratoGain);
+  vibratoGain.connect(osc.frequency);
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(250, t);
+  osc.frequency.linearRampToValueAtTime(500, t + 0.3);
+  osc.frequency.linearRampToValueAtTime(600, t + 0.5);
+  osc.frequency.linearRampToValueAtTime(400, t + 0.9);
+  osc.frequency.linearRampToValueAtTime(250, t + 1.3);
+
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(1500, t);
+  lp.frequency.linearRampToValueAtTime(2500, t + 0.4);
+  lp.frequency.linearRampToValueAtTime(1000, t + 1.0);
+
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.1, t + 0.1);
+  gain.gain.setValueAtTime(0.12, t + 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+
+  osc.connect(lp);
+  lp.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  vibrato.start(t);
+  osc.stop(t + 1.5);
+  vibrato.stop(t + 1.5);
+}
+
 function playGenericAnimalSound() {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -418,6 +556,10 @@ const ANIMAL_SOUNDS: Record<string, () => void> = {
   goat: playGoatSound,
   cat: playCatSound,
   dog: playDogSound,
+  goose: playGooseSound,
+  turkey: playTurkeySound,
+  bee: playBeeSound,
+  horse: playHorseSound,
 };
 
 export function playAnimalSound(animalId: string) {

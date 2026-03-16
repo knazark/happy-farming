@@ -201,6 +201,46 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 9,
     xpReward: 75,
   },
+  honey_cake: {
+    id: 'honey_cake',
+    name: 'Медовик',
+    emoji: '🍰',
+    ingredients: { bee_product: 2, wheat: 3, chicken_product: 2 },
+    craftTime: 360,       // 6 хв
+    sellPrice: 220,
+    unlockLevel: 6,
+    xpReward: 30,
+  },
+  roast_turkey: {
+    id: 'roast_turkey',
+    name: 'Індичка запечена',
+    emoji: '🍗',
+    ingredients: { turkey_product: 2, potato: 2, carrot: 1 },
+    craftTime: 420,       // 7 хв
+    sellPrice: 260,
+    unlockLevel: 6,
+    xpReward: 35,
+  },
+  down_pillow: {
+    id: 'down_pillow',
+    name: 'Пухова подушка',
+    emoji: '🛏️',
+    ingredients: { goose_product: 3, sheep_product: 2 },
+    craftTime: 480,       // 8 хв
+    sellPrice: 300,
+    unlockLevel: 5,
+    xpReward: 32,
+  },
+  horse_carriage: {
+    id: 'horse_carriage',
+    name: 'Кінна прогулянка',
+    emoji: '🏇',
+    ingredients: { horse_product: 2, wheat: 2, carrot: 3 },
+    craftTime: 540,       // 9 хв
+    sellPrice: 350,
+    unlockLevel: 8,
+    xpReward: 45,
+  },
 };
 
 export const STORAGE_BASE = 50;
