@@ -14,7 +14,9 @@
   grid-template-columns: repeat(6, 1fr);
   gap: 5px;
   padding: 14px;
-  background: linear-gradient(to bottom, #6B5740, #4A3A2A);
+  background: rgba(60, 45, 30, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 10px;
   margin: 8px;
 }
@@ -52,7 +54,7 @@
 }
 
 .plot-locked {
-  background: linear-gradient(to bottom, #4A3B2A, #3A2E20);
+  background: linear-gradient(to bottom, #6B5840, #4A3B2A);
 }
 
 .plot-crosshatch {
@@ -97,7 +99,7 @@
 
 /* ===== Empty Plot ===== */
 .plot-empty {
-  background: linear-gradient(to bottom, #5C4A35, #3E3025);
+  background: linear-gradient(to bottom, #7A6348, #5C4A35);
 }
 
 .plot-furrows {
@@ -133,7 +135,7 @@
 
 /* ===== Growing Plot ===== */
 .plot-growing {
-  background: linear-gradient(to bottom, #5C4A35, #3E3025);
+  background: linear-gradient(to bottom, #7A6348, #5C4A35);
 }
 
 .plot-soil-mound {

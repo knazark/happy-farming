@@ -37,13 +37,13 @@ body, body.season-spring {
   );
 }
 
-/* Summer — warm sky, deep green, golden tint */
+/* Summer — hot sky, golden-green fields */
 body.season-summer {
   background: linear-gradient(
     180deg,
-    #64B5F6 0%, #90CAF9 15%, #E6EE9C 28%,
-    #7CB342 40%, #558B2F 52%, #4A7C1F 62%,
-    #3E6B18 75%, #2E5A10 100%
+    #42A5F5 0%, #81D4FA 12%, #FFF59D 26%,
+    #AED581 38%, #8BC34A 48%, #689F38 58%,
+    #558B2F 70%, #33691E 100%
   );
 }
 
