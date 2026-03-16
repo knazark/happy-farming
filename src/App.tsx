@@ -1,5 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { GameProvider, useGame } from './state/GameContext';
+import { getFarmerId, addNeighbor, ensureProfile } from './firebase/db';
 import { FarmCanvas } from './canvas/FarmCanvas';
 import { spawnHarvestParticles, spawnCollectParticles, spawnUnlockParticles } from './canvas/particles';
 import { ToastContainer, showToast } from './components/Toast';
@@ -22,6 +24,22 @@ type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'neighbors' | 'achiev
 
 function GameContent() {
   const { state, dispatch } = useGame();
+  const [searchParams] = useSearchParams();
+
+  // Handle invite link
+  useEffect(() => {
+    const inviteId = searchParams.get('invite');
+    if (inviteId && inviteId !== getFarmerId()) {
+      ensureProfile(state).then(() =>
+        addNeighbor(getFarmerId(), inviteId)
+      ).then(ok => {
+        if (ok) showToast('🏘️ Нового сусіда додано!', 'earn');
+        window.history.replaceState({}, '', '/');
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;
     position: { x: number; y: number };
