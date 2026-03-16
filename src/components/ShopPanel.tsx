@@ -1,5 +1,5 @@
 import { useGame } from '../state/GameContext';
-import { ANIMAL_LIST, ANIMALS } from '../constants/animals';
+import { ANIMAL_LIST } from '../constants/animals';
 import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT } from '../constants/game';
 import { showToast } from './Toast';
 
@@ -69,32 +69,6 @@ export function ShopPanel() {
         🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰)
       </button>
 
-      {/* Sell animals section */}
-      {state.animals.length > 0 && (
-        <div className="shop-sell-section">
-          <h3 className="shop-sell-title">💰 Продати тварин</h3>
-          <div className="shop-sell-list">
-            {state.animals.map((slot, idx) => {
-              const animal = ANIMALS[slot.animalId];
-              const sellPrice = Math.floor(animal.buyPrice * 0.5);
-              return (
-                <div key={idx} className="shop-sell-item">
-                  <span>{animal.emoji} {animal.name}</span>
-                  <button
-                    className="btn btn-sell"
-                    onClick={() => {
-                      dispatch({ type: 'SELL_ANIMAL', animalIndex: idx });
-                      showToast(`${animal.emoji} ${animal.name} продано! +${sellPrice}💰`, 'earn');
-                    }}
-                  >
-                    Продати {sellPrice}💰
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
