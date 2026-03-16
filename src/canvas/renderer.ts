@@ -685,7 +685,6 @@ function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now
   }
 
   const groups = groupAnimals(animals, now, feedActiveUntil);
-  const isFeedActive = now < feedActiveUntil;
 
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
