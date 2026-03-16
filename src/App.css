@@ -18,22 +18,53 @@
 
 body {
   font-family: 'Inter', 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(
-    180deg,
-    #87CEEB 0%,
-    #A8D8EA 18%,
-    #C5E6A8 30%,
-    #8BC34A 42%,
-    #6DAF3A 52%,
-    #5A9E2F 62%,
-    #4A8725 75%,
-    #3D7220 100%
-  );
   color: #2D1B4E;
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   position: relative;
+  transition: background 2s ease;
+}
+
+/* ===== Seasonal Backgrounds ===== */
+/* Spring — bright sky, fresh green fields */
+body, body.season-spring {
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%, #A8D8EA 18%, #C5E6A8 30%,
+    #8BC34A 42%, #6DAF3A 52%, #5A9E2F 62%,
+    #4A8725 75%, #3D7220 100%
+  );
+}
+
+/* Summer — warm sky, deep green, golden tint */
+body.season-summer {
+  background: linear-gradient(
+    180deg,
+    #64B5F6 0%, #90CAF9 15%, #E6EE9C 28%,
+    #7CB342 40%, #558B2F 52%, #4A7C1F 62%,
+    #3E6B18 75%, #2E5A10 100%
+  );
+}
+
+/* Autumn — warm amber sky, orange-brown fields */
+body.season-autumn {
+  background: linear-gradient(
+    180deg,
+    #FFCC80 0%, #FFB74D 12%, #E6A644 22%,
+    #C49040 32%, #A67C3A 42%, #8B6E34 52%,
+    #6D5530 70%, #5A4528 100%
+  );
+}
+
+/* Winter — cold blue sky, snowy white fields */
+body.season-winter {
+  background: linear-gradient(
+    180deg,
+    #B0BEC5 0%, #CFD8DC 15%, #E0E8F0 28%,
+    #D5DFE8 38%, #C8D5E0 48%, #B8C8D8 60%,
+    #A0B8C8 78%, #90A8B8 100%
+  );
 }
 
 /* Decorative hills silhouette */
@@ -43,12 +74,35 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  transition: background 2s ease;
+}
+
+body.season-spring::before, body:not([class])::before {
   background:
     radial-gradient(ellipse 180% 60% at 15% 38%, rgba(107, 142, 35, 0.4) 0%, transparent 60%),
     radial-gradient(ellipse 200% 50% at 85% 35%, rgba(85, 130, 25, 0.35) 0%, transparent 55%),
-    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(100, 160, 40, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 120% 20% at 30% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 100% 15% at 70% 28%, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(100, 160, 40, 0.3) 0%, transparent 50%);
+}
+
+body.season-summer::before {
+  background:
+    radial-gradient(ellipse 180% 60% at 15% 38%, rgba(85, 130, 20, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 200% 50% at 85% 35%, rgba(75, 120, 15, 0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(90, 140, 30, 0.25) 0%, transparent 50%);
+}
+
+body.season-autumn::before {
+  background:
+    radial-gradient(ellipse 180% 60% at 15% 38%, rgba(160, 120, 40, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 200% 50% at 85% 35%, rgba(140, 100, 30, 0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(170, 130, 50, 0.25) 0%, transparent 50%);
+}
+
+body.season-winter::before {
+  background:
+    radial-gradient(ellipse 180% 60% at 15% 38%, rgba(180, 200, 220, 0.3) 0%, transparent 60%),
+    radial-gradient(ellipse 200% 50% at 85% 35%, rgba(200, 215, 230, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 160% 40% at 50% 42%, rgba(220, 230, 240, 0.2) 0%, transparent 50%);
 }
 
 /* Subtle field rows pattern */

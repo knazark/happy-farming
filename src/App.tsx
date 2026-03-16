@@ -38,6 +38,11 @@ function GameContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Apply season class to body for background
+  useEffect(() => {
+    document.body.className = `season-${state.season}`;
+  }, [state.season]);
+
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;
     position: { x: number; y: number };
@@ -125,7 +130,7 @@ function GameContent() {
 
 
   return (
-    <div className="game-layout-v2">
+    <div className={`game-layout-v2 season-${state.season}`}>
       <SeasonalBackground />
       <ToastContainer />
       <HUD onProfileClick={() => setShowProfile(true)} />
