@@ -2,6 +2,7 @@ import { useGame } from '../state/GameContext';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { RECIPES } from '../constants/recipes';
+import { STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { showToast } from './Toast';
 import type { ItemId } from '../types';
 
@@ -52,6 +53,17 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
         📦 Інвентар ({totalItems}/{state.storageCapacity})
         {marketLabel && <span className="market-label"> {marketLabel}</span>}
       </h2>
+      <button
+        className="btn btn-buy shop-upgrade-btn"
+        disabled={state.coins < STORAGE_UPGRADE_COST}
+        onClick={() => {
+          dispatch({ type: 'UPGRADE_STORAGE' });
+          showToast(`📦 Інвентар збільшено! +${STORAGE_UPGRADE_AMOUNT} місць −${STORAGE_UPGRADE_COST}💰`, 'spend');
+        }}
+      >
+        📦 Збільшити +{STORAGE_UPGRADE_AMOUNT} ({STORAGE_UPGRADE_COST}💰)
+      </button>
+
       {items.length === 0 ? (
         <p className="panel-empty">Порожньо</p>
       ) : (
