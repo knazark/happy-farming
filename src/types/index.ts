@@ -1,0 +1,176 @@
+export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry';
+
+export interface CropDef {
+  id: CropId;
+  name: string;
+  emoji: string;
+  seedEmoji: string;
+  growthTime: number;
+  seedPrice: number;
+  sellPrice: number;
+  unlockLevel: number;
+  xpReward: number;
+}
+
+export type AnimalId = 'chicken' | 'cow' | 'pig' | 'sheep' | 'rabbit' | 'goat' | 'duck' | 'cat' | 'dog';
+
+export interface AnimalDef {
+  id: AnimalId;
+  name: string;
+  emoji: string;
+  productEmoji: string;
+  productName: string;
+  productionTime: number;
+  buyPrice: number;
+  productSellPrice: number;
+  unlockLevel: number;
+  xpReward: number;
+}
+
+export type PlotState =
+  | { status: 'locked' }
+  | { status: 'empty' }
+  | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean }
+  | { status: 'ready'; cropId: CropId };
+
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish';
+
+export type ItemId = CropId | `${AnimalId}_product` | CraftedId;
+
+export type Inventory = Partial<Record<ItemId, number>>;
+
+export interface RecipeDef {
+  id: CraftedId;
+  name: string;
+  emoji: string;
+  ingredients: Partial<Record<ItemId, number>>;
+  craftTime: number;
+  sellPrice: number;
+  unlockLevel: number;
+  xpReward: number;
+}
+
+export interface NpcOrder {
+  id: string;
+  customerName: string;
+  customerEmoji: string;
+  items: Partial<Record<ItemId, number>>;
+  reward: number;
+  xpReward: number;
+  expiresAt: number;
+}
+
+export interface AnimalSlot {
+  animalId: AnimalId;
+  lastCollectedAt: number;
+}
+
+export interface PlayerProfile {
+  name: string;
+  avatar: string;
+}
+
+export interface NeighborState {
+  id: string;
+  name: string;
+  avatar: string;
+  helpedToday: boolean;
+  giftCollectedToday: boolean;
+}
+
+export interface CraftingSlot {
+  recipeId: CraftedId;
+  startedAt: number;
+  craftTime: number;
+}
+
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+export type WeatherType = 'sunny' | 'rainy' | 'stormy' | 'snowy';
+
+export interface WeatherState {
+  type: WeatherType;
+  changesAt: number;
+}
+
+export type AchievementId =
+  | 'first_harvest'
+  | 'first_animal'
+  | 'first_craft'
+  | 'rich_farmer'
+  | 'full_farm'
+  | 'master_crafter'
+  | 'order_champion'
+  | 'social_butterfly'
+  | 'level_5'
+  | 'level_max';
+
+export interface AchievementDef {
+  id: AchievementId;
+  name: string;
+  emoji: string;
+  description: string;
+  reward: number;
+}
+
+export type QuestType = 'harvest' | 'sell' | 'craft' | 'help' | 'earn';
+
+export interface DailyQuest {
+  id: string;
+  type: QuestType;
+  description: string;
+  emoji: string;
+  target: number;
+  progress: number;
+  reward: number;
+  xpReward: number;
+  completed: boolean;
+}
+
+export interface GameState {
+  coins: number;
+  plots: PlotState[];
+  inventory: Inventory;
+  animals: AnimalSlot[];
+  lastTickAt: number;
+  totalEarned: number;
+  xp: number;
+  level: number;
+  fertilizers: number;
+  profile: PlayerProfile;
+  neighbors: NeighborState[];
+  lastDailyReset: number;
+  crafting: CraftingSlot | null;
+  orders: NpcOrder[];
+  storageCapacity: number;
+  marketPriceMultiplier: number;
+  season: Season;
+  seasonStartedAt: number;
+  weather: WeatherState;
+  achievements: AchievementId[];
+  dailyQuests: DailyQuest[];
+  totalHarvested: number;
+  totalCrafted: number;
+  totalOrdersFulfilled: number;
+}
+
+export type GameAction =
+  | { type: 'TICK'; now: number }
+  | { type: 'PLANT_CROP'; plotIndex: number; cropId: CropId }
+  | { type: 'HARVEST'; plotIndex: number }
+  | { type: 'UNLOCK_PLOT'; plotIndex: number }
+  | { type: 'BUY_ANIMAL'; animalId: AnimalId }
+  | { type: 'COLLECT_PRODUCT'; animalIndex: number }
+  | { type: 'SELL_ITEM'; itemId: ItemId; quantity: number }
+  | { type: 'BUY_FERTILIZER'; quantity: number }
+  | { type: 'USE_FERTILIZER'; plotIndex: number }
+  | { type: 'SET_PROFILE'; profile: PlayerProfile }
+  | { type: 'HELP_NEIGHBOR'; neighborId: string }
+  | { type: 'COLLECT_GIFT'; neighborId: string }
+  | { type: 'START_CRAFT'; recipeId: CraftedId }
+  | { type: 'COLLECT_CRAFT' }
+  | { type: 'FULFILL_ORDER'; orderId: string }
+  | { type: 'UPGRADE_STORAGE' }
+  | { type: 'CLAIM_QUEST'; questId: string }
+  | { type: 'LOAD_SAVE'; state: GameState }
+  | { type: 'RESET_GAME' };

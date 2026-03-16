@@ -1,0 +1,60 @@
+import { useGame } from '../state/GameContext';
+import { ANIMAL_LIST } from '../constants/animals';
+import { MAX_ANIMALS } from '../constants/game';
+import { showToast } from './Toast';
+
+export function ShopPanel() {
+  const { state, dispatch } = useGame();
+  const ownedCount = (id: string) => state.animals.filter((a) => a.animalId === id).length;
+  const isFull = state.animals.length >= MAX_ANIMALS;
+
+  return (
+    <div className="shop-panel">
+      <div className="shop-header">
+        <h2 className="shop-title">🏪 Ринок тварин</h2>
+        <span className="shop-capacity">{state.animals.length}/{MAX_ANIMALS}</span>
+      </div>
+
+      <div className="shop-grid">
+        {ANIMAL_LIST.map((animal) => {
+          const locked = animal.unlockLevel > state.level;
+          const owned = ownedCount(animal.id);
+          const canBuy = !locked && state.coins >= animal.buyPrice && !isFull;
+
+          return (
+            <button
+              key={animal.id}
+              className={`shop-item ${locked ? 'shop-item--locked' : ''} ${canBuy ? 'shop-item--available' : ''}`}
+              disabled={!canBuy}
+              onClick={() => {
+                if (!canBuy) return;
+                dispatch({ type: 'BUY_ANIMAL', animalId: animal.id });
+                showToast(`${animal.emoji} ${animal.name} куплено! −${animal.buyPrice}💰`, 'spend');
+              }}
+            >
+              <div className="shop-item__emoji">{animal.emoji}</div>
+              {owned > 0 && <span className="shop-item__owned">×{owned}</span>}
+              <span className="shop-item__name">{animal.name}</span>
+              {locked ? (
+                <span className="shop-item__lock">🔒 Рів.{animal.unlockLevel}</span>
+              ) : (
+                <>
+                  <span className="shop-item__product">
+                    {animal.productEmoji} {animal.productSellPrice}💰 · {animal.productionTime >= 60 ? `${Math.floor(animal.productionTime / 60)}хв` : `${animal.productionTime}с`}
+                  </span>
+                  <span className={`shop-item__price ${state.coins < animal.buyPrice ? 'shop-item__price--cant' : ''}`}>
+                    {animal.buyPrice}💰
+                  </span>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {isFull && (
+        <p className="shop-full">Загін повний!</p>
+      )}
+    </div>
+  );
+}
