@@ -173,8 +173,8 @@ function GameContent() {
           className={`bar-btn ${activePanel === 'neighbors' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('neighbors')}
         >
-          <span className="bar-btn-icon">🏘️</span>
-          <span className="bar-btn-label">Сусіди</span>
+          <span className="bar-btn-icon">🌾</span>
+          <span className="bar-btn-label">Друзі</span>
         </button>
         <button
           className={`bar-btn ${activePanel === 'achievements' ? 'bar-btn-active' : ''}`}

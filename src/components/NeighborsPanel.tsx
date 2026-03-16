@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useGame } from '../state/GameContext';
 import { showToast } from './Toast';
 import {
-  DEFAULT_NEIGHBORS,
-  NEIGHBOR_FARMS,
   HELP_XP_REWARD,
   HELP_COIN_REWARD,
   GIFT_COIN_REWARD,
@@ -22,18 +20,17 @@ import {
 type Tab = 'neighbors' | 'leaderboard' | 'invite';
 
 export function NeighborsPanel() {
-  const { state, dispatch } = useGame();
+  const { dispatch } = useGame();
   const [activeTab, setActiveTab] = useState<Tab>('neighbors');
-  const [realNeighbors, setRealNeighbors] = useState<FarmerProfile[]>([]);
+  const [friends, setFriends] = useState<FarmerProfile[]>([]);
   const [leaderboard, setLeaderboard] = useState<FarmerProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [interactions, setInteractions] = useState<Record<string, { helpedToday: boolean; giftCollectedToday: boolean }>>({});
-  const [visitingId, setVisitingId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const myId = getFarmerId();
 
-  // Fetch real neighbors on mount
+  // Fetch friends on mount
   useEffect(() => {
     setLoading(true);
     getFarmer(myId)
@@ -44,8 +41,7 @@ export function NeighborsPanel() {
         return [];
       })
       .then((profiles) => {
-        setRealNeighbors(profiles);
-        // Fetch interactions for each neighbor
+        setFriends(profiles);
         return Promise.all(
           profiles.map((p) =>
             getInteraction(myId, p.id).then((inter) => ({ id: p.id, ...inter }))
@@ -74,33 +70,23 @@ export function NeighborsPanel() {
     }
   }, [activeTab]);
 
-  const hasRealNeighbors = realNeighbors.length > 0;
-
-  // NPC fallback for visiting
-  const visiting = visitingId ? state.neighbors.find((n) => n.id === visitingId) : null;
-  const farm = visitingId ? NEIGHBOR_FARMS[visitingId] : null;
-
-  const handleHelp = async (neighborId: string, isReal: boolean) => {
-    if (isReal) {
-      await recordHelp(myId, neighborId).catch(() => {});
-      setInteractions((prev) => ({
-        ...prev,
-        [neighborId]: { ...prev[neighborId], helpedToday: true },
-      }));
-    }
-    dispatch({ type: 'HELP_NEIGHBOR', neighborId: isReal ? DEFAULT_NEIGHBORS[0].id : neighborId });
-    showToast(`🌧️ Допомога сусіду! +${HELP_COIN_REWARD}💰 +${HELP_XP_REWARD}XP`, 'earn');
+  const handleHelp = async (neighborId: string) => {
+    await recordHelp(myId, neighborId).catch(() => {});
+    setInteractions((prev) => ({
+      ...prev,
+      [neighborId]: { ...prev[neighborId], helpedToday: true },
+    }));
+    dispatch({ type: 'HELP_NEIGHBOR', neighborId });
+    showToast(`🌧️ Допомога другу! +${HELP_COIN_REWARD}💰 +${HELP_XP_REWARD}XP`, 'earn');
   };
 
-  const handleGift = async (neighborId: string, isReal: boolean) => {
-    if (isReal) {
-      await recordGiftCollect(myId, neighborId).catch(() => {});
-      setInteractions((prev) => ({
-        ...prev,
-        [neighborId]: { ...prev[neighborId], giftCollectedToday: true },
-      }));
-    }
-    dispatch({ type: 'COLLECT_GIFT', neighborId: isReal ? DEFAULT_NEIGHBORS[0].id : neighborId });
+  const handleGift = async (neighborId: string) => {
+    await recordGiftCollect(myId, neighborId).catch(() => {});
+    setInteractions((prev) => ({
+      ...prev,
+      [neighborId]: { ...prev[neighborId], giftCollectedToday: true },
+    }));
+    dispatch({ type: 'COLLECT_GIFT', neighborId });
     showToast(`🎁 Подарунок! +${GIFT_COIN_REWARD}💰`, 'earn');
   };
 
@@ -116,37 +102,46 @@ export function NeighborsPanel() {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">🏘️ Сусіди</h2>
+      <h2 className="panel-title">🌾 Друзі фермери</h2>
 
       {/* Tabs */}
       <div className="neighbor-tabs">
         <button
           className={`neighbor-tab ${activeTab === 'neighbors' ? 'neighbor-tab-active' : ''}`}
-          onClick={() => { setActiveTab('neighbors'); setVisitingId(null); }}
+          onClick={() => setActiveTab('neighbors')}
         >
-          👥 Сусіди
+          👥 Друзі
         </button>
         <button
           className={`neighbor-tab ${activeTab === 'leaderboard' ? 'neighbor-tab-active' : ''}`}
-          onClick={() => { setActiveTab('leaderboard'); setVisitingId(null); }}
+          onClick={() => setActiveTab('leaderboard')}
         >
           🏆 Рейтинг
         </button>
         <button
           className={`neighbor-tab ${activeTab === 'invite' ? 'neighbor-tab-active' : ''}`}
-          onClick={() => { setActiveTab('invite'); setVisitingId(null); }}
+          onClick={() => setActiveTab('invite')}
         >
           📨 Запросити
         </button>
       </div>
 
-      {/* Tab: Neighbors */}
-      {activeTab === 'neighbors' && !visiting && (
+      {/* Tab: Friends */}
+      {activeTab === 'neighbors' && (
         <div className="neighbor-list">
           {loading && <p style={{ textAlign: 'center', color: '#999' }}>Завантаження...</p>}
 
-          {/* Real neighbors from Firebase */}
-          {hasRealNeighbors && realNeighbors.map((n) => {
+          {!loading && friends.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#999' }}>
+              <p style={{ fontSize: '32px', marginBottom: '8px' }}>👥</p>
+              <p style={{ fontSize: '14px' }}>У вас ще немає друзів-фермерів</p>
+              <p style={{ fontSize: '13px', marginTop: '4px' }}>
+                Перейдіть на вкладку «📨 Запросити» і надішліть посилання друзям!
+              </p>
+            </div>
+          )}
+
+          {friends.map((n) => {
             const inter = interactions[n.id] || { helpedToday: false, giftCollectedToday: false };
             const allDone = inter.helpedToday && inter.giftCollectedToday;
             return (
@@ -165,14 +160,14 @@ export function NeighborsPanel() {
                   <button
                     className="btn btn-buy"
                     disabled={inter.helpedToday}
-                    onClick={() => handleHelp(n.id, true)}
+                    onClick={() => handleHelp(n.id)}
                   >
                     {inter.helpedToday ? '✅' : `🌧️ +${HELP_COIN_REWARD}💰`}
                   </button>
                   <button
                     className="btn btn-sell"
                     disabled={inter.giftCollectedToday}
-                    onClick={() => handleGift(n.id, true)}
+                    onClick={() => handleGift(n.id)}
                   >
                     {inter.giftCollectedToday ? '✅' : `🎁 +${GIFT_COIN_REWARD}💰`}
                   </button>
@@ -180,79 +175,6 @@ export function NeighborsPanel() {
               </div>
             );
           })}
-
-          {/* Separator if both real and NPC */}
-          {hasRealNeighbors && (
-            <p style={{ textAlign: 'center', color: '#999', fontSize: '12px', margin: '8px 0' }}>
-              — NPC сусіди —
-            </p>
-          )}
-
-          {/* NPC fallback neighbors */}
-          {state.neighbors.map((neighbor) => {
-            const allDone = neighbor.helpedToday && neighbor.giftCollectedToday;
-            return (
-              <div key={neighbor.id} className="neighbor-item">
-                <span className="neighbor-info">
-                  <span className="neighbor-avatar">{neighbor.avatar}</span>
-                  <span>{neighbor.name}</span>
-                  {allDone && <span className="neighbor-done">✅</span>}
-                </span>
-                <button
-                  className="btn btn-buy"
-                  onClick={() => setVisitingId(neighbor.id)}
-                >
-                  Відвідати
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* NPC Visit view (kept for NPC neighbors) */}
-      {activeTab === 'neighbors' && visiting && (
-        <div className="neighbor-visit">
-          <button className="btn btn-back" onClick={() => setVisitingId(null)}>
-            ← Назад
-          </button>
-          <div className="neighbor-farm-header">
-            <span className="neighbor-avatar-lg">{visiting.avatar}</span>
-            <div>
-              <strong>{visiting.name}</strong>
-              <p className="neighbor-farm-desc">{farm?.description}</p>
-            </div>
-          </div>
-          <div className="neighbor-farm-preview">
-            <div className="neighbor-farm-row">
-              {farm?.crops.map((c, i) => (
-                <span key={i} className="neighbor-farm-emoji">{c}</span>
-              ))}
-              {farm?.animals.map((a, i) => (
-                <span key={`a${i}`} className="neighbor-farm-emoji">{a}</span>
-              ))}
-            </div>
-          </div>
-          <div className="neighbor-actions">
-            <button
-              className="btn btn-buy"
-              disabled={visiting.helpedToday}
-              onClick={() => dispatch({ type: 'HELP_NEIGHBOR', neighborId: visiting.id })}
-            >
-              {visiting.helpedToday
-                ? '✅ Вже допомогли'
-                : `🌧️ Полити город (+${HELP_COIN_REWARD}💰, +${HELP_XP_REWARD} XP)`}
-            </button>
-            <button
-              className="btn btn-sell"
-              disabled={visiting.giftCollectedToday}
-              onClick={() => dispatch({ type: 'COLLECT_GIFT', neighborId: visiting.id })}
-            >
-              {visiting.giftCollectedToday
-                ? '✅ Подарунок зібрано'
-                : `🎁 Забрати подарунок (+${GIFT_COIN_REWARD}💰)`}
-            </button>
-          </div>
         </div>
       )}
 
@@ -291,7 +213,7 @@ export function NeighborsPanel() {
       {activeTab === 'invite' && (
         <div style={{ textAlign: 'center', padding: '12px 0' }}>
           <p style={{ marginBottom: '12px', fontSize: '14px' }}>
-            Надішліть це посилання друзям, щоб стати сусідами! 🏡
+            Надішліть це посилання друзям, щоб стати друзями-фермерами! 🏡
           </p>
           <div className="invite-url">{inviteUrl}</div>
           <button
@@ -302,7 +224,7 @@ export function NeighborsPanel() {
             {copied ? '✅ Скопійовано!' : '📋 Копіювати посилання'}
           </button>
           <p style={{ marginTop: '16px', color: '#999', fontSize: '13px' }}>
-            👥 Реальних сусідів: {realNeighbors.length}
+            👥 Друзів-фермерів: {friends.length}
           </p>
         </div>
       )}
