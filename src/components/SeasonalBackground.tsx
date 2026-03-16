@@ -4,7 +4,7 @@ import { useGame } from '../state/GameContext';
 // Particles match BOTH season and weather
 const SEASON_EMOJIS: Record<string, string[]> = {
   spring: ['🌸', '🌷', '💮', '🌼'],
-  summer: ['🦋', '☀️', '🐝'],
+  summer: ['🦋', '🦋', '🐝', '🌻'],
   autumn: ['🍂', '🍁', '🍃'],
   winter: ['❄️', '❄️', '❄️', '🌨️'],
 };
