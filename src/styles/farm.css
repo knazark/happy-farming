@@ -3,31 +3,26 @@
   position: relative;
   border-radius: 12px;
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  /* Default grass background (spring) */
-  background: linear-gradient(to bottom, #7BC67E, #4CAF50);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-
-/* Season-specific grass backgrounds */
-.season-spring .farm-view { background: linear-gradient(to bottom, #7BC67E, #4CAF50); }
-.season-summer .farm-view { background: linear-gradient(to bottom, #5DAE3B, #3D8B2A); }
-.season-autumn .farm-view { background: linear-gradient(to bottom, #C4A04E, #8B7530); }
-.season-winter .farm-view { background: linear-gradient(to bottom, #D8E8F0, #B0C8D8); }
 
 /* ===== Plot Grid ===== */
 .farm-grid {
   display: grid;
-  grid-template-columns: repeat(6, 135px);
-  justify-content: center;
+  grid-template-columns: repeat(6, 1fr);
   gap: 5px;
   padding: 14px;
+  background: linear-gradient(to bottom, #6B5740, #4A3A2A);
+  border-radius: 10px;
+  margin: 8px;
 }
 
 .plot-cell {
   position: relative;
-  aspect-ratio: 1;
-  max-height: 135px;
+  aspect-ratio: 4 / 3;
+  max-height: 116px;
   border-radius: 14px;
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -57,7 +52,7 @@
 }
 
 .plot-locked {
-  background: linear-gradient(to bottom, #7A6E5E, #9E9080);
+  background: linear-gradient(to bottom, #4A3B2A, #3A2E20);
 }
 
 .plot-crosshatch {
@@ -82,27 +77,27 @@
 .plot-lock-cost {
   font-size: 11px;
   font-weight: bold;
-  color: rgba(100, 80, 60, 0.5);
+  color: rgba(255, 255, 255, 0.75);
   position: relative;
   z-index: 1;
   margin-top: 2px;
 }
 
 .plot-lock-cost.can-afford {
-  color: rgba(146, 64, 14, 0.75);
+  color: #FFD700;
 }
 
 .plot-lock-level {
   font-size: 9px;
   font-weight: 500;
-  color: rgba(153, 27, 27, 0.6);
+  color: rgba(255, 180, 180, 0.85);
   position: relative;
   z-index: 1;
 }
 
 /* ===== Empty Plot ===== */
 .plot-empty {
-  background: linear-gradient(to bottom, #A0845A, #7A6240);
+  background: linear-gradient(to bottom, #5C4A35, #3E3025);
 }
 
 .plot-furrows {
@@ -138,7 +133,7 @@
 
 /* ===== Growing Plot ===== */
 .plot-growing {
-  background: linear-gradient(to bottom, #A0845A, #7A6240);
+  background: linear-gradient(to bottom, #5C4A35, #3E3025);
 }
 
 .plot-soil-mound {
@@ -322,8 +317,8 @@
 
 /* ===== Animal Pen ===== */
 .animal-pen {
-  padding: 4px 14px 12px;
-  min-height: 160px;  /* reserve space for 2 rows of animal cards */
+  padding: 8px 14px 14px;
+  min-height: 180px;
 }
 
 .animal-pen-label {
@@ -338,7 +333,7 @@
   color: #333;
   font-size: 13px;
   font-weight: 600;
-  padding: 16px 0;
+  padding: 20px 0;
 }
 
 .animal-grid {
@@ -541,7 +536,7 @@
   /* Switch to 3 columns on mobile */
   .farm-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px; }
   .animal-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .animal-pen { padding: 4px 8px 8px; }
+  .animal-pen { padding: 6px 8px 8px; }
   .plot-lock-emoji { font-size: 22px; }
   .plot-lock-cost { font-size: 10px; }
   .plot-lock-level { font-size: 9px; }
