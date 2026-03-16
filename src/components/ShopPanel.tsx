@@ -50,7 +50,6 @@ export function ShopPanel() {
               </button>
             </div>
           </div>
-        </div>
       </div>
 
       <div className="shop-header">

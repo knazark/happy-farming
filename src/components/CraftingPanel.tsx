@@ -84,20 +84,6 @@ export function CraftingPanel() {
         );
       })}
 
-      {/* Upgrade crafting slots */}
-      {totalSlots < CRAFTING_SLOTS_MAX && (
-        <button
-          className="btn btn-buy crafting-upgrade-btn"
-          disabled={!canUpgrade}
-          onClick={() => {
-            dispatch({ type: 'UPGRADE_CRAFTING' });
-            showToast(`🔨 Крафт збільшено! Слотів: ${totalSlots + 1} −${upgradeCost}💰`, 'spend');
-          }}
-        >
-          ⬆️ Збільшити слоти крафту → {totalSlots + 1} ({upgradeCost}💰)
-        </button>
-      )}
-
       <div className="recipe-grid-3col">
         {recipes.map((recipe) => {
           const locked = recipe.unlockLevel > state.level;
@@ -146,6 +132,20 @@ export function CraftingPanel() {
           );
         })}
       </div>
+
+      {/* Upgrade crafting slots */}
+      {totalSlots < CRAFTING_SLOTS_MAX && (
+        <button
+          className="btn btn-buy crafting-upgrade-btn"
+          disabled={!canUpgrade}
+          onClick={() => {
+            dispatch({ type: 'UPGRADE_CRAFTING' });
+            showToast(`🔨 Крафт збільшено! Слотів: ${totalSlots + 1} −${upgradeCost}💰`, 'spend');
+          }}
+        >
+          ⬆️ Збільшити слоти крафту → {totalSlots + 1} ({upgradeCost}💰)
+        </button>
+      )}
     </div>
   );
 }
