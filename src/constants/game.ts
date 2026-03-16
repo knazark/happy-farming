@@ -36,6 +36,14 @@ export function craftingUpgradeCost(currentSlots: number): number {
 export const TRACTOR_PRICE = 10000;
 export const TRACTOR_REQUIRED_CRAFTS = ['royal_feast', 'golden_honey', 'gourmet_dish'] as const;
 
+// Greenhouse
+export const GREENHOUSE_PRICE = 15000;
+export const GREENHOUSE_REQUIRED_CRAFTS = ['honey_cake', 'roast_turkey', 'down_pillow'] as const;
+
+// Auto-collector (for animals)
+export const AUTO_COLLECTOR_PRICE = 12000;
+export const AUTO_COLLECTOR_REQUIRED_CRAFTS = ['cheese', 'butter', 'jam'] as const;
+
 export function xpForLevel(level: number): number {
   return Math.floor(XP_BASE * Math.pow(level, XP_EXPONENT));
 }

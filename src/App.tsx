@@ -8,6 +8,7 @@ import { ToastContainer, showToast } from './components/Toast';
 import { getUnlockCost, getUnlockLevel } from './engine/economy';
 import { ANIMALS } from './constants/animals';
 import { CROPS } from './constants/crops';
+import { GRID_COLS, GRID_ROWS } from './constants/grid';
 import { HUD } from './components/HUD';
 import { Inventory } from './components/Inventory';
 import { ShopPanel } from './components/ShopPanel';
@@ -201,6 +202,7 @@ function GameContent() {
           plotIndex={cropSelector.plotIndex}
           position={cropSelector.position}
           onClose={() => setCropSelector(null)}
+          isBottomRow={cropSelector.plotIndex >= (GRID_ROWS - 1) * GRID_COLS}
         />
       )}
       {showProfile && (

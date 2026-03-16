@@ -108,6 +108,44 @@ export function tick(state: GameState, now: number): GameState {
     }
   }
 
+  // Auto-collector: auto-collect ready animal products
+  if (newState.hasAutoCollector) {
+    let collectorCollected = false;
+    const collectorAnimals = newState.animals.map((slot) => {
+      const animal = ANIMALS[slot.animalId];
+      const isFeedActive = now < newState.feedActiveUntil;
+      const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
+      const elapsed = (now - slot.lastCollectedAt) / 1000;
+      if (elapsed >= effectiveTime) {
+        collectorCollected = true;
+        return { ...slot, lastCollectedAt: now };
+      }
+      return slot;
+    });
+
+    if (collectorCollected) {
+      let inv: Inventory = { ...newState.inventory };
+
+      for (let i = 0; i < newState.animals.length; i++) {
+        const slot = newState.animals[i];
+        const animal = ANIMALS[slot.animalId];
+        const isFeedActive = now < newState.feedActiveUntil;
+        const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
+        const elapsed = (now - slot.lastCollectedAt) / 1000;
+        if (elapsed >= effectiveTime) {
+          const itemId = `${slot.animalId}_product` as ItemId;
+          inv = { ...inv, [itemId]: (inv[itemId] ?? 0) + 1 };
+        }
+      }
+
+      newState = {
+        ...newState,
+        animals: collectorAnimals,
+        inventory: inv,
+      };
+    }
+  }
+
   // Remove expired orders
   const activeOrders = newState.orders.filter((o) => o.expiresAt > now);
   if (activeOrders.length !== newState.orders.length) {

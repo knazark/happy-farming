@@ -193,6 +193,7 @@ export function drawFrame(
   _farmName?: string,
   season?: string,
   feedActiveUntil?: number,
+  hasGreenhouse?: boolean,
 ) {
   const dpr = window.devicePixelRatio || 1;
   const w = ctx.canvas.width / dpr;
@@ -214,6 +215,24 @@ export function drawFrame(
   // Draw plots
   for (let i = 0; i < plots.length; i++) {
     drawPlot(ctx, plots[i], i, now, unlockMap?.get(i));
+  }
+
+  // Greenhouse tint on bottom row
+  if (hasGreenhouse) {
+    const bottomRowStart = (GRID_ROWS - 1) * GRID_COLS;
+    for (let i = bottomRowStart; i < plots.length; i++) {
+      const { x, y } = plotIndexToPixel(i);
+      const px = x + GAP / 2;
+      const py = y + GAP / 2;
+      ctx.fillStyle = 'rgba(100, 220, 150, 0.12)';
+      rr(ctx, px, py, INNER, INNER, R);
+      ctx.fill();
+      // Small greenhouse icon in corner
+      ctx.font = '12px serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.fillText('🏗️', px + INNER - 4, py + 3);
+    }
   }
 
   // Hover — warm glow outline
@@ -517,11 +536,27 @@ function drawPlot(ctx: CanvasRenderingContext2D, plot: PlotState, index: number,
       const barY = y + INNER - 18;
       drawProgress(ctx, barX, barY, barW, barH, progress, C.progressFill);
 
-      ctx.fillStyle = C.text2;
-      ctx.font = '500 9px sans-serif';
+      // Remaining time with background pill
+      const remaining = Math.max(0, plot.growthTime - elapsed);
+      const mins = Math.floor(remaining / 60);
+      const secs = Math.floor(remaining % 60);
+      const timeStr = mins > 0 ? `⏱${mins}:${String(secs).padStart(2, '0')}` : `⏱${secs}с`;
+
+      ctx.save();
+      ctx.font = 'bold 12px sans-serif';
+      const timeTw = ctx.measureText(timeStr).width;
+      const timePw = timeTw + 12;
+      const timePh = 16;
+      const timePx = cx - timePw / 2;
+      const timePy = barY - 22;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      rr(ctx, timePx, timePy, timePw, timePh, timePh / 2);
+      ctx.fill();
+      ctx.fillStyle = '#FFF';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${Math.floor(progress * 100)}%`, cx, barY - 7);
+      ctx.fillText(timeStr, cx, timePy + timePh / 2);
+      ctx.restore();
       break;
     }
 

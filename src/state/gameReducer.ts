@@ -2,7 +2,8 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, GREENHOUSE_PRICE, GREENHOUSE_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { GRID_COLS, GRID_ROWS } from '../constants/grid';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -60,6 +61,8 @@ export function migrateSave(state: any): GameState {
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
     maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
     hasTractor: state.hasTractor ?? false,
+    hasGreenhouse: state.hasGreenhouse ?? false,
+    hasAutoCollector: state.hasAutoCollector ?? false,
   } as GameState);
 }
 
@@ -98,6 +101,8 @@ export function createInitialState(): GameState {
     totalOrdersFulfilled: 0,
     maxAnimals: MAX_ANIMALS,
     hasTractor: false,
+    hasGreenhouse: false,
+    hasAutoCollector: false,
   };
 }
 
@@ -167,10 +172,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!plot || plot.status !== 'empty') return state;
 
       const crop = CROPS[cropId];
-      if (state.season === 'winter') return state; // No planting in winter
+      // Greenhouse: bottom row can plant in any season
+      const isBottomRow = plotIndex >= (GRID_ROWS - 1) * GRID_COLS;
+      const isGreenhousePlot = state.hasGreenhouse && isBottomRow;
+      if (state.season === 'winter' && !isGreenhousePlot) return state;
       if (state.coins < crop.seedPrice) return state;
       if (crop.unlockLevel > state.level) return state;
-      if (crop.seasonOnly && crop.seasonOnly !== state.season) return state;
+      if (crop.seasonOnly && crop.seasonOnly !== state.season && !isGreenhousePlot) return state;
 
       // Apply season + weather growth multipliers
       let growthTime = crop.growthTime * SEASON_CROP_MULTIPLIER[state.season] * WEATHER_CROP_MULTIPLIER[state.weather.type];
@@ -533,6 +541,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_TRACTOR': {
       if (state.hasTractor) return state;
+      // Must unlock all plots first
+      if (state.plots.some((p) => p.status === 'locked')) return state;
       if (state.coins < TRACTOR_PRICE) return state;
 
       // Must have crafted all 3 required items (at least 1 in inventory)
@@ -556,6 +566,58 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         coins: state.coins - TRACTOR_PRICE,
         inventory: newInventory,
         hasTractor: true,
+      };
+    }
+
+    case 'BUY_GREENHOUSE': {
+      if (state.hasGreenhouse) return state;
+      if (state.coins < GREENHOUSE_PRICE) return state;
+
+      for (const craftId of GREENHOUSE_REQUIRED_CRAFTS) {
+        if ((state.inventory[craftId] ?? 0) < 1) return state;
+      }
+
+      const newInv = { ...state.inventory };
+      for (const craftId of GREENHOUSE_REQUIRED_CRAFTS) {
+        const remaining = (newInv[craftId] ?? 0) - 1;
+        if (remaining <= 0) {
+          delete newInv[craftId];
+        } else {
+          newInv[craftId] = remaining;
+        }
+      }
+
+      return {
+        ...state,
+        coins: state.coins - GREENHOUSE_PRICE,
+        inventory: newInv,
+        hasGreenhouse: true,
+      };
+    }
+
+    case 'BUY_AUTO_COLLECTOR': {
+      if (state.hasAutoCollector) return state;
+      if (state.coins < AUTO_COLLECTOR_PRICE) return state;
+
+      for (const craftId of AUTO_COLLECTOR_REQUIRED_CRAFTS) {
+        if ((state.inventory[craftId] ?? 0) < 1) return state;
+      }
+
+      const newInv2 = { ...state.inventory };
+      for (const craftId of AUTO_COLLECTOR_REQUIRED_CRAFTS) {
+        const remaining = (newInv2[craftId] ?? 0) - 1;
+        if (remaining <= 0) {
+          delete newInv2[craftId];
+        } else {
+          newInv2[craftId] = remaining;
+        }
+      }
+
+      return {
+        ...state,
+        coins: state.coins - AUTO_COLLECTOR_PRICE,
+        inventory: newInv2,
+        hasAutoCollector: true,
       };
     }
 

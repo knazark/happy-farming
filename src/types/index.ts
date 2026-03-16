@@ -159,6 +159,8 @@ export interface GameState {
   totalOrdersFulfilled: number;
   maxAnimals: number;
   hasTractor: boolean;
+  hasGreenhouse: boolean;
+  hasAutoCollector: boolean;
 }
 
 export type GameAction =
@@ -183,5 +185,7 @@ export type GameAction =
   | { type: 'SELL_ANIMAL'; animalIndex: number }
   | { type: 'UPGRADE_PEN' }
   | { type: 'BUY_TRACTOR' }
+  | { type: 'BUY_GREENHOUSE' }
+  | { type: 'BUY_AUTO_COLLECTOR' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };
