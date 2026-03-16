@@ -14,11 +14,10 @@ import { ShopPanel } from './components/ShopPanel';
 import { CropSelector } from './components/CropSelector';
 import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
-import { QuestsPanel } from './components/QuestsPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import './App.css';
 
-type PanelId = 'shop' | 'crafting' | 'orders' | 'quests' | 'inventory' | null;
+type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | null;
 
 function GameContent() {
   const { state, dispatch } = useGame();
@@ -112,7 +111,6 @@ function GameContent() {
 
   // Badge counts
   const inventoryCount = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
-  const readyQuests = state.dailyQuests.filter((q) => q.progress >= q.target && !q.completed).length;
   const readyOrders = state.orders.filter((o) => {
     return Object.entries(o.items).every(
       ([itemId, needed]) => (state.inventory[itemId as keyof typeof state.inventory] ?? 0) >= (needed ?? 0)
@@ -142,14 +140,6 @@ function GameContent() {
         >
           <span className="bar-btn-icon">🏪</span>
           <span className="bar-btn-label">Ринок</span>
-        </button>
-        <button
-          className={`bar-btn ${activePanel === 'quests' ? 'bar-btn-active' : ''}`}
-          onClick={() => togglePanel('quests')}
-        >
-          <span className="bar-btn-icon">📜</span>
-          <span className="bar-btn-label">Завдання</span>
-          {readyQuests > 0 && <span className="bar-badge">{readyQuests}</span>}
         </button>
         <button
           className={`bar-btn ${activePanel === 'crafting' ? 'bar-btn-active' : ''}`}
@@ -183,7 +173,6 @@ function GameContent() {
           <div className="panel-popup" onClick={(e) => e.stopPropagation()}>
             <button className="panel-popup-close" onClick={() => setActivePanel(null)}>✕</button>
             {activePanel === 'shop' && <ShopPanel />}
-            {activePanel === 'quests' && <QuestsPanel />}
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
