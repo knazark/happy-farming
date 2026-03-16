@@ -237,6 +237,98 @@ export function spawnFertilizerParticles(plotIndex: number) {
   }
 }
 
+/* ===== Seasonal Ambient Particles ===== */
+interface SeasonParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  emoji: string;
+  size: number;
+  alpha: number;
+  rotation: number;
+  rotSpeed: number;
+  wobblePhase: number;
+}
+
+const SEASON_EMOJIS: Record<string, string[]> = {
+  spring: ['🌸', '🌷', '💮', '🌼'],
+  summer: ['🦋', '☀️', '🐝'],
+  autumn: ['🍂', '🍁', '🍃', '🍂'],
+  winter: ['❄️', '❄️', '❄️', '🌨️'],
+};
+
+const MAX_SEASON_PARTICLES = 20;
+const seasonParticles: SeasonParticle[] = [];
+let currentSeason = '';
+let lastSpawnTime = 0;
+
+function spawnSeasonParticle(canvasW: number, season: string) {
+  const emojis = SEASON_EMOJIS[season] || SEASON_EMOJIS.spring;
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+  const isWinter = season === 'winter';
+  const isAutumn = season === 'autumn';
+
+  seasonParticles.push({
+    x: Math.random() * canvasW,
+    y: -10,
+    vx: (Math.random() - 0.5) * (isWinter ? 0.3 : 0.6),
+    vy: 0.3 + Math.random() * (isWinter ? 0.4 : isAutumn ? 0.6 : 0.3),
+    emoji,
+    size: 10 + Math.random() * 8,
+    alpha: 0.4 + Math.random() * 0.4,
+    rotation: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.03,
+    wobblePhase: Math.random() * Math.PI * 2,
+  });
+}
+
+export function updateSeasonalParticles(ctx: CanvasRenderingContext2D, season: string) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = ctx.canvas.width / dpr;
+  const h = ctx.canvas.height / dpr;
+
+  // Reset if season changed
+  if (season !== currentSeason) {
+    seasonParticles.length = 0;
+    currentSeason = season;
+  }
+
+  // Spawn new particles periodically
+  const now = Date.now();
+  if (now - lastSpawnTime > 600 && seasonParticles.length < MAX_SEASON_PARTICLES) {
+    spawnSeasonParticle(w, season);
+    lastSpawnTime = now;
+  }
+
+  // Update & draw
+  for (let i = seasonParticles.length - 1; i >= 0; i--) {
+    const p = seasonParticles[i];
+
+    // Wobble horizontally
+    p.x += p.vx + Math.sin(now / 1000 + p.wobblePhase) * 0.3;
+    p.y += p.vy;
+    p.rotation += p.rotSpeed;
+
+    // Remove if below canvas
+    if (p.y > h + 20) {
+      seasonParticles.splice(i, 1);
+      continue;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.font = `${Math.round(p.size)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.emoji, 0, 0);
+    ctx.restore();
+  }
+}
+
 export function updateAndDrawParticles(ctx: CanvasRenderingContext2D) {
   const now = Date.now();
 

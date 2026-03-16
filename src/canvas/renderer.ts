@@ -4,7 +4,7 @@ import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { ANIMAL_PEN_COLS, ANIMAL_CELL_H } from '../constants/game';
 import { plotIndexToPixel } from './interaction';
-import { updateAndDrawParticles } from './particles';
+import { updateAndDrawParticles, updateSeasonalParticles } from './particles';
 
 /* ===== Bright & Playful Palette ===== */
 const C = {
@@ -240,6 +240,9 @@ export function drawFrame(
 
   // Particles
   updateAndDrawParticles(ctx);
+
+  // Seasonal ambient particles (leaves, snow, etc.)
+  updateSeasonalParticles(ctx, sid);
 }
 
 /* ===== Growth Emoji ===== */
