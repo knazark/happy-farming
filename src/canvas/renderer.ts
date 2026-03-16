@@ -820,7 +820,7 @@ function drawAnimalPen(ctx: CanvasRenderingContext2D, animals: AnimalSlot[], now
       // Product emoji + time
       let minRemaining = Infinity;
       let totalProgress = 0;
-      const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
+      const effectiveTime = animal.productionTime;
       for (const slot of group.slots) {
         const elapsed = (now - slot.lastCollectedAt) / 1000;
         totalProgress += Math.min(1, elapsed / effectiveTime);

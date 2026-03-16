@@ -251,10 +251,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!slot) return state;
 
       const animal = ANIMALS[slot.animalId];
-      const isFeedActive = Date.now() < state.feedActiveUntil;
-      const effectiveProductionTime = isFeedActive ? animal.productionTime * FEED_SPEED_MULTIPLIER : animal.productionTime;
       const elapsed = (Date.now() - slot.lastCollectedAt) / 1000;
-      if (elapsed < effectiveProductionTime) return state;
+      if (elapsed < animal.productionTime) return state;
 
       const newAnimals = [...state.animals];
       newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now() };
@@ -327,32 +325,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newPlots[plotIndex] = { ...plot, growthTime: newGrowthTime, fertilized: true };
 
       return { ...state, plots: newPlots, fertilizers: state.fertilizers - 1 };
-    }
-
-    case 'BUY_FEED': {
-      const { quantity } = action;
-      const cost = FEED_PRICE * quantity;
-      if (state.coins < cost) return state;
-
-      return {
-        ...state,
-        coins: state.coins - cost,
-        animalFeed: state.animalFeed + quantity,
-      };
-    }
-
-    case 'USE_FEED': {
-      // Need 1 feed per animal (min 1)
-      const feedNeeded = Math.max(1, state.animals.length);
-      if (state.animalFeed < feedNeeded) return state;
-      // If feed already active, extend duration; otherwise start from now
-      const now = Date.now();
-      const currentEnd = state.feedActiveUntil > now ? state.feedActiveUntil : now;
-      return {
-        ...state,
-        animalFeed: state.animalFeed - feedNeeded,
-        feedActiveUntil: currentEnd + FEED_DURATION * 1000,
-      };
     }
 
     case 'SET_PROFILE':

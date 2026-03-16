@@ -438,17 +438,17 @@ body::after {
 }
 
 .panel-popup {
-  background: #FFFFFF;
-  border-radius: 24px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBF9FF 100%);
+  border-radius: 20px;
   width: 100%;
-  max-width: 420px;
-  max-height: min(85vh, 620px);
+  max-width: 520px;
+  max-height: min(88vh, 700px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  box-shadow: 0 12px 40px rgba(45, 27, 78, 0.15), 0 0 0 2px rgba(124, 77, 255, 0.1);
+  box-shadow: 0 16px 48px rgba(45, 27, 78, 0.18), 0 0 0 1.5px rgba(124, 77, 255, 0.12);
   animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border-top: 4px solid #7C4DFF;
+  border-top: 3px solid #7C4DFF;
 }
 
 @keyframes popIn {
@@ -500,10 +500,10 @@ body::after {
 }
 
 .panel-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
   border-bottom: 2px solid #F0E8FF;
   color: #2D1B4E;
 }
@@ -551,14 +551,19 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: #FAFAFE;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1.5px solid #E8E0F0;
+  transition: background 0.15s;
+}
+
+.inventory-item:hover {
+  background: #F5F0FF;
 }
 
 .inventory-item-info {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -727,45 +732,45 @@ body::after {
 
 /* --- Shop panel (Ринок) --- */
 .shop-panel {
-  padding: 12px;
+  padding: 14px 16px;
 }
 
 .shop-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 2px solid #F0E8FF;
 }
 
 .shop-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
   color: #2D1B4E;
 }
 
 .shop-capacity {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #9E86B8;
+  color: #7C4DFF;
   background: #F5F0FF;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 12px;
 }
 
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .shop-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 4px 8px;
+  gap: 4px;
+  padding: 12px 6px 10px;
   background: #FAFAFE;
   border: 2px solid #E8E0F0;
   border-radius: 16px;
@@ -782,7 +787,7 @@ body::after {
 
 .shop-item--available:hover {
   border-color: #4CAF50;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 14px rgba(76, 175, 80, 0.22);
   transform: translateY(-2px);
 }
 
@@ -802,44 +807,44 @@ body::after {
 }
 
 .shop-item__emoji {
-  font-size: 32px;
+  font-size: 36px;
   line-height: 1;
 }
 
 .shop-item__owned {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 10px;
+  top: 5px;
+  right: 5px;
+  font-size: 11px;
   font-weight: 800;
   color: #FFFFFF;
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
   border-radius: 10px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   line-height: 1.4;
   box-shadow: 0 1px 3px rgba(76, 175, 80, 0.3);
 }
 
 .shop-item__name {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   color: #2D1B4E;
   line-height: 1.2;
 }
 
 .shop-item__product {
-  font-size: 9px;
-  color: #9E86B8;
+  font-size: 11px;
+  color: #7E6B9E;
   line-height: 1.2;
   text-align: center;
 }
 
 .shop-item__price {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   color: #2E7D32;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 10px;
   margin-top: 2px;
 }
@@ -850,7 +855,7 @@ body::after {
 }
 
 .shop-item__lock {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   color: #C4B0D8;
   line-height: 1.3;
@@ -929,20 +934,60 @@ body::after {
   font-size: 11px;
   color: #888;
 }
-.feed-active-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #FFF8E1, #FFECB3);
-  border: 1px solid #FFD54F;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #F57F17;
-  animation: feed-pulse 1.5s ease-in-out infinite;
+/* ─── Feed Bar (inline with animals) ─── */
+.feed-bar {
+  background: linear-gradient(135deg, #FFF8EF, #FFF3E0);
+  border: 1.5px solid #E8D5A3;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
 }
-@keyframes feed-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+.feed-bar-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.feed-bar-label {
+  font-size: 13px;
+  color: #5D4037;
+}
+.feed-bar-hint {
+  font-size: 11px;
+  color: #999;
+}
+.feed-bar-buttons {
+  display: flex;
+  gap: 5px;
+}
+.feed-bar-btn {
+  flex: 1;
+  padding: 5px 2px;
+  border: 1.5px solid #A5D6A7;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #E8F5E9, #C8E6C9);
+  font-size: 12px;
+  font-weight: 600;
+  color: #2E7D32;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.feed-bar-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #C8E6C9, #A5D6A7);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.feed-bar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.feed-bar-warning {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #C62828;
+  font-weight: 600;
+  text-align: center;
 }
 .shop-fertilizer-buttons {
   display: flex;
@@ -1345,8 +1390,8 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 4px 8px;
+  gap: 4px;
+  padding: 12px 6px 10px;
   background: #FAFAFE;
   border: 2px solid #E8E0F0;
   border-radius: 16px;
@@ -1364,12 +1409,12 @@ body::after {
 }
 
 .recipe-card__emoji {
-  font-size: 28px;
+  font-size: 34px;
   line-height: 1;
 }
 
 .recipe-card__name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: #2D1B4E;
   line-height: 1.2;
@@ -1377,7 +1422,7 @@ body::after {
 }
 
 .recipe-card__lock {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   color: #C4B0D8;
 }
@@ -1386,25 +1431,25 @@ body::after {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
 }
 
 .recipe-card__ing {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 2px 5px;
   border-radius: 6px;
   white-space: nowrap;
 }
 
 .recipe-card__info {
-  font-size: 9px;
+  font-size: 11px;
   color: #9E86B8;
 }
 
 .recipe-card__btn {
-  padding: 4px 10px;
-  font-size: 10px;
+  padding: 5px 10px;
+  font-size: 12px;
   width: 100%;
 }
 
@@ -1675,31 +1720,36 @@ body::after {
 .order-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .order-item {
   background: #FAFAFE;
-  border-radius: 14px;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 14px;
   border: 1.5px solid #E8E0F0;
+  transition: box-shadow 0.15s;
+}
+
+.order-item:hover {
+  box-shadow: 0 2px 8px rgba(45, 27, 78, 0.08);
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .order-customer {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   color: #2D1B4E;
 }
 
 .order-timer {
-  font-size: 12px;
+  font-size: 13px;
   color: #9E86B8;
   font-weight: 600;
 }
@@ -1707,11 +1757,11 @@ body::after {
 .order-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.order-item-req { font-size: 13px; }
+.order-item-req { font-size: 14px; }
 
 .order-footer {
   display: flex;
@@ -1720,7 +1770,7 @@ body::after {
 }
 
 .order-reward {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #E65100;
 }

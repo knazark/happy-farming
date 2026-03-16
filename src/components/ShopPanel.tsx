@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FEED_PRICE, FEED_DURATION, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
 import { showToast } from './Toast';
 import { playAnimalSound } from '../utils/sounds';
@@ -10,14 +10,6 @@ export function ShopPanel() {
   const maxAnimals = state.maxAnimals ?? MAX_ANIMALS;
   const ownedCount = (id: string) => state.animals.filter((a) => a.animalId === id).length;
   const isFull = state.animals.length >= maxAnimals;
-  const isFeedActive = Date.now() < state.feedActiveUntil;
-  const feedTimeLeft = isFeedActive ? Math.ceil((state.feedActiveUntil - Date.now()) / 1000) : 0;
-
-  const animalCount = state.animals.length;
-
-  // Feed costs scale with animal count: need 1 feed per animal (min 1)
-  const feedCostPerUse = Math.max(1, animalCount);
-  const canActivateFeed = (state.animalFeed ?? 0) >= feedCostPerUse;
 
   // Tractor requirements
   const hasAllCrafts = TRACTOR_REQUIRED_CRAFTS.every(
@@ -31,68 +23,6 @@ export function ShopPanel() {
         <h2 className="shop-title">🏪 Ринок</h2>
         <span className="shop-capacity">Загін: {state.animals.length}/{maxAnimals}</span>
       </div>
-
-      {/* ─── Корм для тварин ─── */}
-      {animalCount > 0 && (
-        <div className="market-item">
-          <div className="market-item-header">
-            <span className="market-item-emoji">🌾</span>
-            <div className="market-item-info">
-              <strong>Корм для тварин</strong>
-              <span className="market-item-count">Є: {state.animalFeed ?? 0} шт</span>
-            </div>
-          </div>
-          <p className="market-item-how">
-            Активуй — усі тварини виробляють ×2 швидше на {FEED_DURATION / 60} хв.
-            Потрібно <strong>{feedCostPerUse} корму</strong> (1 на кожну тварину).
-          </p>
-          <div className="market-item-tip">
-            💡 {animalCount} {animalCount === 1 ? 'тварина' : animalCount < 5 ? 'тварини' : 'тварин'} → потрібно {feedCostPerUse} корму ({feedCostPerUse * FEED_PRICE}💰)
-          </div>
-          <div className="market-item-buttons">
-            <button
-              className="btn btn-buy"
-              disabled={state.coins < FEED_PRICE}
-              onClick={() => {
-                dispatch({ type: 'BUY_FEED', quantity: 1 });
-                showToast(`🌾 Корм ×1 куплено! −${FEED_PRICE}💰`, 'spend');
-              }}
-            >
-              ×1 за {FEED_PRICE}💰
-            </button>
-            <button
-              className="btn btn-buy"
-              disabled={state.coins < FEED_PRICE * feedCostPerUse}
-              onClick={() => {
-                dispatch({ type: 'BUY_FEED', quantity: feedCostPerUse });
-                showToast(`🌾 Корм ×${feedCostPerUse} куплено! −${FEED_PRICE * feedCostPerUse}💰`, 'spend');
-              }}
-            >
-              ×{feedCostPerUse} за {FEED_PRICE * feedCostPerUse}💰
-            </button>
-          </div>
-          {(canActivateFeed || isFeedActive) && (
-            <div style={{ marginTop: '10px' }}>
-              {isFeedActive ? (
-                <span className="feed-active-badge">
-                  🌾 Корм активний! ⏱ {Math.floor(feedTimeLeft / 60)}хв {feedTimeLeft % 60}с
-                </span>
-              ) : (
-                <button
-                  className="btn btn-sell market-activate-btn"
-                  disabled={!canActivateFeed}
-                  onClick={() => {
-                    dispatch({ type: 'USE_FEED' });
-                    showToast(`🌾 Корм активовано! −${feedCostPerUse} корму. Тварини ×2 швидше!`, 'earn');
-                  }}
-                >
-                  ▶ Годувати ({feedCostPerUse} корму → {FEED_DURATION / 60} хв прискорення)
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ─── Тварини ─── */}
       <h3 className="shop-subtitle" style={{ marginTop: '4px', marginBottom: '8px' }}>🐾 Тварини</h3>
