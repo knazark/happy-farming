@@ -3,6 +3,7 @@ import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { loadGame, saveGame } from './storage';
 import { tick } from '../engine/gameLoop';
+import { ensureProfile, syncProfile } from '../firebase/db';
 
 interface GameContextValue {
   state: GameState;
@@ -32,8 +33,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Ensure Firestore profile exists on mount
   useEffect(() => {
-    const id = setInterval(() => saveGame(stateRef.current), 5000);
+    ensureProfile(stateRef.current).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      saveGame(stateRef.current);
+      syncProfile(stateRef.current).catch(() => {});
+    }, 5000);
     const onUnload = () => saveGame(stateRef.current);
     window.addEventListener('beforeunload', onUnload);
     return () => {
