@@ -1,10 +1,19 @@
-import { createContext, useContext, useReducer, useEffect, useRef, useState, type ReactNode, type Dispatch } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type ReactNode, type Dispatch } from 'react';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, syncProfile, getFarmerIdIfExists } from '../firebase/db';
 import { saveGameToFirestore, loadGameFromFirestore } from '../firebase/gameStateSync';
+
+// Actions that should trigger an immediate Firestore save
+const IMMEDIATE_SAVE_ACTIONS = new Set([
+  'PLANT_CROP', 'HARVEST', 'BUY_ANIMAL', 'SELL_ITEM', 'CRAFT_ITEM',
+  'UNLOCK_PLOT', 'UPGRADE_SOIL', 'GATHER_WOOD', 'COLLECT_WOOD',
+  'BUY_TRACTOR', 'BUY_CALEB', 'BUY_AUTO_PLANTER', 'SET_AUTO_CROP',
+  'CLEAR_AUTO_CROP', 'ACCEPT_ORDER', 'COMPLETE_ORDER', 'FERTILIZE_PLOT',
+  'UPDATE_PROFILE', 'LOAD_SAVE',
+]);
 
 interface GameContextValue {
   state: GameState;
@@ -19,6 +28,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  const savingRef = useRef(false);
+  const saveNow = useCallback(() => {
+    if (savingRef.current) return;
+    if (!getFarmerIdIfExists()) return;
+    savingRef.current = true;
+    Promise.all([
+      saveGameToFirestore(stateRef.current),
+      syncProfile(stateRef.current),
+    ]).catch((err) => {
+      console.warn('Firestore save failed:', err);
+    }).finally(() => { savingRef.current = false; });
+  }, []);
+
+  // Wrapped dispatch that triggers immediate save for important actions
+  const smartDispatch = useCallback((action: GameAction) => {
+    dispatch(action);
+    if (!loading && IMMEDIATE_SAVE_ACTIONS.has(action.type)) {
+      // Small delay to let React process the state update first
+      setTimeout(() => saveNow(), 50);
+    }
+  }, [loading, saveNow]);
 
   // Load from Firestore (single source of truth)
   useEffect(() => {
@@ -75,38 +106,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // Auto-save to Firestore every 5s + on visibility change (tab hide / app switch)
+  // Auto-save to Firestore every 5s + on visibility change + on beforeunload
   useEffect(() => {
     if (loading) return;
 
-    let saving = false;
-    const doSave = () => {
-      if (saving) return;
-      if (!getFarmerIdIfExists()) return; // ID removed — stop saving
-      saving = true;
-      Promise.all([
-        saveGameToFirestore(stateRef.current),
-        syncProfile(stateRef.current),
-      ]).catch((err) => {
-        console.warn('Firestore save failed:', err);
-      }).finally(() => { saving = false; });
-    };
+    const id = setInterval(saveNow, 5000);
 
-    const id = setInterval(doSave, 5000);
-
-    // Save immediately when user switches tab / minimizes / closes app
+    // Save immediately when user switches tab / minimizes
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        doSave();
+        saveNow();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
+    // Save on page refresh / close
+    const onBeforeUnload = () => {
+      saveNow();
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, [loading]);
+  }, [loading, saveNow]);
 
   if (loading) {
     return (
@@ -124,7 +149,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <GameContext.Provider value={{ state, dispatch }}>
+    <GameContext.Provider value={{ state, dispatch: smartDispatch }}>
       {children}
     </GameContext.Provider>
   );
