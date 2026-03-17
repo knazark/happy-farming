@@ -6,6 +6,7 @@ import {
   sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
+  removeFriend,
   type FarmerProfile,
 } from '../firebase/db';
 import { useFriends } from '../hooks/useFriends';
@@ -64,6 +65,19 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
     try {
       await declineFriendRequest(myId, farmerId);
       showToast('Запит відхилено', 'info');
+      refreshFriends();
+    } catch {
+      showToast('Помилка з\'єднання', 'info');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRemoveFriend = async (farmerId: string) => {
+    setProcessingId(farmerId);
+    try {
+      await removeFriend(myId, farmerId);
+      showToast('Друга видалено', 'info');
       refreshFriends();
     } catch {
       showToast('Помилка з\'єднання', 'info');
@@ -216,6 +230,17 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
                     style={{ padding: '4px 12px', fontSize: '13px' }}
                   >
                     Відвідати
+                  </button>
+                  <button
+                    onClick={() => handleRemoveFriend(friend.id)}
+                    disabled={processingId === friend.id}
+                    style={{
+                      padding: '4px 8px', fontSize: '12px', border: '1px solid #e0e0e0',
+                      borderRadius: '8px', background: '#fff', cursor: 'pointer', color: '#999',
+                    }}
+                    title="Видалити з друзів"
+                  >
+                    {processingId === friend.id ? '...' : '✕'}
                   </button>
                 </div>
               ))}

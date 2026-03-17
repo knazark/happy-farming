@@ -99,6 +99,12 @@ export async function addNeighbor(myId: string, theirId: string): Promise<boolea
   return true;
 }
 
+// Remove friend (bidirectional)
+export async function removeFriend(myId: string, theirId: string): Promise<void> {
+  await updateDoc(doc(db, 'farmers', myId), { neighborIds: arrayRemove(theirId) });
+  await updateDoc(doc(db, 'farmers', theirId), { neighborIds: arrayRemove(myId) });
+}
+
 // Fetch multiple farmers by IDs
 export async function getNeighborProfiles(ids: string[]): Promise<FarmerProfile[]> {
   if (ids.length === 0) return [];

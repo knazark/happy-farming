@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameProvider, useGame } from './state/GameContext';
 import { getFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
+import { useFriends } from './hooks/useFriends';
 import { FarmView } from './components/FarmView';
 import { ToastContainer, showToast } from './components/Toast';
 import { getUnlockCost, getUnlockLevel } from './engine/economy';
@@ -54,6 +55,7 @@ function GameContent() {
   const [showProfile, setShowProfile] = useState(!state.profile.name);
   const [activePanel, setActivePanel] = useState<PanelId>(null);
   const [visitingFriendId, setVisitingFriendId] = useState<string | null>(null);
+  const { pendingRequests } = useFriends();
 
   const togglePanel = (id: PanelId) => {
     setActivePanel((prev) => (prev === id ? null : id));
@@ -188,6 +190,7 @@ function GameContent() {
         >
           <span className="bar-btn-icon">👥</span>
           <span className="bar-btn-label">Друзі</span>
+          {pendingRequests.length > 0 && <span className="bar-badge">{pendingRequests.length}</span>}
         </button>
       </div>
       )}
