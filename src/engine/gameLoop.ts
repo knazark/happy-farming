@@ -214,13 +214,23 @@ export function tick(state: GameState, now: number): GameState {
     }
   }
 
-  // Remove expired orders
-  const activeOrders = newState.orders.filter((o) => o.expiresAt > now);
-  if (activeOrders.length !== newState.orders.length) {
-    newState = { ...newState, orders: activeOrders };
+  // Mark expired orders (don't delete — player must fulfill them to get new ones)
+  {
+    let changed = false;
+    const updatedOrders = newState.orders.map((o) => {
+      if (!o.expired && o.expiresAt <= now) {
+        changed = true;
+        return { ...o, expired: true };
+      }
+      return o;
+    });
+    if (changed) {
+      // Reset streak when any order expires
+      newState = { ...newState, orders: updatedOrders, orderStreak: 0 };
+    }
   }
 
-  // Generate new orders if below max (scales with level)
+  // Generate new orders only if total count < max (expired orders still occupy slots)
   const maxOrders = getMaxOrders(newState.level);
   if (newState.orders.length < maxOrders) {
     const newOrders = [...newState.orders];

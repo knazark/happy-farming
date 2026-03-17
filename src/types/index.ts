@@ -61,6 +61,7 @@ export interface NpcOrder {
   reward: number;
   xpReward: number;
   expiresAt: number;
+  expired?: boolean;
 }
 
 export interface AnimalSlot {
@@ -160,6 +161,7 @@ export interface GameState {
   totalHarvested: number;
   totalCrafted: number;
   totalOrdersFulfilled: number;
+  orderStreak: number;
   maxAnimals: number;
   hasTractor: boolean;
   hasAutoCollector: boolean;

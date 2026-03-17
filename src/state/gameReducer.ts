@@ -59,6 +59,7 @@ export function migrateSave(state: any): GameState {
     totalHarvested: state.totalHarvested ?? 0,
     totalCrafted: state.totalCrafted ?? 0,
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
+    orderStreak: state.orderStreak ?? 0,
     maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
     hasTractor: state.hasTractor ?? false,
     hasAutoCollector: state.hasAutoCollector ?? false,
@@ -99,6 +100,7 @@ export function createInitialState(): GameState {
     totalHarvested: 0,
     totalCrafted: 0,
     totalOrdersFulfilled: 0,
+    orderStreak: 0,
     maxAnimals: MAX_ANIMALS,
     hasTractor: false,
     hasAutoCollector: false,
@@ -535,8 +537,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const newOrders = state.orders.filter((_, i) => i !== orderIdx);
 
-      const rewardMultiplier = state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1;
-      const xpMultiplier = state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1;
+      // Expired penalty: 50% reward & XP, streak reset
+      const isExpired = !!order.expired;
+      const expiredPenalty = isExpired ? 0.5 : 1;
+
+      // Streak bonus: +10% per streak, max +100% (streak 10)
+      const newStreak = isExpired ? 0 : Math.min((state.orderStreak ?? 0) + 1, 10);
+      const streakBonus = isExpired ? 1 : (1 + (state.orderStreak ?? 0) * 0.1);
+
+      const rewardMultiplier = (state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1) * expiredPenalty * streakBonus;
+      const xpMultiplier = (state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1) * expiredPenalty;
       const finalReward = Math.round(order.reward * rewardMultiplier);
       const finalXp = Math.round(order.xpReward * xpMultiplier);
 
@@ -547,6 +557,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         coins: state.coins + finalReward,
         totalEarned: state.totalEarned + finalReward,
         totalOrdersFulfilled: state.totalOrdersFulfilled + 1,
+        orderStreak: newStreak,
       };
 
       fulfilled = addXp(fulfilled, finalXp);

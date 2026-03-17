@@ -1757,6 +1757,15 @@ body::after {
   box-shadow: 0 2px 8px rgba(45, 27, 78, 0.08);
 }
 
+.order-expired {
+  background: #FFF5F5;
+  border-color: #FFCDD2;
+}
+
+.order-expired .order-customer {
+  opacity: 0.7;
+}
+
 .order-header {
   display: flex;
   justify-content: space-between;

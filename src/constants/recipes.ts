@@ -362,11 +362,11 @@ export const MARKET_FLUCTUATION_MAX = 1.4;
 export const MARKET_UPDATE_INTERVAL = 300; // seconds
 
 export const ORDER_EXPIRE_TIME = 600; // seconds
-export const MAX_ORDERS_BASE = 2;
 export function getMaxOrders(level: number): number {
-  // Lv1-2: 2, Lv3-4: 3, Lv5-6: 4, Lv7-8: 5, Lv9-10: 6
-  return MAX_ORDERS_BASE + Math.floor(level / 2);
+  // Lv1-4: 2 orders, Lv5+: 3 orders
+  return level >= 5 ? 3 : 2;
 }
+export const ORDER_EXPIRED_PENALTY = 0.5; // expired orders pay 50% reward
 export const ORDER_REWARD_MULTIPLIER = 1.5;
 
 export const NPC_CUSTOMERS = [

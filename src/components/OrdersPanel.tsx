@@ -2,6 +2,7 @@ import { useGame } from '../state/GameContext';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { RECIPES } from '../constants/recipes';
+import { showToast } from './Toast';
 import type { ItemId } from '../types';
 
 function getItemEmoji(itemId: string): string {
@@ -45,22 +46,61 @@ export function OrdersPanel() {
     return true;
   };
 
+  const streak = state.orderStreak ?? 0;
+  const streakBonus = Math.min(streak, 10) * 10;
+
+  const handleFulfill = (orderId: string) => {
+    const order = state.orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const isExpired = !!order.expired;
+    const base = order.reward;
+    const penalty = isExpired ? 0.5 : 1;
+    const bonus = isExpired ? 1 : (1 + streak * 0.1);
+    const finalReward = Math.round(base * penalty * bonus);
+
+    dispatch({ type: 'FULFILL_ORDER', orderId });
+
+    if (isExpired) {
+      showToast(`💀 Протухле замовлення! +${finalReward}💰 (−50%)`, 'spend');
+    } else if (streak >= 2) {
+      showToast(`🔥 Серія ${streak + 1}! +${finalReward}💰 (+${streakBonus + 10}%)`, 'earn');
+    } else {
+      showToast(`✅ Замовлення виконано! +${finalReward}💰`, 'earn');
+    }
+  };
+
   return (
     <div className="panel">
-      <h2 className="panel-title">📋 Замовлення</h2>
+      <h2 className="panel-title">
+        📋 Замовлення
+        {streak > 0 && (
+          <span style={{ fontSize: '13px', marginLeft: '8px', color: '#FF6B35' }}>
+            🔥 {streak} (+{streakBonus}%)
+          </span>
+        )}
+      </h2>
       <div className="order-list">
         {state.orders.map((order) => {
+          const isExpired = !!order.expired;
           const timeLeft = Math.max(0, Math.ceil((order.expiresAt - Date.now()) / 1000));
           const minutes = Math.floor(timeLeft / 60);
           const seconds = timeLeft % 60;
 
           return (
-            <div key={order.id} className="order-item">
+            <div
+              key={order.id}
+              className={`order-item ${isExpired ? 'order-expired' : ''}`}
+            >
               <div className="order-header">
                 <span className="order-customer">
                   {order.customerEmoji} {order.customerName}
                 </span>
-                <span className="order-timer">⏱ {minutes}:{seconds.toString().padStart(2, '0')}</span>
+                {isExpired ? (
+                  <span className="order-timer" style={{ color: '#E53935' }}>💀 Протухло!</span>
+                ) : (
+                  <span className="order-timer">⏱ {minutes}:{seconds.toString().padStart(2, '0')}</span>
+                )}
               </div>
               <div className="order-items">
                 {Object.entries(order.items).map(([itemId, qty]) => (
@@ -74,13 +114,21 @@ export function OrdersPanel() {
                 ))}
               </div>
               <div className="order-footer">
-                <span className="order-reward">💰 {order.reward} · ⭐ {order.xpReward} XP</span>
+                <span className="order-reward">
+                  {isExpired ? (
+                    <>💰 <s>{order.reward}</s> {Math.round(order.reward * 0.5)} · ⭐ <s>{order.xpReward}</s> {Math.round(order.xpReward * 0.5)} XP</>
+                  ) : streak > 0 ? (
+                    <>💰 {Math.round(order.reward * (1 + streak * 0.1))} · ⭐ {order.xpReward} XP · 🔥+{streakBonus}%</>
+                  ) : (
+                    <>💰 {order.reward} · ⭐ {order.xpReward} XP</>
+                  )}
+                </span>
                 <button
-                  className="btn btn-sell"
+                  className={`btn ${isExpired ? 'btn-buy' : 'btn-sell'}`}
                   disabled={!canFulfill(order.id)}
-                  onClick={() => dispatch({ type: 'FULFILL_ORDER', orderId: order.id })}
+                  onClick={() => handleFulfill(order.id)}
                 >
-                  Виконати
+                  {isExpired ? '💀 Виконати' : 'Виконати'}
                 </button>
               </div>
             </div>
