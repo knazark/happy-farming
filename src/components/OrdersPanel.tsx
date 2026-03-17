@@ -54,15 +54,13 @@ export function OrdersPanel() {
     if (!order) return;
 
     const isExpired = !!order.expired;
-    const base = order.reward;
-    const penalty = isExpired ? 0.5 : 1;
-    const bonus = isExpired ? 1 : (1 + streak * 0.1);
-    const finalReward = Math.round(base * penalty * bonus);
+    const bonus = isExpired ? 0 : (1 + streak * 0.1);
+    const finalReward = isExpired ? 0 : Math.round(order.reward * bonus);
 
     dispatch({ type: 'FULFILL_ORDER', orderId });
 
     if (isExpired) {
-      showToast(`💀 Протухле замовлення! +${finalReward}💰 (−50%)`, 'spend');
+      showToast(`💀 Протухле! Без нагороди — серія скинута`, 'spend');
     } else if (streak >= 2) {
       showToast(`🔥 Серія ${streak + 1}! +${finalReward}💰 (+${streakBonus + 10}%)`, 'earn');
     } else {
@@ -116,7 +114,7 @@ export function OrdersPanel() {
               <div className="order-footer">
                 <span className="order-reward">
                   {isExpired ? (
-                    <>💰 <s>{order.reward}</s> {Math.round(order.reward * 0.5)} · ⭐ <s>{order.xpReward}</s> {Math.round(order.xpReward * 0.5)} XP</>
+                    <span style={{ color: '#E53935' }}>💀 <s>{order.reward}💰</s> <s>{order.xpReward} XP</s> — без нагороди</span>
                   ) : streak > 0 ? (
                     <>💰 {Math.round(order.reward * (1 + streak * 0.1))} · ⭐ {order.xpReward} XP · 🔥+{streakBonus}%</>
                   ) : (

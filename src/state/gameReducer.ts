@@ -537,18 +537,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const newOrders = state.orders.filter((_, i) => i !== orderIdx);
 
-      // Expired penalty: 50% reward & XP, streak reset
+      // Expired: no reward, no XP, streak reset — just frees the slot
       const isExpired = !!order.expired;
-      const expiredPenalty = isExpired ? 0.5 : 1;
 
       // Streak bonus: +10% per streak, max +100% (streak 10)
       const newStreak = isExpired ? 0 : Math.min((state.orderStreak ?? 0) + 1, 10);
       const streakBonus = isExpired ? 1 : (1 + (state.orderStreak ?? 0) * 0.1);
 
-      const rewardMultiplier = (state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1) * expiredPenalty * streakBonus;
-      const xpMultiplier = (state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1) * expiredPenalty;
-      const finalReward = Math.round(order.reward * rewardMultiplier);
-      const finalXp = Math.round(order.xpReward * xpMultiplier);
+      const finalReward = isExpired ? 0 : Math.round(order.reward * (state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1) * streakBonus);
+      const finalXp = isExpired ? 0 : Math.round(order.xpReward * (state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1));
 
       let fulfilled: GameState = {
         ...state,
@@ -556,7 +553,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         orders: newOrders,
         coins: state.coins + finalReward,
         totalEarned: state.totalEarned + finalReward,
-        totalOrdersFulfilled: state.totalOrdersFulfilled + 1,
+        totalOrdersFulfilled: state.totalOrdersFulfilled + (isExpired ? 0 : 1),
         orderStreak: newStreak,
       };
 
