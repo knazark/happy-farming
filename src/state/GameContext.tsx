@@ -95,11 +95,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  // Ensure Firestore profile exists after loading
+  // After loading: ensure profile exists + force first Firestore save
   useEffect(() => {
     if (!loading) {
       ensureProfile(stateRef.current).catch(() => {});
+      // Force immediate Firestore save so gameState is always synced
+      // (fixes: localStorage has progress but Firestore gameState was empty)
+      setTimeout(() => saveToFirestore(), 2000);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
   // Game loop: tick every second
