@@ -99,7 +99,7 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
               <button
                 key={crop.id}
                 className={`crop-row ${disabled ? 'crop-row-disabled' : ''}`}
-                disabled={disabled}
+                disabled={!!disabled}
                 onClick={() => handleSelect(crop.id)}
               >
                 <span className="crop-row-emoji">{locked ? '🔒' : crop.emoji}</span>
@@ -132,5 +132,3 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
     </div>
   );
 }
-
-/* CSS-in-JS not used; styles added to App.css */

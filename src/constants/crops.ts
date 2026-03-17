@@ -44,6 +44,7 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 24,
     unlockLevel: 2,
     xpReward: 10,
+    seasonOnly: 'summer',
   },
   tomato: {
     id: 'tomato',
@@ -55,6 +56,7 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 30,
     unlockLevel: 2,
     xpReward: 12,
+    seasonOnly: 'summer',
   },
   sunflower: {
     id: 'sunflower',
@@ -77,6 +79,7 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 50,
     unlockLevel: 3,
     xpReward: 22,
+    seasonOnly: 'autumn',
   },
   corn: {
     id: 'corn',
@@ -110,6 +113,7 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 72,
     unlockLevel: 5,
     xpReward: 26,
+    seasonOnly: 'summer',
   },
   strawberry: {
     id: 'strawberry',
@@ -121,6 +125,7 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 78,
     unlockLevel: 6,
     xpReward: 30,
+    seasonOnly: 'spring',
   },
   blueberry: {
     id: 'blueberry',
@@ -202,6 +207,31 @@ export const CROPS: Record<CropId, CropDef> = {
     sellPrice: 200,
     unlockLevel: 9,
     xpReward: 60,
+    seasonOnly: 'summer',
+  },
+  radish: {
+    id: 'radish',
+    name: 'Редиска',
+    emoji: '🫑',
+    seedEmoji: '🌱',
+    growthTime: 100,      // 1 хв 40с
+    seedPrice: 7,
+    sellPrice: 18,
+    unlockLevel: 3,
+    xpReward: 7,
+    seasonOnly: 'spring',
+  },
+  beet: {
+    id: 'beet',
+    name: 'Буряк',
+    emoji: '🟣',
+    seedEmoji: '🌱',
+    growthTime: 360,      // 6 хв
+    seedPrice: 22,
+    sellPrice: 60,
+    unlockLevel: 6,
+    xpReward: 24,
+    seasonOnly: 'autumn',
   },
 };
 
