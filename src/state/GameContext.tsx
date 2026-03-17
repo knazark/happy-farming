@@ -5,6 +5,7 @@ import { saveGame, loadGame } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, getFarmerIdIfExists } from '../firebase/db';
 import { loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
+import { shouldBlockFirestoreSave, pickBetterSave } from './saveGuards';
 
 interface GameContextValue {
   state: GameState;
@@ -43,16 +44,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const lastFirestoreJsonRef = useRef('');
   const saveToFirestore = useCallback(() => {
     if (savingRef.current) return;
-    if (!getFarmerIdIfExists()) return;
-    // GUARD 1: If real data was never loaded, NEVER write to Firestore
-    // This prevents any initial/near-initial state from overwriting real progress
-    if (!hasRealDataRef.current) return;
-    // GUARD 2: Don't save until user has set up profile (name + password)
-    if (!stateRef.current.profile.name || !stateRef.current.profile.password) return;
-    // GUARD 3: Regression check — don't write if totalEarned dropped to <10% of high-water mark
-    // (protects against state resets that happen to gain a few coins before sync)
-    if (highWaterMarkRef.current > 1000 && stateRef.current.totalEarned < highWaterMarkRef.current * 0.1) {
-      console.warn(`Blocked Firestore write: totalEarned ${stateRef.current.totalEarned} << highWater ${highWaterMarkRef.current}`);
+    const blockReason = shouldBlockFirestoreSave({
+      hasFarmerId: !!getFarmerIdIfExists(),
+      hasRealData: hasRealDataRef.current,
+      highWaterMark: highWaterMarkRef.current,
+      profileName: stateRef.current.profile.name,
+      profilePassword: stateRef.current.profile.password,
+      level: stateRef.current.level,
+      totalEarned: stateRef.current.totalEarned,
+    });
+    if (blockReason) {
+      if (blockReason === 'regression_below_high_water') {
+        console.warn(`Blocked Firestore write: totalEarned ${stateRef.current.totalEarned} << highWater ${highWaterMarkRef.current}`);
+      }
       return;
     }
     const snapshot = JSON.stringify(stateRef.current);
@@ -95,10 +99,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           let best: GameState | null = null;
           if (firestoreState && localState) {
-            // Pick the save with higher progress (totalEarned is the best indicator)
-            const localProgress = (localState.totalEarned ?? 0) + (localState.level ?? 1) * 1000;
-            const fireProgress = (firestoreState.totalEarned ?? 0) + (firestoreState.level ?? 1) * 1000;
-            best = localProgress >= fireProgress ? localState : firestoreState;
+            const winner = pickBetterSave({
+              localTotalEarned: localState.totalEarned ?? 0,
+              localLevel: localState.level ?? 1,
+              firestoreTotalEarned: firestoreState.totalEarned ?? 0,
+              firestoreLevel: firestoreState.level ?? 1,
+            });
+            best = winner === 'local' ? localState : firestoreState;
           } else {
             best = firestoreState ?? localState;
           }

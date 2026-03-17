@@ -2,6 +2,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
 import { getFarmerId, calcScore } from './db';
 import { loadGame, clearSave } from '../state/storage';
+import { isFirestoreRegression } from '../state/saveGuards';
 import type { GameState, Inventory, ItemId, PlotState } from '../types';
 
 /**
@@ -26,11 +27,11 @@ export async function saveGameAndProfile(state: GameState): Promise<void> {
     const snap = await getDoc(doc(db, 'farmers', id));
     if (snap.exists()) {
       const existing = snap.data();
-      const existingEarned = existing.totalEarned ?? 0;
-      // If existing data has significantly more progress, skip the write
-      // This prevents corrupted/reset state from overwriting good data
-      if (existingEarned > 1000 && state.totalEarned < existingEarned * 0.5) {
-        console.warn(`Firestore has better data (${existingEarned} vs ${state.totalEarned}) — skipping overwrite`);
+      if (isFirestoreRegression({
+        existingTotalEarned: existing.totalEarned ?? 0,
+        newTotalEarned: state.totalEarned,
+      })) {
+        console.warn(`Firestore has better data (${existing.totalEarned} vs ${state.totalEarned}) — skipping overwrite`);
         return;
       }
     }
