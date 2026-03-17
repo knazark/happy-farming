@@ -278,23 +278,34 @@ function GameContent() {
         {cropSelector && (
           <motion.div
             key="crop-overlay"
+            className="crop-selector-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setCropSelector(null)}
           >
-            {state.season === 'winter' && state.plots[cropSelector.plotIndex]?.status === 'empty' ? (
-              <WinterSelector
-                plotIndex={cropSelector.plotIndex}
-                onClose={() => setCropSelector(null)}
-              />
-            ) : (
-              <CropSelector
-                plotIndex={cropSelector.plotIndex}
-                position={cropSelector.position}
-                onClose={() => setCropSelector(null)}
-              />
-            )}
+            <motion.div
+              className="crop-selector"
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {state.season === 'winter' && state.plots[cropSelector.plotIndex]?.status === 'empty' ? (
+                <WinterSelector
+                  plotIndex={cropSelector.plotIndex}
+                  onClose={() => setCropSelector(null)}
+                />
+              ) : (
+                <CropSelector
+                  plotIndex={cropSelector.plotIndex}
+                  position={cropSelector.position}
+                  onClose={() => setCropSelector(null)}
+                />
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
