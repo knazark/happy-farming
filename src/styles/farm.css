@@ -549,3 +549,67 @@
   .plot-progress-bar { height: 5px; }
   .animal-card { min-height: 50px; }
 }
+
+/* ===== Winter Selector ===== */
+.winter-selector {
+  max-width: 280px;
+}
+
+.winter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.winter-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: inherit;
+  font-family: inherit;
+}
+
+.winter-option:hover:not(:disabled) {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.4);
+  transform: scale(1.02);
+}
+
+.winter-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.winter-option--maxed {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.winter-option-emoji {
+  font-size: 28px;
+}
+
+.winter-option-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.winter-option-desc {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.winter-soil-info {
+  text-align: center;
+  font-size: 11px;
+  padding: 4px 12px 8px;
+  opacity: 0.7;
+}
