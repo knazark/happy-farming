@@ -401,21 +401,6 @@
   animation: ready-bounce 0.8s ease-in-out infinite;
 }
 
-.animal-sparkles {
-  position: absolute;
-  inset: -8px;
-}
-
-.animal-sparkles .sparkle {
-  font-size: 7px;
-}
-
-.animal-sparkles .sparkle.s1 {
-  top: 0; left: -2px;
-}
-.animal-sparkles .sparkle.s2 {
-  bottom: 0; right: -2px;
-}
 
 .animal-count {
   font-size: 10px;

@@ -72,12 +72,6 @@ export const AnimalCard = memo(function AnimalCard({
           <span className={`animal-emoji ${isReady ? 'animal-bounce' : ''}`}>
             {animal.emoji}
           </span>
-          {isReady && (
-            <div className="animal-sparkles">
-              <span className="sparkle s1">✦</span>
-              <span className="sparkle s2">✦</span>
-            </div>
-          )}
         </div>
         {group.count > 1 && (
           <span className="animal-count">×{group.count}</span>
