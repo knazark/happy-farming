@@ -63,15 +63,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const firestoreState = await loadGameFromFirestore();
         const localState = loadGame();
 
+        console.log('[load] firestore:', firestoreState ? `level=${firestoreState.level} coins=${firestoreState.coins}` : 'null');
+        console.log('[load] local:', localState ? `level=${localState.level} coins=${localState.coins}` : 'null');
+
         if (!cancelled) {
           // Pick the most recent save
           let best: GameState | null = null;
           if (firestoreState && localState) {
-            // Compare lastTick or totalEarned to pick fresher state
-            best = (localState.lastTickAt ?? 0) > (firestoreState.lastTickAt ?? 0)
-              ? localState : firestoreState;
+            // Compare lastTickAt to pick fresher state
+            const localTick = localState.lastTickAt ?? 0;
+            const fireTick = firestoreState.lastTickAt ?? 0;
+            best = localTick > fireTick ? localState : firestoreState;
+            console.log('[load] both exist, localTick=', localTick, 'fireTick=', fireTick, '→ using', localTick > fireTick ? 'local' : 'firestore');
           } else {
             best = firestoreState ?? localState;
+            console.log('[load] using', firestoreState ? 'firestore' : localState ? 'local' : 'initial state');
           }
 
           if (best) {
@@ -80,7 +86,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         }
       } catch (err) {
-        console.warn('Firestore load failed, trying localStorage:', err);
+        console.warn('[load] Firestore load failed, trying localStorage:', err);
         if (!cancelled) {
           const localState = loadGame();
           if (localState) {
