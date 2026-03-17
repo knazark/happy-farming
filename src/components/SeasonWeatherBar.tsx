@@ -66,6 +66,14 @@ export function SeasonWeatherBar() {
             ⛈️ {wAnimalMod < 1 ? '↑' : '↓'}{Math.round(Math.abs(1 - wAnimalMod) * 100)}%
           </span>
         )}
+        {state.season === 'winter' && (
+          <>
+            <span className="mod-info">🪵 Збір дров</span>
+            <span className="mod-good">🐾 ×2 продукти</span>
+            <span className="mod-good">📋 +50% за крафт</span>
+            <span className="mod-good">⭐ +25% XP</span>
+          </>
+        )}
       </div>
     </div>
   );
