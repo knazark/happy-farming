@@ -8,7 +8,7 @@ export const SEASON_INFO: Record<Season, { name: string; emoji: string; descript
   spring: { name: 'Весна', emoji: '🌸', description: 'Рослини ростуть швидше' },
   summer: { name: 'Літо', emoji: '☀️', description: 'Тварини виробляють більше' },
   autumn: { name: 'Осінь', emoji: '🍂', description: 'Ціни продажу вищі' },
-  winter: { name: 'Зима', emoji: '❄️', description: 'Все сповільнюється' },
+  winter: { name: 'Зима', emoji: '❄️', description: 'Збирайте дрова та покращуйте ґрунт' },
 };
 
 // Growth time multipliers per season

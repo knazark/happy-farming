@@ -241,6 +241,36 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 8,
     xpReward: 45,
   },
+  campfire: {
+    id: 'campfire',
+    name: 'Багаття',
+    emoji: '🔥',
+    ingredients: { firewood: 3 },
+    craftTime: 90,
+    sellPrice: 80,
+    unlockLevel: 1,
+    xpReward: 10,
+  },
+  warm_scarf: {
+    id: 'warm_scarf',
+    name: 'Теплий шарф',
+    emoji: '🧣',
+    ingredients: { firewood: 2, sheep_product: 2 },
+    craftTime: 180,
+    sellPrice: 120,
+    unlockLevel: 3,
+    xpReward: 18,
+  },
+  wooden_chest: {
+    id: 'wooden_chest',
+    name: "Дерев'яна скринька",
+    emoji: '📦',
+    ingredients: { firewood: 5 },
+    craftTime: 240,
+    sellPrice: 150,
+    unlockLevel: 4,
+    xpReward: 22,
+  },
 };
 
 export const STORAGE_BASE = 50;
