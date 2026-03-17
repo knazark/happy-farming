@@ -3,10 +3,14 @@ import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { RECIPES } from '../constants/recipes';
 import { STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
+import { WOOD_SELL_PRICE } from '../constants/winter';
 import { showToast } from './Toast';
 import type { ItemId } from '../types';
 
 function getItemInfo(itemId: ItemId): { emoji: string; name: string; sellPrice: number } {
+  if (itemId === 'firewood') {
+    return { emoji: '🪵', name: 'Дрова', sellPrice: WOOD_SELL_PRICE };
+  }
   if (itemId.endsWith('_product')) {
     const animalId = itemId.replace('_product', '') as keyof typeof ANIMALS;
     const animal = ANIMALS[animalId];
