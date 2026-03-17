@@ -297,23 +297,31 @@
   100% { opacity: 1; }
 }
 
-/* ===== Greenhouse tint ===== */
-.plot-greenhouse::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(100, 220, 150, 0.12);
-  border-radius: 14px;
-  pointer-events: none;
-  z-index: 4;
+/* Wood gathering plot */
+.plot-gathering {
+  background: linear-gradient(145deg, #5C4A35, #3E3025) !important;
 }
 
-.plot-greenhouse-icon {
+.plot-progress-wood {
+  background: linear-gradient(90deg, #8B6914, #D4A017) !important;
+}
+
+.plot-wood-ready {
+  background: linear-gradient(145deg, #8B6914, #6B5210) !important;
+  animation: ready-bounce 2s ease-in-out infinite, ready-glow-border 1.5s ease-in-out infinite;
+}
+
+/* Soil level badge */
+.soil-level-badge {
   position: absolute;
-  top: 3px;
-  right: 5px;
-  font-size: 12px;
-  z-index: 5;
+  bottom: 4px;
+  left: 4px;
+  font-size: 10px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 6px;
+  z-index: 2;
   pointer-events: none;
 }
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useGame } from '../state/GameContext';
-import { GRID_COLS, GRID_ROWS } from '../constants/grid';
+import { GRID_COLS } from '../constants/grid';
 import { ANIMALS } from '../constants/animals';
 import { getPerPlotUnlockInfo } from '../engine/economy';
 import { PlotCell } from './PlotCell';
@@ -32,7 +32,7 @@ export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
     [state.animals, now, state.feedActiveUntil],
   );
 
-  const bottomRowStart = (GRID_ROWS - 1) * GRID_COLS;
+
 
   const handleAnimalClick = useCallback(
     (groupIndex: number) => {
@@ -65,7 +65,7 @@ export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
             now={now}
             unlockInfo={unlockMap.get(i)}
             isHovered={hoveredPlot === i}
-            isGreenhouse={state.hasGreenhouse && i >= bottomRowStart}
+
             onClick={() => onPlotClick(i)}
             onMouseEnter={() => setHoveredPlot(i)}
             onMouseLeave={() => setHoveredPlot(null)}

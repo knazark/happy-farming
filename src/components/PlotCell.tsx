@@ -8,7 +8,6 @@ interface PlotCellProps {
   now: number;
   unlockInfo?: { cost: number; level: number; playerLevel: number; playerCoins: number };
   isHovered: boolean;
-  isGreenhouse: boolean;
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -31,7 +30,7 @@ function formatTime(seconds: number): string {
 }
 
 export const PlotCell = memo(function PlotCell({
-  plot, index, now, unlockInfo, isHovered, isGreenhouse, onClick, onMouseEnter, onMouseLeave,
+  plot, index, now, unlockInfo, isHovered, onClick, onMouseEnter, onMouseLeave,
 }: PlotCellProps) {
   const content = useMemo(() => {
     switch (plot.status) {
@@ -111,21 +110,56 @@ export const PlotCell = memo(function PlotCell({
           </div>
         );
       }
+
+      case 'gathering_wood': {
+        const elapsed = (now - plot.startedAt) / 1000;
+        const progress = Math.min(1, elapsed / plot.gatherTime);
+        const remaining = Math.max(0, plot.gatherTime - elapsed);
+        const pct = Math.min(100, progress * 100);
+        const stage = progress < 0.5 ? '🪓' : '🪵';
+
+        return (
+          <div className="plot-inner plot-gathering">
+            <div className="plot-furrows" style={{ opacity: Math.max(0.1, 1 - progress * 0.9) }} />
+            <span className="plot-plant" style={{ fontSize: '32px' }}>{stage}</span>
+            <div className="plot-time-pill">{formatTime(remaining)}</div>
+            <div className="plot-progress-bar">
+              <div className="plot-progress-fill plot-progress-wood" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      }
+
+      case 'wood_ready':
+        return (
+          <div className="plot-inner plot-wood-ready">
+            <div className="plot-ready-sparkles">
+              <span className="sparkle s1">✦</span>
+              <span className="sparkle s2">✦</span>
+              <span className="sparkle s3">✦</span>
+              <span className="sparkle s4">✦</span>
+            </div>
+            <span className="plot-ready-emoji">🪵</span>
+            <div className="plot-harvest-pill">🪵 Зібрати</div>
+          </div>
+        );
     }
   }, [plot, now, unlockInfo, index]);
 
-  const cursor = plot.status === 'growing' ? 'default' : 'pointer';
+  const cursor = plot.status === 'growing' || plot.status === 'gathering_wood' ? 'default' : 'pointer';
 
   return (
     <div
-      className={`plot-cell ${isHovered ? 'plot-hovered' : ''} ${isGreenhouse ? 'plot-greenhouse' : ''}`}
+      className={`plot-cell ${isHovered ? 'plot-hovered' : ''}`}
       style={{ cursor }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       {content}
-      {isGreenhouse && <span className="plot-greenhouse-icon">🏗️</span>}
+      {'soilLevel' in plot && (plot.soilLevel ?? 0) > 0 && (
+        <span className="soil-level-badge">🌱{plot.soilLevel}</span>
+      )}
     </div>
   );
 });
