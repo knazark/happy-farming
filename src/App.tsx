@@ -43,6 +43,22 @@ function GameContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Show help log toasts (friends harvested for you)
+  useEffect(() => {
+    const log = state.helpLog;
+    if (log && log.length > 0) {
+      // Delay so toasts appear after UI is ready
+      setTimeout(() => {
+        for (const entry of log) {
+          const crop = CROPS[entry.cropId];
+          showToast(`🌾 ${entry.helper} зібрав тобі ${crop?.emoji ?? ''} ${crop?.name ?? 'врожай'}!`, 'earn');
+        }
+        dispatch({ type: 'CLEAR_HELP_LOG' });
+      }, 1000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Apply season class to body for background
   useEffect(() => {
     document.body.className = `season-${state.season}`;

@@ -654,6 +654,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'FRIEND_HARVEST_REWARD': {
+      let s = { ...state, coins: state.coins + action.coins };
+      s = addXp(s, action.xp);
+      s = progressQuests(s, 'help', 1);
+      return checkAchievements(s);
+    }
+
+    case 'CLEAR_HELP_LOG':
+      return { ...state, helpLog: [] };
+
     case 'LOAD_SAVE':
       return migrateSave(action.state);
 

@@ -589,3 +589,14 @@
 .friend-farm .animal-card {
   cursor: default !important;
 }
+
+/* When friend has harvestable plots and we haven't helped today */
+.friend-farm-harvest .plot-ready {
+  cursor: pointer !important;
+  outline: 2px dashed #4CAF50;
+  outline-offset: -2px;
+}
+
+.friend-farm-harvest .plot-cell:has(.plot-ready):hover {
+  transform: scale(1.05);
+}

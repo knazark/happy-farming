@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
-import { loadFriendGameState } from '../firebase/gameStateSync';
-import { getFarmer, type FarmerProfile } from '../firebase/db';
+import { useEffect, useState, useCallback } from 'react';
+import { loadFriendGameState, harvestFriendPlot } from '../firebase/gameStateSync';
+import { getFarmer, getFarmerId, getInteraction, recordHelp, type FarmerProfile } from '../firebase/db';
+import { useGame } from '../state/GameContext';
 import { PlotCell } from './PlotCell';
 import { AnimalCard, groupAnimals } from './AnimalCard';
+import { showToast } from './Toast';
+import { CROPS } from '../constants/crops';
 import type { GameState } from '../types';
+
+const HARVEST_REWARD_PERCENT = 0.15; // 15% of crop sellPrice
 
 interface FriendFarmViewProps {
   friendId: string;
@@ -11,22 +16,28 @@ interface FriendFarmViewProps {
 }
 
 export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
+  const { state: myState, dispatch } = useGame();
   const [state, setState] = useState<GameState | null>(null);
   const [profile, setProfile] = useState<FarmerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
+  const [helpedToday, setHelpedToday] = useState(false);
+  const [harvesting, setHarvesting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [gs, fp] = await Promise.all([
+        const myId = getFarmerId();
+        const [gs, fp, interaction] = await Promise.all([
           loadFriendGameState(friendId),
           getFarmer(friendId),
+          getInteraction(myId, friendId),
         ]);
         if (!cancelled) {
           setState(gs);
           setProfile(fp);
+          setHelpedToday(interaction.helpedToday);
         }
       } catch (err) {
         console.warn('Failed to load friend farm:', err);
@@ -42,6 +53,47 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, []);
+
+  const handlePlotClick = useCallback(async (plotIndex: number) => {
+    if (!state || harvesting || helpedToday) return;
+    const plot = state.plots[plotIndex];
+    if (!plot || plot.status !== 'ready') return;
+
+    const crop = CROPS[plot.cropId];
+    setHarvesting(true);
+
+    try {
+      const myName = myState.profile.name || 'Фермер';
+      const updated = await harvestFriendPlot(friendId, plotIndex, myName);
+      if (!updated) {
+        showToast('Не вдалось зібрати', 'info');
+        return;
+      }
+
+      // Update local view of friend's farm
+      setState(updated);
+
+      // Record daily help
+      const myId = getFarmerId();
+      await recordHelp(myId, friendId);
+      setHelpedToday(true);
+
+      // Reward myself
+      const rewardCoins = Math.max(1, Math.floor(crop.sellPrice * HARVEST_REWARD_PERCENT));
+      const rewardXp = Math.max(1, Math.floor(crop.xpReward * 0.5));
+      dispatch({ type: 'FRIEND_HARVEST_REWARD', coins: rewardCoins, xp: rewardXp });
+
+      showToast(
+        `${crop.emoji} Зібрано для ${profile?.name ?? 'друга'}! +${rewardCoins}💰 +${rewardXp}⭐`,
+        'earn',
+      );
+    } catch (err) {
+      console.warn('Harvest friend plot failed:', err);
+      showToast('Помилка з\'єднання', 'info');
+    } finally {
+      setHarvesting(false);
+    }
+  }, [state, harvesting, helpedToday, friendId, myState.profile.name, profile?.name, dispatch]);
 
   if (loading) {
     return (
@@ -65,6 +117,9 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
 
   const noop = () => {};
 
+  // Count ready plots
+  const readyCount = state ? state.plots.filter(p => p.status === 'ready').length : 0;
+
   const header = (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '12px',
@@ -75,10 +130,26 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
         background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', padding: '4px 8px',
       }}>← Назад</button>
       <span style={{ fontSize: '28px' }}>{profile.avatar}</span>
-      <div>
+      <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: '16px' }}>{profile.name}</div>
         <div style={{ fontSize: '13px', color: '#666' }}>⭐ Рівень {profile.level}</div>
       </div>
+      {state && !helpedToday && readyCount > 0 && (
+        <div style={{
+          background: '#4CAF50', color: '#fff', padding: '4px 10px',
+          borderRadius: '10px', fontSize: '12px', fontWeight: 700,
+        }}>
+          🌾 {readyCount} готово
+        </div>
+      )}
+      {helpedToday && (
+        <div style={{
+          background: '#F5F5F5', color: '#999', padding: '4px 10px',
+          borderRadius: '10px', fontSize: '12px',
+        }}>
+          ✅ Допомога надана
+        </div>
+      )}
     </div>
   );
 
@@ -105,10 +176,21 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   }
 
   const groups = groupAnimals(state.animals, now, state.feedActiveUntil);
+  const canHarvest = !helpedToday && !harvesting;
 
   return (
-    <div className="friend-farm">
+    <div className={`friend-farm ${canHarvest ? 'friend-farm-harvest' : ''}`}>
       {header}
+
+      {!helpedToday && readyCount > 0 && (
+        <div style={{
+          textAlign: 'center', padding: '8px', marginBottom: '8px',
+          background: 'rgba(76, 175, 80, 0.15)', borderRadius: '10px',
+          fontSize: '13px', color: '#2E7D32',
+        }}>
+          Натисніть на готову ділянку, щоб зібрати врожай для друга! 🌾
+        </div>
+      )}
 
       <div className="farm-view">
         <div className="farm-grid">
@@ -119,7 +201,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
               index={i}
               now={now}
               isHovered={false}
-              onClick={noop}
+              onClick={canHarvest && plot.status === 'ready' ? () => handlePlotClick(i) : noop}
               onMouseEnter={noop}
               onMouseLeave={noop}
             />

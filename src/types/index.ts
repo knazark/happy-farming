@@ -162,6 +162,7 @@ export interface GameState {
   maxAnimals: number;
   hasTractor: boolean;
   hasAutoCollector: boolean;
+  helpLog?: { helper: string; cropId: CropId; at: number }[];
 }
 
 export type GameAction =
@@ -190,5 +191,7 @@ export type GameAction =
   | { type: 'GATHER_WOOD'; plotIndex: number }
   | { type: 'COLLECT_WOOD'; plotIndex: number }
   | { type: 'UPGRADE_SOIL'; plotIndex: number }
+  | { type: 'FRIEND_HARVEST_REWARD'; coins: number; xp: number }
+  | { type: 'CLEAR_HELP_LOG' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };

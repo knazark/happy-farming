@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './config';
 import { getFarmerId } from './db';
 import { loadGame, clearSave } from '../state/storage';
-import type { GameState } from '../types';
+import type { GameState, Inventory, ItemId } from '../types';
 
 /**
  * Save full game state to Firestore (merge — won't overwrite profile/leaderboard fields)
@@ -45,4 +45,46 @@ export async function loadFriendGameState(friendId: string): Promise<GameState |
   const snap = await getDoc(doc(db, 'farmers', friendId));
   if (!snap.exists()) return null;
   return (snap.data()?.gameState as GameState) ?? null;
+}
+
+/**
+ * Harvest a friend's ready plot: set plot to empty, add crop to their inventory.
+ * Returns the updated friend GameState, or null if plot wasn't ready.
+ */
+export async function harvestFriendPlot(
+  friendId: string,
+  plotIndex: number,
+  helperName: string,
+): Promise<GameState | null> {
+  const snap = await getDoc(doc(db, 'farmers', friendId));
+  if (!snap.exists()) return null;
+
+  const gs = snap.data()?.gameState as GameState | undefined;
+  if (!gs) return null;
+
+  const plot = gs.plots[plotIndex];
+  if (!plot || plot.status !== 'ready') return null;
+
+  const cropId = plot.cropId;
+
+  // Update friend's state: reset plot + add crop to inventory
+  const newPlots = [...gs.plots];
+  newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
+
+  const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
+
+  // Add helper notification
+  const helpLog = gs.helpLog ?? [];
+  helpLog.push({ helper: helperName, cropId, at: Date.now() });
+
+  const updated: GameState = {
+    ...gs,
+    plots: newPlots,
+    inventory: newInv,
+    totalHarvested: gs.totalHarvested + 1,
+    helpLog,
+  };
+
+  await setDoc(doc(db, 'farmers', friendId), { gameState: updated }, { merge: true });
+  return updated;
 }
