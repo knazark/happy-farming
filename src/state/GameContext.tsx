@@ -1,10 +1,10 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type ReactNode, type Dispatch } from 'react';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
-import { loadGame, clearSave } from './storage';
+import { saveGame, loadGame } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, getFarmerIdIfExists } from '../firebase/db';
-import { saveGameToFirestore, loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
+import { loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
 
 interface GameContextValue {
   state: GameState;
@@ -13,6 +13,9 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null);
 
+// Firestore sync interval: 2 minutes (saves ~10 writes/hour instead of 120)
+const FIRESTORE_SYNC_MS = 2 * 60 * 1000;
+
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, null, () => createInitialState());
   const [loading, setLoading] = useState(true);
@@ -20,20 +23,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Dirty flag: only save when state actually changed (not just TICK with no growth)
+  // Dirty flag: only save to Firestore when state actually changed
   const dirtyRef = useRef(false);
-  const lastSavedJsonRef = useRef('');
 
+  // --- localStorage save (fast, free, every 5s) ---
+  const saveToLocal = useCallback(() => {
+    saveGame(stateRef.current);
+  }, []);
+
+  // --- Firestore save (remote backup, every 2 min) ---
   const savingRef = useRef(false);
-  const saveNow = useCallback(() => {
+  const saveToFirestore = useCallback(() => {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
-    // Skip save if state hasn't meaningfully changed
-    const snapshot = JSON.stringify(stateRef.current);
-    if (snapshot === lastSavedJsonRef.current && !dirtyRef.current) return;
+    if (!dirtyRef.current) return;
     savingRef.current = true;
     dirtyRef.current = false;
-    lastSavedJsonRef.current = snapshot;
     saveGameAndProfile(stateRef.current).catch((err) => {
       console.warn('Firestore save failed:', err);
       dirtyRef.current = true; // retry next interval
@@ -48,36 +53,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Load from Firestore (single source of truth)
+  // Load: try Firestore first (cross-device sync), fall back to localStorage
   useEffect(() => {
     let cancelled = false;
 
     async function initLoad() {
       try {
-        // One-time migration: if old localStorage save exists, push to Firestore and delete
-        const localSave = loadGame();
-        if (localSave) {
-          await saveGameToFirestore(localSave);
-          clearSave();
-          if (!cancelled) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localSave), Date.now()) });
-            setLoading(false);
-          }
-          return;
-        }
-
-        // Normal path: load from Firestore
+        // Try Firestore first (authoritative for cross-device)
         const firestoreState = await loadGameFromFirestore();
+        const localState = loadGame();
+
         if (!cancelled) {
-          if (firestoreState) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(firestoreState), Date.now()) });
+          // Pick the most recent save
+          let best: GameState | null = null;
+          if (firestoreState && localState) {
+            // Compare lastTick or totalEarned to pick fresher state
+            best = (localState.lastTickAt ?? 0) > (firestoreState.lastTickAt ?? 0)
+              ? localState : firestoreState;
+          } else {
+            best = firestoreState ?? localState;
           }
-          // else: new player — keep initial state
+
+          if (best) {
+            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(best), Date.now()) });
+          }
           setLoading(false);
         }
       } catch (err) {
-        console.warn('Firestore load failed:', err);
+        console.warn('Firestore load failed, trying localStorage:', err);
         if (!cancelled) {
+          const localState = loadGame();
+          if (localState) {
+            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localState), Date.now()) });
+          }
           setLoading(false);
         }
       }
@@ -103,23 +111,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // Auto-save to Firestore every 30s + on visibility change + on beforeunload
+  // localStorage: save every 5s (free, instant)
+  useEffect(() => {
+    if (loading) return;
+    const id = setInterval(saveToLocal, 5000);
+    return () => clearInterval(id);
+  }, [loading, saveToLocal]);
+
+  // Firestore: sync every 2 min + on visibility change + on beforeunload
   useEffect(() => {
     if (loading) return;
 
-    const id = setInterval(saveNow, 30000);
+    const id = setInterval(saveToFirestore, FIRESTORE_SYNC_MS);
 
-    // Save immediately when user switches tab / minimizes
+    // Save to both when user switches tab / minimizes
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        saveNow();
+        saveToLocal();
+        saveToFirestore();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    // Save on page refresh / close
+    // Save to both on page refresh / close
     const onBeforeUnload = () => {
-      saveNow();
+      saveToLocal();
+      saveToFirestore();
     };
     window.addEventListener('beforeunload', onBeforeUnload);
 
@@ -128,7 +145,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, [loading, saveNow]);
+  }, [loading, saveToLocal, saveToFirestore]);
 
   if (loading) {
     return (
