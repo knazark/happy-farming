@@ -230,49 +230,14 @@
 /* ===== Ready Plot ===== */
 .plot-ready {
   background: linear-gradient(to bottom, #D4A843 0%, #C49538 40%, #A87D30 70%, #8B6528 100%);
-  animation: ready-glow-border 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes ready-glow-border {
-  0% { box-shadow: 0 0 8px rgba(198, 124, 47, 0.3), inset 0 0 0 2px #FF6B35; }
-  100% { box-shadow: 0 0 18px rgba(198, 124, 47, 0.6), inset 0 0 0 2px #FF6B35; }
+  box-shadow: 0 0 12px rgba(198, 124, 47, 0.4), inset 0 0 0 2px #FF6B35;
 }
 
 .plot-ready-emoji {
   font-size: 40px;
   position: relative;
   z-index: 2;
-  animation: ready-bounce 0.8s ease-in-out infinite;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
-}
-
-@keyframes ready-bounce {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
-}
-
-.plot-ready-sparkles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.sparkle {
-  position: absolute;
-  color: #FFD700;
-  font-size: 10px;
-  animation: sparkle-orbit 2.5s linear infinite;
-  opacity: 0.7;
-}
-.sparkle.s1 { top: 15%; left: 10%; animation-delay: 0s; }
-.sparkle.s2 { top: 10%; right: 15%; animation-delay: -0.6s; }
-.sparkle.s3 { bottom: 25%; right: 10%; animation-delay: -1.2s; }
-.sparkle.s4 { bottom: 20%; left: 15%; animation-delay: -1.8s; }
-
-@keyframes sparkle-orbit {
-  0% { transform: scale(0.5) rotate(0deg); opacity: 0.4; }
-  50% { transform: scale(1.2) rotate(180deg); opacity: 0.9; }
-  100% { transform: scale(0.5) rotate(360deg); opacity: 0.4; }
 }
 
 .plot-harvest-pill {
@@ -289,12 +254,6 @@
   border-radius: 11px;
   z-index: 3;
   box-shadow: 0 2px 4px rgba(180, 120, 0, 0.3);
-  animation: pill-pulse 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes pill-pulse {
-  0% { opacity: 0.75; }
-  100% { opacity: 1; }
 }
 
 /* Wood gathering plot */
@@ -308,7 +267,7 @@
 
 .plot-wood-ready {
   background: linear-gradient(145deg, #8B6914, #6B5210) !important;
-  animation: ready-bounce 2s ease-in-out infinite, ready-glow-border 1.5s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(139, 105, 20, 0.4), inset 0 0 0 2px #D4A017;
 }
 
 /* Soil level badge */
