@@ -73,9 +73,8 @@ export async function harvestFriendPlot(
 
   const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
 
-  // Add helper notification
-  const helpLog = gs.helpLog ?? [];
-  helpLog.push({ helper: helperName, cropId, at: Date.now() });
+  // Add helper notification (copy array to avoid mutation)
+  const helpLog = [...(gs.helpLog ?? []), { helper: helperName, cropId, at: Date.now() }];
 
   const updated: GameState = {
     ...gs,

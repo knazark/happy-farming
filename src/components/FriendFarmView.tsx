@@ -63,22 +63,36 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
     setHarvesting(true);
 
     try {
-      const myName = myState.profile.name || 'Фермер';
-      const updated = await harvestFriendPlot(friendId, plotIndex, myName);
+      const myName = myState?.profile?.name || 'Фермер';
+
+      // Step 1: harvest friend's plot in Firestore
+      let updated: GameState | null = null;
+      try {
+        updated = await harvestFriendPlot(friendId, plotIndex, myName);
+      } catch (e) {
+        console.error('harvestFriendPlot failed:', e);
+        showToast('Не вдалось зібрати врожай', 'info');
+        return;
+      }
+
       if (!updated) {
-        showToast('Не вдалось зібрати', 'info');
+        showToast('Ділянка вже зібрана', 'info');
         return;
       }
 
       // Update local view of friend's farm
       setState(updated);
 
-      // Record daily help
-      const myId = getFarmerId();
-      await recordHelp(myId, friendId);
+      // Step 2: record daily help (non-critical — don't block on failure)
+      try {
+        const myId = getFarmerId();
+        await recordHelp(myId, friendId);
+      } catch (e) {
+        console.warn('recordHelp failed (non-critical):', e);
+      }
       setHelpedToday(true);
 
-      // Reward myself
+      // Step 3: reward myself
       const rewardCoins = Math.max(1, Math.floor(crop.sellPrice * HARVEST_REWARD_PERCENT));
       const rewardXp = Math.max(1, Math.floor(crop.xpReward * 0.5));
       dispatch({ type: 'FRIEND_HARVEST_REWARD', coins: rewardCoins, xp: rewardXp });
@@ -88,7 +102,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
         'earn',
       );
     } catch (err) {
-      console.warn('Harvest friend plot failed:', err);
+      console.error('Friend harvest error:', err);
       showToast('Помилка з\'єднання', 'info');
     } finally {
       setHarvesting(false);
