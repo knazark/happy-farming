@@ -11,7 +11,8 @@ export const PEN_UPGRADE_COST = 300;
 export const PEN_UPGRADE_AMOUNT = 4;
 
 // Level system: XP needed = BASE * level^EXPONENT
-export const XP_BASE = 50;
+// ~48 hours of active play to reach level 10
+export const XP_BASE = 300;
 export const XP_EXPONENT = 1.35;
 export const MAX_LEVEL = 10;
 
