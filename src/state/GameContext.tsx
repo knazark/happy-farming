@@ -13,7 +13,7 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null);
 
-// Firestore sync interval: 2 minutes (saves ~10 writes/hour instead of 120)
+// Firestore sync interval: 2 minutes
 const FIRESTORE_SYNC_MS = 2 * 60 * 1000;
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -23,8 +23,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Track whether we successfully loaded real data (not initial state)
+  const hasRealDataRef = useRef(false);
+
   // --- localStorage save (fast, free, every 5s) ---
   const saveToLocal = useCallback(() => {
+    if (!getFarmerIdIfExists()) return; // don't save after logout
     saveGame(stateRef.current);
   }, []);
 
@@ -32,11 +36,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const savingRef = useRef(false);
   const lastFirestoreJsonRef = useRef('');
   const saveToFirestore = useCallback(() => {
-    if (savingRef.current) { console.log('[save] skipped: already saving'); return; }
-    if (!getFarmerIdIfExists()) { console.log('[save] skipped: no farmer ID'); return; }
-    // Skip if state hasn't changed since last Firestore save
+    if (savingRef.current) return;
+    if (!getFarmerIdIfExists()) return;
+    // Don't save initial state to Firestore (could overwrite real data)
+    if (!hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0) {
+      console.log('[save] skipped: initial state, won\'t overwrite Firestore');
+      return;
+    }
     const snapshot = JSON.stringify(stateRef.current);
-    if (snapshot === lastFirestoreJsonRef.current) { console.log('[save] skipped: no changes'); return; }
+    if (snapshot === lastFirestoreJsonRef.current) return;
     savingRef.current = true;
     lastFirestoreJsonRef.current = snapshot;
     console.log('[save] saving to Firestore...');
@@ -44,7 +52,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       console.log('[save] ✅ Firestore save OK');
     }).catch((err) => {
       console.warn('[save] ❌ Firestore save failed:', err);
-      lastFirestoreJsonRef.current = ''; // retry next interval
+      lastFirestoreJsonRef.current = '';
     }).finally(() => { savingRef.current = false; });
   }, []);
 
@@ -62,16 +70,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const debugLines: string[] = [`id: ${farmerId?.slice(0, 8) ?? 'null'}`];
 
       try {
-        // Try Firestore first (authoritative for cross-device)
         const firestoreState = await loadGameFromFirestore();
         const localState = loadGame();
 
         debugLines.push(`fire: ${firestoreState ? `lv${firestoreState.level} ${firestoreState.coins}💰` : 'null'}`);
         debugLines.push(`local: ${localState ? `lv${localState.level} ${localState.coins}💰` : 'null'}`);
-        console.log('[load]', debugLines.join(' | '));
 
         if (!cancelled) {
-          // Pick the most recent save
           let best: GameState | null = null;
           if (firestoreState && localState) {
             const localTick = localState.lastTickAt ?? 0;
@@ -85,12 +90,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
           if (best) {
             dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(best), Date.now()) });
+            hasRealDataRef.current = true;
             debugLines.push(`loaded lv${best.level}`);
           } else {
             debugLines.push('NO DATA → initial');
           }
 
-          // Show debug overlay on screen (for devices without console)
+          // Debug overlay (visible on devices without console, disappears after 15s)
           const dbg = document.createElement('div');
           dbg.textContent = debugLines.join(' | ');
           dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#000c;color:#0f0;font:12px monospace;padding:4px 8px;pointer-events:none;';
@@ -106,6 +112,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const localState = loadGame();
           if (localState) {
             dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localState), Date.now()) });
+            hasRealDataRef.current = true;
           }
 
           const dbg = document.createElement('div');
@@ -123,13 +130,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  // After loading: ensure profile exists + force first Firestore save
+  // After loading: ensure profile exists
   useEffect(() => {
     if (!loading) {
       ensureProfile(stateRef.current).catch(() => {});
-      // Force immediate Firestore save so gameState is always synced
-      // (fixes: localStorage has progress but Firestore gameState was empty)
-      setTimeout(() => saveToFirestore(), 2000);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
@@ -156,7 +160,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const id = setInterval(saveToFirestore, FIRESTORE_SYNC_MS);
 
-    // Save to both when user switches tab / minimizes
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
         saveToLocal();
@@ -165,7 +168,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    // Save to both on page refresh / close
     const onBeforeUnload = () => {
       saveToLocal();
       saveToFirestore();
