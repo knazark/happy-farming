@@ -331,21 +331,21 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 9,
     xpReward: 55,
   },
-  tropical_cocktail: {
-    id: 'tropical_cocktail',
-    name: 'Тропічний коктейль',
+  grape_juice: {
+    id: 'grape_juice',
+    name: 'Виноградний сік',
     emoji: '🍹',
-    ingredients: { pineapple: 1, watermelon: 1, melon: 1 },
+    ingredients: { grape: 2, watermelon: 1, melon: 1 },
     craftTime: 480,       // 8 хв
     sellPrice: 500,
     unlockLevel: 9,
     xpReward: 65,
   },
-  tropical_feast: {
-    id: 'tropical_feast',
-    name: 'Тропічний бенкет',
+  grand_feast: {
+    id: 'grand_feast',
+    name: 'Великий бенкет',
     emoji: '🌴',
-    ingredients: { tropical_cocktail: 1, wine: 1, fruit_basket: 1, golden_honey: 1 },
+    ingredients: { grape_juice: 1, wine: 1, fruit_basket: 1, golden_honey: 1 },
     craftTime: 1200,      // 20 хв
     sellPrice: 1200,
     unlockLevel: 10,

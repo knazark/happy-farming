@@ -203,17 +203,6 @@ export const CROPS: Record<CropId, CropDef> = {
     unlockLevel: 9,
     xpReward: 60,
   },
-  pineapple: {
-    id: 'pineapple',
-    name: 'Ананас',
-    emoji: '🍍',
-    seedEmoji: '🌱',
-    growthTime: 1200,     // 20 хв
-    seedPrice: 100,
-    sellPrice: 300,
-    unlockLevel: 10,
-    xpReward: 80,
-  },
 };
 
 export const CROP_LIST: CropDef[] = Object.values(CROPS).sort((a, b) => a.growthTime - b.growthTime);
