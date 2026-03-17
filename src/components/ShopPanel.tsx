@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, GREENHOUSE_PRICE, GREENHOUSE_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
 import { showToast } from './Toast';
 import { playAnimalSound } from '../utils/sounds';
@@ -17,12 +17,6 @@ export function ShopPanel() {
     (id) => (state.inventory[id] ?? 0) >= 1
   );
   const canBuyTractor = !state.hasTractor && allPlotsUnlocked && state.coins >= TRACTOR_PRICE && hasAllCrafts;
-
-  // Greenhouse requirements
-  const hasAllGhCrafts = GREENHOUSE_REQUIRED_CRAFTS.every(
-    (id) => (state.inventory[id] ?? 0) >= 1
-  );
-  const canBuyGreenhouse = !state.hasGreenhouse && state.coins >= GREENHOUSE_PRICE && hasAllGhCrafts;
 
   // Auto-collector requirements
   const hasAllCollectorCrafts = AUTO_COLLECTOR_REQUIRED_CRAFTS.every(
@@ -145,60 +139,6 @@ export function ShopPanel() {
               }}
             >
               🚜 Купити трактор
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* ─── Теплиця ─── */}
-      <div className="market-item" style={{ marginTop: '12px' }}>
-        <div className="market-item-header">
-          <span className="market-item-emoji">🏗️</span>
-          <div className="market-item-info">
-            <strong>Теплиця</strong>
-            {state.hasGreenhouse ? (
-              <span className="market-item-count" style={{ color: '#2E7D32' }}>✅ Куплено!</span>
-            ) : (
-              <span className="market-item-count">{GREENHOUSE_PRICE.toLocaleString()}💰</span>
-            )}
-          </div>
-        </div>
-        {state.hasGreenhouse ? (
-          <p className="market-item-how" style={{ color: '#2E7D32' }}>
-            🏗️ Теплиця дає 6 грядок без сезонних обмежень!
-          </p>
-        ) : (
-          <>
-            <p className="market-item-how">
-              6 грядок нижнього рядка працюють в будь-який сезон, навіть взимку!
-            </p>
-            <div className="market-item-tip">
-              📋 Для покупки потрібно:
-            </div>
-            <div className="tractor-requirements">
-              <div className={`tractor-req ${state.coins >= GREENHOUSE_PRICE ? 'tractor-req--done' : ''}`}>
-                {state.coins >= GREENHOUSE_PRICE ? '✅' : '❌'} {GREENHOUSE_PRICE.toLocaleString()}💰
-              </div>
-              {GREENHOUSE_REQUIRED_CRAFTS.map((craftId) => {
-                const recipe = RECIPES[craftId];
-                const has = (state.inventory[craftId] ?? 0) >= 1;
-                return (
-                  <div key={craftId} className={`tractor-req ${has ? 'tractor-req--done' : ''}`}>
-                    {has ? '✅' : '❌'} {recipe.emoji} {recipe.name}
-                  </div>
-                );
-              })}
-            </div>
-            <button
-              className="btn btn-buy market-activate-btn"
-              style={{ marginTop: '8px' }}
-              disabled={!canBuyGreenhouse}
-              onClick={() => {
-                dispatch({ type: 'BUY_GREENHOUSE' });
-                showToast('🏗️ Теплицю куплено! 6 грядок без сезонних обмежень!', 'earn');
-              }}
-            >
-              🏗️ Купити теплицю
             </button>
           </>
         )}
