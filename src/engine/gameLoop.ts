@@ -63,7 +63,14 @@ export function tick(state: GameState, now: number): GameState {
       const elapsed = (now - plot.plantedAt) / 1000;
       if (elapsed >= plot.growthTime) {
         changed = true;
-        return { status: 'ready' as const, cropId: plot.cropId };
+        return { status: 'ready' as const, cropId: plot.cropId, soilLevel: plot.soilLevel };
+      }
+    }
+    if (plot.status === 'gathering_wood') {
+      const elapsed = (now - plot.startedAt) / 1000;
+      if (elapsed >= plot.gatherTime) {
+        changed = true;
+        return { status: 'wood_ready' as const, soilLevel: plot.soilLevel };
       }
     }
     return plot;
@@ -79,7 +86,7 @@ export function tick(state: GameState, now: number): GameState {
     const tractorPlots: PlotState[] = newState.plots.map((plot) => {
       if (plot.status === 'ready') {
         tractorHarvested = true;
-        return { status: 'empty' as const };
+        return { status: 'empty' as const, soilLevel: plot.soilLevel };
       }
       return plot;
     });

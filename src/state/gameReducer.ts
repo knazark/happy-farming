@@ -2,8 +2,8 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, GREENHOUSE_PRICE, GREENHOUSE_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
-import { GRID_COLS, GRID_ROWS } from '../constants/grid';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -61,7 +61,6 @@ export function migrateSave(state: any): GameState {
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
     maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
     hasTractor: state.hasTractor ?? false,
-    hasGreenhouse: state.hasGreenhouse ?? false,
     hasAutoCollector: state.hasAutoCollector ?? false,
   } as GameState);
 }
@@ -101,7 +100,6 @@ export function createInitialState(): GameState {
     totalOrdersFulfilled: 0,
     maxAnimals: MAX_ANIMALS,
     hasTractor: false,
-    hasGreenhouse: false,
     hasAutoCollector: false,
   };
 }
@@ -172,13 +170,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!plot || plot.status !== 'empty') return state;
 
       const crop = CROPS[cropId];
-      // Greenhouse: bottom row can plant in any season
-      const isBottomRow = plotIndex >= (GRID_ROWS - 1) * GRID_COLS;
-      const isGreenhousePlot = state.hasGreenhouse && isBottomRow;
-      if (state.season === 'winter' && !isGreenhousePlot) return state;
+      if (state.season === 'winter') return state;
       if (state.coins < crop.seedPrice) return state;
       if (crop.unlockLevel > state.level) return state;
-      if (crop.seasonOnly && crop.seasonOnly !== state.season && !isGreenhousePlot) return state;
+      if (crop.seasonOnly && crop.seasonOnly !== state.season) return state;
 
       // Apply season + weather growth multipliers
       let growthTime = crop.growthTime * SEASON_CROP_MULTIPLIER[state.season] * WEATHER_CROP_MULTIPLIER[state.weather.type];
@@ -187,12 +182,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         growthTime *= SEASONAL_BONUS_MULTIPLIER;
       }
 
+      // Apply soil level bonus
+      const soilLevel = (plot as any).soilLevel ?? 0;
+      growthTime *= SOIL_GROWTH_BONUS[soilLevel];
+
       const newPlots = [...state.plots];
       newPlots[plotIndex] = {
         status: 'growing',
         cropId,
         plantedAt: Date.now(),
         growthTime: Math.round(growthTime),
+        soilLevel: (plot as any).soilLevel,
       };
 
       return { ...state, plots: newPlots, coins: state.coins - crop.seedPrice };
@@ -205,7 +205,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const crop = CROPS[plot.cropId];
       const newPlots = [...state.plots];
-      newPlots[plotIndex] = { status: 'empty' };
+      newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
 
       let harvested: GameState = {
         ...state,
@@ -218,6 +218,57 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       harvested = addXp(harvested, crop.xpReward);
       harvested = progressQuests(harvested, 'harvest', 1);
       return checkAchievements(harvested);
+    }
+
+    case 'GATHER_WOOD': {
+      const { plotIndex } = action;
+      const plot = state.plots[plotIndex];
+      if (!plot || plot.status !== 'empty') return state;
+      if (state.season !== 'winter') return state;
+
+      const newPlots = [...state.plots];
+      newPlots[plotIndex] = {
+        status: 'gathering_wood',
+        startedAt: Date.now(),
+        gatherTime: WOOD_GATHER_TIME,
+        soilLevel: plot.soilLevel,
+      };
+      return { ...state, plots: newPlots };
+    }
+
+    case 'COLLECT_WOOD': {
+      const { plotIndex } = action;
+      const plot = state.plots[plotIndex];
+      if (!plot || plot.status !== 'wood_ready') return state;
+
+      const newPlots = [...state.plots];
+      newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
+
+      let newState: GameState = {
+        ...state,
+        plots: newPlots,
+        inventory: addToInventory(state.inventory, 'firewood', 1),
+        totalHarvested: state.totalHarvested + 1,
+      };
+      newState = addXp(newState, WOOD_XP_REWARD);
+      return newState;
+    }
+
+    case 'UPGRADE_SOIL': {
+      const { plotIndex } = action;
+      const plot = state.plots[plotIndex];
+      if (!plot || plot.status !== 'empty') return state;
+      if (state.season !== 'winter') return state;
+
+      const currentLevel = plot.soilLevel ?? 0;
+      if (currentLevel >= MAX_SOIL_LEVEL) return state;
+
+      const cost = SOIL_UPGRADE_COSTS[currentLevel];
+      if (state.coins < cost) return state;
+
+      const newPlots = [...state.plots];
+      newPlots[plotIndex] = { status: 'empty', soilLevel: currentLevel + 1 };
+      return { ...state, plots: newPlots, coins: state.coins - cost };
     }
 
     case 'UNLOCK_PLOT': {
@@ -266,10 +317,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now() };
       const itemId: ItemId = `${slot.animalId}_product`;
 
+      const qty = state.season === 'winter' ? 2 : 1;
       const collected = {
         ...state,
         animals: newAnimals,
-        inventory: addToInventory(state.inventory, itemId, 1),
+        inventory: addToInventory(state.inventory, itemId, qty),
       };
 
       return addXp(collected, animal.xpReward);
@@ -281,7 +333,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (current < quantity) return state;
 
       let price = 0;
-      if (itemId.endsWith('_product')) {
+      if (itemId === 'firewood') {
+        price = WOOD_SELL_PRICE;
+      } else if (itemId.endsWith('_product')) {
         const animalId = itemId.replace('_product', '') as keyof typeof ANIMALS;
         price = ANIMALS[animalId].productSellPrice;
       } else if (itemId in RECIPES) {
@@ -460,17 +514,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const newOrders = state.orders.filter((_, i) => i !== orderIdx);
 
+      const rewardMultiplier = state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1;
+      const xpMultiplier = state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1;
+      const finalReward = Math.round(order.reward * rewardMultiplier);
+      const finalXp = Math.round(order.xpReward * xpMultiplier);
+
       let fulfilled: GameState = {
         ...state,
         inventory: newInventory,
         orders: newOrders,
-        coins: state.coins + order.reward,
-        totalEarned: state.totalEarned + order.reward,
+        coins: state.coins + finalReward,
+        totalEarned: state.totalEarned + finalReward,
         totalOrdersFulfilled: state.totalOrdersFulfilled + 1,
       };
 
-      fulfilled = addXp(fulfilled, order.xpReward);
-      fulfilled = progressQuests(fulfilled, 'earn', order.reward);
+      fulfilled = addXp(fulfilled, finalXp);
+      fulfilled = progressQuests(fulfilled, 'earn', finalReward);
       return checkAchievements(fulfilled);
     }
 
@@ -566,32 +625,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         coins: state.coins - TRACTOR_PRICE,
         inventory: newInventory,
         hasTractor: true,
-      };
-    }
-
-    case 'BUY_GREENHOUSE': {
-      if (state.hasGreenhouse) return state;
-      if (state.coins < GREENHOUSE_PRICE) return state;
-
-      for (const craftId of GREENHOUSE_REQUIRED_CRAFTS) {
-        if ((state.inventory[craftId] ?? 0) < 1) return state;
-      }
-
-      const newInv = { ...state.inventory };
-      for (const craftId of GREENHOUSE_REQUIRED_CRAFTS) {
-        const remaining = (newInv[craftId] ?? 0) - 1;
-        if (remaining <= 0) {
-          delete newInv[craftId];
-        } else {
-          newInv[craftId] = remaining;
-        }
-      }
-
-      return {
-        ...state,
-        coins: state.coins - GREENHOUSE_PRICE,
-        inventory: newInv,
-        hasGreenhouse: true,
       };
     }
 
