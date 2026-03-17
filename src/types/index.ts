@@ -71,6 +71,7 @@ export interface AnimalSlot {
 export interface PlayerProfile {
   name: string;
   avatar: string;
+  password?: string;
 }
 
 export interface NeighborState {

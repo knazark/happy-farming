@@ -1,6 +1,6 @@
 import {
   doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove,
-  collection, query, orderBy, limit, getDocs,
+  collection, query, orderBy, limit, getDocs, where,
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './config';
@@ -18,13 +18,33 @@ export interface FarmerProfile {
   score: number;
   neighborIds: string[];
   pendingRequests: string[];
+  password?: string;
+  nameLower?: string;
   lastSeen: unknown;
   createdAt: unknown;
 }
 
-// Get or create farmer ID from localStorage
+// Farmer ID management
 const FARMER_ID_KEY = 'happyFarmer_id';
 
+/** Read existing farmer ID from localStorage (no side effects) */
+export function getFarmerIdIfExists(): string | null {
+  return localStorage.getItem(FARMER_ID_KEY);
+}
+
+/** Create a new farmer ID and store in localStorage */
+export function createFarmerId(): string {
+  const id = crypto.randomUUID();
+  localStorage.setItem(FARMER_ID_KEY, id);
+  return id;
+}
+
+/** Store a recovered farmer ID in localStorage */
+export function setFarmerId(id: string): void {
+  localStorage.setItem(FARMER_ID_KEY, id);
+}
+
+/** Get or create farmer ID (backward compat) */
 export function getFarmerId(): string {
   let id = localStorage.getItem(FARMER_ID_KEY);
   if (!id) {
@@ -36,7 +56,7 @@ export function getFarmerId(): string {
 
 // Sync local game state to Firestore profile
 export async function syncProfile(state: {
-  profile: { name: string; avatar: string };
+  profile: { name: string; avatar: string; password?: string };
   level: number;
   xp: number;
   coins: number;
@@ -47,10 +67,12 @@ export async function syncProfile(state: {
   const id = getFarmerId();
   const unlockedPlots = state.plots.filter(p => p.status !== 'locked').length;
   const score = state.level * state.animals.length * unlockedPlots;
+  const profileName = state.profile.name || 'Фермер';
 
-  await setDoc(doc(db, 'farmers', id), {
+  const data: Record<string, unknown> = {
     id,
-    name: state.profile.name || 'Фермер',
+    name: profileName,
+    nameLower: profileName.toLowerCase().trim(),
     avatar: state.profile.avatar || '👨‍🌾',
     level: state.level,
     xp: state.xp,
@@ -60,17 +82,25 @@ export async function syncProfile(state: {
     unlockedPlots,
     score,
     lastSeen: serverTimestamp(),
-  }, { merge: true });
+  };
+
+  if (state.profile.password) {
+    data.password = state.profile.password;
+  }
+
+  await setDoc(doc(db, 'farmers', id), data, { merge: true });
 }
 
 // Ensure profile exists (called once on mount)
 export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): Promise<void> {
   const id = getFarmerId();
+  const profileName = state.profile.name || 'Фермер';
   const snap = await getDoc(doc(db, 'farmers', id));
   if (!snap.exists()) {
     await setDoc(doc(db, 'farmers', id), {
       id,
-      name: state.profile.name || 'Фермер',
+      name: profileName,
+      nameLower: profileName.toLowerCase().trim(),
       avatar: state.profile.avatar || '👨‍🌾',
       neighborIds: [],
       createdAt: serverTimestamp(),
@@ -194,4 +224,20 @@ export async function getPendingRequests(myId: string): Promise<FarmerProfile[]>
   const ids: string[] = snap.data().pendingRequests ?? [];
   if (ids.length === 0) return [];
   return getNeighborProfiles(ids);
+}
+
+// Login by name (case-insensitive) + password (case-sensitive)
+export async function loginByNameAndPassword(name: string, password: string): Promise<string | null> {
+  const nameLower = name.toLowerCase().trim();
+  if (!nameLower || !password) return null;
+
+  const q = query(
+    collection(db, 'farmers'),
+    where('nameLower', '==', nameLower),
+    where('password', '==', password),
+    limit(1),
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return snap.docs[0].data().id as string;
 }

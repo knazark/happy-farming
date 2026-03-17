@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameProvider, useGame } from './state/GameContext';
-import { getFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
+import { getFarmerId, getFarmerIdIfExists, createFarmerId, setFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
+import { LoginScreen } from './components/LoginScreen';
 import { useFriends } from './hooks/useFriends';
 import { FarmView } from './components/FarmView';
 import { ToastContainer, showToast } from './components/Toast';
@@ -247,6 +248,23 @@ function GameContent() {
 }
 
 export default function App() {
+  const [hasId, setHasId] = useState(() => !!getFarmerIdIfExists());
+
+  if (!hasId) {
+    return (
+      <LoginScreen
+        onNewGame={() => {
+          createFarmerId();
+          setHasId(true);
+        }}
+        onLogin={(id) => {
+          setFarmerId(id);
+          setHasId(true);
+        }}
+      />
+    );
+  }
+
   return (
     <GameProvider>
       <GameContent />
