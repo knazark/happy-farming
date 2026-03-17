@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
 import { clearFarmerId } from '../firebase/db';
+import { saveGameAndProfile } from '../firebase/gameStateSync';
 
 interface ProfileEditorProps {
   onClose: () => void;
@@ -103,8 +104,10 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
             cursor: 'pointer',
             width: '100%',
           }}
-          onClick={() => {
+          onClick={async () => {
             if (window.confirm('Вийти з акаунта? Ви зможете увійти знову через ім\'я та пароль.')) {
+              // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
+              try { await saveGameAndProfile(state); } catch { /* ignore */ }
               clearFarmerId();
               window.location.reload();
             }
