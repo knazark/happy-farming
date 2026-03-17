@@ -10,8 +10,8 @@ export function calcScore(state: {
   level: number;
   totalEarned: number;
 }): number {
-  // level × 100 + totalEarned / 10 — simple, intuitive, always grows
-  return state.level * 100 + Math.floor(state.totalEarned / 10);
+  // level × 100 + totalEarned / 100 — balanced, doesn't inflate too fast
+  return state.level * 100 + Math.floor(state.totalEarned / 100);
 }
 
 /** Simple checksum to detect localStorage tampering (not cryptographic — just a deterrent) */
