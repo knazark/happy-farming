@@ -105,12 +105,10 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
             width: '100%',
           }}
           onClick={async () => {
-            if (window.confirm('Вийти з акаунта? Ви зможете увійти знову через ім\'я та пароль.')) {
-              // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
-              try { await saveGameAndProfile(state); } catch { /* ignore */ }
-              clearFarmerId();
-              window.location.reload();
-            }
+            // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
+            try { await saveGameAndProfile(state); } catch { /* ignore */ }
+            clearFarmerId();
+            window.location.reload();
           }}
         >
           🚪 Вийти з акаунта
