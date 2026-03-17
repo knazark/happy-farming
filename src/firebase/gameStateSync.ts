@@ -2,14 +2,16 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './config';
 import { getFarmerId } from './db';
 import { loadGame, clearSave } from '../state/storage';
-import type { GameState, Inventory, ItemId } from '../types';
+import type { GameState, Inventory, ItemId, PlotState } from '../types';
 
 /**
  * Save full game state to Firestore (merge — won't overwrite profile/leaderboard fields)
  */
 export async function saveGameToFirestore(state: GameState): Promise<void> {
   const id = getFarmerId();
-  await setDoc(doc(db, 'farmers', id), { gameState: state }, { merge: true });
+  // Strip undefined values — Firestore rejects them
+  const clean = JSON.parse(JSON.stringify(state));
+  await setDoc(doc(db, 'farmers', id), { gameState: clean }, { merge: true });
 }
 
 /**
@@ -69,7 +71,9 @@ export async function harvestFriendPlot(
 
   // Update friend's state: reset plot + add crop to inventory
   const newPlots = [...gs.plots];
-  newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
+  const emptyPlot: Record<string, unknown> = { status: 'empty' };
+  if (plot.soilLevel != null) emptyPlot.soilLevel = plot.soilLevel;
+  newPlots[plotIndex] = emptyPlot as PlotState;
 
   const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
 
@@ -84,6 +88,8 @@ export async function harvestFriendPlot(
     helpLog,
   };
 
-  await setDoc(doc(db, 'farmers', friendId), { gameState: updated }, { merge: true });
+  // Strip undefined values — Firestore rejects them
+  const clean = JSON.parse(JSON.stringify(updated));
+  await setDoc(doc(db, 'farmers', friendId), { gameState: clean }, { merge: true });
   return updated;
 }
