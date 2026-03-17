@@ -1183,13 +1183,11 @@ body::after {
 .crop-selector-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(45, 27, 78, 0.25);
+  background: rgba(45, 27, 78, 0.3);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .crop-selector {
@@ -1202,12 +1200,6 @@ body::after {
   max-height: 80vh;
   overflow-y: auto;
   border-top: 4px solid #4CAF50;
-  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes scaleIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
 }
 
 .crop-selector-title {
