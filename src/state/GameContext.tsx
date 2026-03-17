@@ -3,8 +3,8 @@ import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
-import { ensureProfile, syncProfile, getFarmerIdIfExists } from '../firebase/db';
-import { saveGameToFirestore, loadGameFromFirestore } from '../firebase/gameStateSync';
+import { ensureProfile, getFarmerIdIfExists } from '../firebase/db';
+import { saveGameToFirestore, loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
 
 interface GameContextValue {
   state: GameState;
@@ -25,10 +25,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
     savingRef.current = true;
-    Promise.all([
-      saveGameToFirestore(stateRef.current),
-      syncProfile(stateRef.current),
-    ]).catch((err) => {
+    saveGameAndProfile(stateRef.current).catch((err) => {
       console.warn('Firestore save failed:', err);
     }).finally(() => { savingRef.current = false; });
   }, []);

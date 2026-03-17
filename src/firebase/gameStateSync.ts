@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
 import { getFarmerId } from './db';
 import { loadGame, clearSave } from '../state/storage';
@@ -12,6 +12,40 @@ export async function saveGameToFirestore(state: GameState): Promise<void> {
   // Strip undefined values — Firestore rejects them
   const clean = JSON.parse(JSON.stringify(state));
   await setDoc(doc(db, 'farmers', id), { gameState: clean }, { merge: true });
+}
+
+/**
+ * Combined save: game state + profile in a single Firestore write
+ */
+export async function saveGameAndProfile(state: GameState): Promise<void> {
+  const id = getFarmerId();
+  const clean = JSON.parse(JSON.stringify(state));
+
+  const unlockedPlots = state.plots.filter((p: { status: string }) => p.status !== 'locked').length;
+  const score = state.level * state.animals.length * unlockedPlots;
+  const profileName = state.profile.name || 'Фермер';
+
+  const data: Record<string, unknown> = {
+    gameState: clean,
+    id,
+    name: profileName,
+    nameLower: profileName.toLowerCase().trim(),
+    avatar: state.profile.avatar || '👨‍🌾',
+    level: state.level,
+    xp: state.xp,
+    coins: state.coins,
+    totalEarned: state.totalEarned,
+    animalCount: state.animals.length,
+    unlockedPlots,
+    score,
+    lastSeen: serverTimestamp(),
+  };
+
+  if (state.profile.password) {
+    data.password = state.profile.password;
+  }
+
+  await setDoc(doc(db, 'farmers', id), data, { merge: true });
 }
 
 /**
