@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { CROP_LIST, CROPS } from '../constants/crops';
 import { useGame } from '../state/GameContext';
 import { SEASON_INFO } from '../constants/seasons';
@@ -50,9 +51,12 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
 
   return (
     <div className="crop-selector-overlay" onClick={onClose}>
-      <div
+      <motion.div
         className="crop-selector"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <h3 className="crop-selector-title">
           {autoMode ? '🔄 Автопосів' : '🌱 Оберіть культуру'}
@@ -128,7 +132,7 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
             );
           })}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
