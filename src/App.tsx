@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { GameProvider, useGame } from './state/GameContext';
 import { getFarmerId, getFarmerIdIfExists, createFarmerId, setFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
 import { LoginScreen } from './components/LoginScreen';
@@ -213,36 +214,74 @@ function GameContent() {
       )}
 
       {/* Panel popup */}
-      {activePanel && (
-        <div className="panel-popup-overlay" onClick={() => setActivePanel(null)}>
-          <div className="panel-popup" onClick={(e) => e.stopPropagation()}>
-            <button className="panel-popup-close" onClick={() => setActivePanel(null)}>✕</button>
-            {activePanel === 'shop' && <ShopPanel />}
-            {activePanel === 'crafting' && <CraftingPanel />}
-            {activePanel === 'orders' && <OrdersPanel />}
-            {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
-            {activePanel === 'friends' && <NeighborsPanel onVisitFriend={handleVisitFriend} />}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {activePanel && (
+          <motion.div
+            key="panel-overlay"
+            className="panel-popup-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setActivePanel(null)}
+          >
+            <motion.div
+              className="panel-popup"
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button className="panel-popup-close" onClick={() => setActivePanel(null)}>✕</button>
+              {activePanel === 'shop' && <ShopPanel />}
+              {activePanel === 'crafting' && <CraftingPanel />}
+              {activePanel === 'orders' && <OrdersPanel />}
+              {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
+              {activePanel === 'friends' && <NeighborsPanel onVisitFriend={handleVisitFriend} />}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {cropSelector && (
-        state.season === 'winter' && state.plots[cropSelector.plotIndex]?.status === 'empty' ? (
-          <WinterSelector
-            plotIndex={cropSelector.plotIndex}
-            onClose={() => setCropSelector(null)}
-          />
-        ) : (
-          <CropSelector
-            plotIndex={cropSelector.plotIndex}
-            position={cropSelector.position}
-            onClose={() => setCropSelector(null)}
-          />
-        )
-      )}
-      {showProfile && (
-        <ProfileEditor onClose={() => setShowProfile(false)} />
-      )}
+      <AnimatePresence>
+        {cropSelector && (
+          <motion.div
+            key="crop-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {state.season === 'winter' && state.plots[cropSelector.plotIndex]?.status === 'empty' ? (
+              <WinterSelector
+                plotIndex={cropSelector.plotIndex}
+                onClose={() => setCropSelector(null)}
+              />
+            ) : (
+              <CropSelector
+                plotIndex={cropSelector.plotIndex}
+                position={cropSelector.position}
+                onClose={() => setCropSelector(null)}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showProfile && (
+          <motion.div
+            key="profile-overlay"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ProfileEditor onClose={() => setShowProfile(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

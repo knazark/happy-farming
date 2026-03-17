@@ -28,6 +28,7 @@
   border-radius: 14px;
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  contain: layout style paint;
 }
 
 .plot-cell:hover {
@@ -338,6 +339,7 @@
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   min-height: 56px;
+  contain: layout style paint;
 }
 
 /* Hay texture */

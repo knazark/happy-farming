@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export interface ToastMessage {
   id: number;
@@ -32,11 +33,21 @@ export function ToastContainer() {
 
   return (
     <div className="toast-container">
-      {toasts.map((t) => (
-        <div key={t.id} className={`toast toast-${t.type}`}>
-          {t.text}
-        </div>
-      ))}
+      <AnimatePresence>
+        {toasts.map((t) => (
+          <motion.div
+            key={t.id}
+            className={`toast toast-${t.type}`}
+            initial={{ y: -20, scale: 0.85, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: -12, scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            layout
+          >
+            {t.text}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
