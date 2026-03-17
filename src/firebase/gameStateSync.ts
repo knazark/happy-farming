@@ -15,10 +15,30 @@ export async function saveGameToFirestore(state: GameState): Promise<void> {
 }
 
 /**
- * Combined save: game state + profile in a single Firestore write
+ * Combined save: game state + profile in a single Firestore write.
+ * PROTECTION: never overwrite Firestore with lower-progress data.
  */
 export async function saveGameAndProfile(state: GameState): Promise<void> {
   const id = getFarmerId();
+
+  // Safety check: don't overwrite Firestore with worse data
+  try {
+    const snap = await getDoc(doc(db, 'farmers', id));
+    if (snap.exists()) {
+      const existing = snap.data();
+      const existingScore = existing.score ?? 0;
+      const existingEarned = existing.totalEarned ?? 0;
+      const newScore = calcScore(state);
+      // If existing data is significantly better, skip the write
+      if (existingScore > newScore * 2 && existingEarned > state.totalEarned * 2) {
+        console.warn('Firestore has better data — skipping overwrite');
+        return;
+      }
+    }
+  } catch {
+    // Can't read existing — proceed with write (better than losing data)
+  }
+
   const clean = JSON.parse(JSON.stringify(state));
 
   const unlockedPlots = state.plots.filter((p: { status: string }) => p.status !== 'locked').length;

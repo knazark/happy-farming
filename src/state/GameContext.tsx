@@ -38,10 +38,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const saveToFirestore = useCallback(() => {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
-    // Don't save initial state to Firestore (could overwrite real data)
+    // Don't save initial/empty state to Firestore (could overwrite real data)
     if (!hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0) return;
     // Don't save to Firestore until user has set up profile (name + password)
     if (!stateRef.current.profile.name || !stateRef.current.profile.password) return;
+    // Extra safety: don't save if state looks like a reset (level 1, 0 earned, but we loaded real data before)
+    if (hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0 && stateRef.current.totalHarvested === 0) return;
     const snapshot = JSON.stringify(stateRef.current);
     if (snapshot === lastFirestoreJsonRef.current) return;
     savingRef.current = true;
@@ -51,12 +53,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }).finally(() => { savingRef.current = false; });
   }, []);
 
+  // Track level for event-based Firestore saves
+  const prevLevelRef = useRef(state.level);
+
+  // Event-based Firestore save: triggers on level-up
+  useEffect(() => {
+    if (loading) return;
+    if (state.level > prevLevelRef.current) {
+      prevLevelRef.current = state.level;
+      // Level up — save immediately to Firestore
+      saveToFirestore();
+    }
+  }, [state.level, loading, saveToFirestore]);
+
   // Dispatch wrapper
   const smartDispatch = useCallback((action: GameAction) => {
     dispatch(action);
   }, []);
 
   // Load: try Firestore first (cross-device sync), fall back to localStorage
+  // PRIORITY: always pick the save with higher progress to prevent data loss
   useEffect(() => {
     let cancelled = false;
 
@@ -68,9 +84,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           let best: GameState | null = null;
           if (firestoreState && localState) {
-            const localTick = localState.lastTickAt ?? 0;
-            const fireTick = firestoreState.lastTickAt ?? 0;
-            best = localTick > fireTick ? localState : firestoreState;
+            // Pick the save with higher progress (totalEarned is the best indicator)
+            const localProgress = (localState.totalEarned ?? 0) + (localState.level ?? 1) * 1000;
+            const fireProgress = (firestoreState.totalEarned ?? 0) + (firestoreState.level ?? 1) * 1000;
+            best = localProgress >= fireProgress ? localState : firestoreState;
           } else {
             best = firestoreState ?? localState;
           }

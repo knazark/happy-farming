@@ -194,14 +194,22 @@ export async function getNeighborProfiles(ids: string[]): Promise<FarmerProfile[
   return results;
 }
 
-// Fetch top 20 leaderboard (only players with a profile name & password)
+// Fetch top 20 leaderboard (only players with a profile name)
 export async function getLeaderboard(): Promise<FarmerProfile[]> {
   try {
     const q = query(collection(db, 'farmers'), orderBy('score', 'desc'), limit(30));
     const snap = await getDocs(q);
     return snap.docs
-      .map(d => d.data() as FarmerProfile)
-      .filter(f => f.name && f.score > 0)
+      .map(d => {
+        const data = d.data() as FarmerProfile;
+        // Recalculate score from real fields if available (in case formula changed)
+        if (data.totalEarned > 0 || data.level > 1) {
+          data.score = calcScore({ level: data.level ?? 1, totalEarned: data.totalEarned ?? 0 });
+        }
+        return data;
+      })
+      .filter(f => f.name && (f.score > 0 || f.totalEarned > 0 || f.level > 1))
+      .sort((a, b) => b.score - a.score)
       .slice(0, 20);
   } catch (err) {
     console.error('Leaderboard fetch failed:', err);
