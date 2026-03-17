@@ -28,8 +28,10 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
     onClose();
   };
 
+  const canClose = !!state.profile.password;
+
   return (
-    <div className="crop-selector-overlay" onClick={onClose}>
+    <div className="crop-selector-overlay" onClick={canClose ? onClose : undefined}>
       <div className="crop-selector" onClick={(e) => e.stopPropagation()}>
         <h3 className="crop-selector-title">Ваш профіль</h3>
         <div className="profile-form">
