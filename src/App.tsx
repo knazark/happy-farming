@@ -71,7 +71,14 @@ function GameContent() {
     plotIndex: number;
     position: { x: number; y: number };
   } | null>(null);
-  const [showProfile, setShowProfile] = useState(!state.profile.name || !state.profile.password);
+  const [showProfile, setShowProfile] = useState(false);
+
+  // Show profile editor if name or password is missing
+  useEffect(() => {
+    if (!state.profile.name || !state.profile.password) {
+      setShowProfile(true);
+    }
+  }, [state.profile.name, state.profile.password]);
   const [activePanel, setActivePanel] = useState<PanelId>(null);
   const [visitingFriendId, setVisitingFriendId] = useState<string | null>(null);
   const { pendingRequests } = useFriends();
