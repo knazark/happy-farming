@@ -621,3 +621,12 @@
   padding: 4px 12px 8px;
   opacity: 0.7;
 }
+
+/* Friend farm read-only overrides */
+.friend-farm .plot-cell {
+  cursor: default !important;
+}
+
+.friend-farm .animal-card {
+  cursor: default !important;
+}

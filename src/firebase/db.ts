@@ -1,5 +1,5 @@
 import {
-  doc, getDoc, setDoc, updateDoc, arrayUnion,
+  doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove,
   collection, query, orderBy, limit, getDocs,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -17,6 +17,7 @@ export interface FarmerProfile {
   unlockedPlots: number;
   score: number;
   neighborIds: string[];
+  pendingRequests: string[];
   lastSeen: unknown;
   createdAt: unknown;
 }
@@ -146,4 +147,45 @@ export async function getInteraction(myId: string, neighborId: string): Promise<
   const helpedToday = data.helpedAt?.toDate?.()?.toDateString?.() === today;
   const giftToday = data.giftCollectedAt?.toDate?.()?.toDateString?.() === today;
   return { helpedToday: helpedToday ?? false, giftCollectedToday: giftToday ?? false };
+}
+
+// Send friend request: add myId to their pendingRequests
+export async function sendFriendRequest(myId: string, theirId: string): Promise<boolean> {
+  if (myId === theirId) return false;
+  const theirSnap = await getDoc(doc(db, 'farmers', theirId));
+  if (!theirSnap.exists()) return false;
+  const data = theirSnap.data();
+  // Already friends?
+  if ((data.neighborIds ?? []).includes(myId)) return false;
+  // Already pending?
+  if ((data.pendingRequests ?? []).includes(myId)) return false;
+  await updateDoc(doc(db, 'farmers', theirId), { pendingRequests: arrayUnion(myId) });
+  return true;
+}
+
+// Accept friend request: add as neighbors + remove from pendingRequests
+export async function acceptFriendRequest(myId: string, theirId: string): Promise<void> {
+  await updateDoc(doc(db, 'farmers', myId), {
+    neighborIds: arrayUnion(theirId),
+    pendingRequests: arrayRemove(theirId),
+  });
+  await updateDoc(doc(db, 'farmers', theirId), {
+    neighborIds: arrayUnion(myId),
+  });
+}
+
+// Decline friend request: just remove from pendingRequests
+export async function declineFriendRequest(myId: string, theirId: string): Promise<void> {
+  await updateDoc(doc(db, 'farmers', myId), {
+    pendingRequests: arrayRemove(theirId),
+  });
+}
+
+// Get pending friend requests (profiles of people who sent requests)
+export async function getPendingRequests(myId: string): Promise<FarmerProfile[]> {
+  const snap = await getDoc(doc(db, 'farmers', myId));
+  if (!snap.exists()) return [];
+  const ids: string[] = snap.data().pendingRequests ?? [];
+  if (ids.length === 0) return [];
+  return getNeighborProfiles(ids);
 }

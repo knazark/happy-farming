@@ -37,3 +37,12 @@ export async function migrateFromLocalStorage(): Promise<GameState | null> {
   clearSave();
   return localState;
 }
+
+/**
+ * Load a friend's game state from Firestore (read-only)
+ */
+export async function loadFriendGameState(friendId: string): Promise<GameState | null> {
+  const snap = await getDoc(doc(db, 'farmers', friendId));
+  if (!snap.exists()) return null;
+  return (snap.data()?.gameState as GameState) ?? null;
+}

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameProvider, useGame } from './state/GameContext';
-import { getFarmerId, addNeighbor, ensureProfile } from './firebase/db';
+import { getFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
 import { FarmView } from './components/FarmView';
 import { ToastContainer, showToast } from './components/Toast';
 import { getUnlockCost, getUnlockLevel } from './engine/economy';
@@ -17,6 +17,7 @@ import { OrdersPanel } from './components/OrdersPanel';
 import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
 import { NeighborsPanel } from './components/NeighborsPanel';
+import { FriendFarmView } from './components/FriendFarmView';
 import './App.css';
 import './styles/farm.css';
 
@@ -31,9 +32,10 @@ function GameContent() {
     const inviteId = searchParams.get('invite');
     if (inviteId && inviteId !== getFarmerId()) {
       ensureProfile(state).then(() =>
-        addNeighbor(getFarmerId(), inviteId)
+        sendFriendRequest(getFarmerId(), inviteId)
       ).then(ok => {
-        if (ok) showToast('🏘️ Нового сусіда додано!', 'earn');
+        if (ok) showToast('📨 Запит на дружбу надіслано!', 'info');
+        else showToast('🏘️ Вже друзі або запит вже надіслано', 'info');
         window.history.replaceState({}, '', '/');
       }).catch(() => {});
     }
@@ -51,10 +53,16 @@ function GameContent() {
   } | null>(null);
   const [showProfile, setShowProfile] = useState(!state.profile.name);
   const [activePanel, setActivePanel] = useState<PanelId>(null);
+  const [visitingFriendId, setVisitingFriendId] = useState<string | null>(null);
 
   const togglePanel = (id: PanelId) => {
     setActivePanel((prev) => (prev === id ? null : id));
   };
+
+  const handleVisitFriend = useCallback((friendId: string) => {
+    setVisitingFriendId(friendId);
+    setActivePanel(null);
+  }, []);
 
   const handlePlotClick = useCallback(
     (plotIndex: number) => {
@@ -75,8 +83,8 @@ function GameContent() {
           break;
         }
         case 'locked': {
-          const cost = getUnlockCost(state.plots);
-          const reqLevel = getUnlockLevel(state.plots);
+          const cost = getUnlockCost(state.plots, plotIndex);
+          const reqLevel = getUnlockLevel(state.plots, plotIndex);
           if (state.level < reqLevel) {
             showToast(`🔒 Потрібен рівень ${reqLevel}`, 'info');
           } else if (state.coins < cost) {
@@ -130,10 +138,18 @@ function GameContent() {
       <HUD onProfileClick={() => setShowProfile(true)} />
 
       <div className="game-center">
-        <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} />
+        {visitingFriendId ? (
+          <FriendFarmView
+            friendId={visitingFriendId}
+            onBack={() => setVisitingFriendId(null)}
+          />
+        ) : (
+          <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} />
+        )}
       </div>
 
       {/* Bottom bar */}
+      {!visitingFriendId && (
       <div className="bottom-bar">
         <button
           className={`bar-btn ${activePanel === 'shop' ? 'bar-btn-active' : ''}`}
@@ -170,10 +186,11 @@ function GameContent() {
           className={`bar-btn ${activePanel === 'friends' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('friends')}
         >
-          <span className="bar-btn-icon">🏆</span>
-          <span className="bar-btn-label">Рейтинг</span>
+          <span className="bar-btn-icon">👥</span>
+          <span className="bar-btn-label">Друзі</span>
         </button>
       </div>
+      )}
 
       {/* Panel popup */}
       {activePanel && (
@@ -184,7 +201,7 @@ function GameContent() {
             {activePanel === 'crafting' && <CraftingPanel />}
             {activePanel === 'orders' && <OrdersPanel />}
             {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
-            {activePanel === 'friends' && <NeighborsPanel />}
+            {activePanel === 'friends' && <NeighborsPanel onVisitFriend={handleVisitFriend} />}
           </div>
         </div>
       )}

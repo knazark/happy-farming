@@ -1,18 +1,30 @@
 import { UNLOCK_COST_BASE, UNLOCK_COST_MULTIPLIER, INITIAL_UNLOCKED } from '../constants/grid';
 import type { PlotState } from '../types';
 
-export function getUnlockCost(plots: PlotState[]): number {
+export function getUnlockCost(plots: PlotState[], plotIndex?: number): number {
   const unlockedCount = plots.filter((p) => p.status !== 'locked').length;
-  const timesUnlocked = Math.max(0, unlockedCount - INITIAL_UNLOCKED);
-  return Math.floor(UNLOCK_COST_BASE * Math.pow(UNLOCK_COST_MULTIPLIER, timesUnlocked));
+  const baseTimesUnlocked = Math.max(0, unlockedCount - INITIAL_UNLOCKED);
+  const offset = plotIndex != null ? getLockedOffset(plots, plotIndex) : 0;
+  return Math.floor(UNLOCK_COST_BASE * Math.pow(UNLOCK_COST_MULTIPLIER, baseTimesUnlocked + offset));
 }
 
 /** Level required to unlock the next plot (increases every 2-3 plots unlocked) */
-export function getUnlockLevel(plots: PlotState[]): number {
+export function getUnlockLevel(plots: PlotState[], plotIndex?: number): number {
   const unlockedCount = plots.filter((p) => p.status !== 'locked').length;
-  const timesUnlocked = Math.max(0, unlockedCount - INITIAL_UNLOCKED);
+  const baseTimesUnlocked = Math.max(0, unlockedCount - INITIAL_UNLOCKED);
+  const offset = plotIndex != null ? getLockedOffset(plots, plotIndex) : 0;
+  const t = baseTimesUnlocked + offset;
   // First 2 extra plots: level 2, next 2: level 3, etc.
-  return Math.max(1, 2 + Math.floor(timesUnlocked / 2));
+  return Math.max(1, 2 + Math.floor(t / 2));
+}
+
+/** How many locked plots come before this one (0-based offset among locked plots) */
+function getLockedOffset(plots: PlotState[], plotIndex: number): number {
+  let offset = 0;
+  for (let i = 0; i < plotIndex; i++) {
+    if (plots[i].status === 'locked') offset++;
+  }
+  return offset;
 }
 
 /** Calculate per-plot unlock costs for all locked plots (each subsequent one is more expensive) */

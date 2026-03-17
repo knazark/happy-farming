@@ -276,10 +276,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const plot = state.plots[plotIndex];
       if (!plot || plot.status !== 'locked') return state;
 
-      const cost = getUnlockCost(state.plots);
+      const cost = getUnlockCost(state.plots, plotIndex);
       if (state.coins < cost) return state;
 
-      const requiredLevel = getUnlockLevel(state.plots);
+      const requiredLevel = getUnlockLevel(state.plots, plotIndex);
       if (state.level < requiredLevel) return state;
 
       const newPlots = [...state.plots];
