@@ -58,40 +58,62 @@ export function GameProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function initLoad() {
+      const farmerId = getFarmerIdIfExists();
+      const debugLines: string[] = [`id: ${farmerId?.slice(0, 8) ?? 'null'}`];
+
       try {
         // Try Firestore first (authoritative for cross-device)
         const firestoreState = await loadGameFromFirestore();
         const localState = loadGame();
 
-        console.log('[load] firestore:', firestoreState ? `level=${firestoreState.level} coins=${firestoreState.coins}` : 'null');
-        console.log('[load] local:', localState ? `level=${localState.level} coins=${localState.coins}` : 'null');
+        debugLines.push(`fire: ${firestoreState ? `lv${firestoreState.level} ${firestoreState.coins}💰` : 'null'}`);
+        debugLines.push(`local: ${localState ? `lv${localState.level} ${localState.coins}💰` : 'null'}`);
+        console.log('[load]', debugLines.join(' | '));
 
         if (!cancelled) {
           // Pick the most recent save
           let best: GameState | null = null;
           if (firestoreState && localState) {
-            // Compare lastTickAt to pick fresher state
             const localTick = localState.lastTickAt ?? 0;
             const fireTick = firestoreState.lastTickAt ?? 0;
             best = localTick > fireTick ? localState : firestoreState;
-            console.log('[load] both exist, localTick=', localTick, 'fireTick=', fireTick, '→ using', localTick > fireTick ? 'local' : 'firestore');
+            debugLines.push(localTick > fireTick ? '→local' : '→fire');
           } else {
             best = firestoreState ?? localState;
-            console.log('[load] using', firestoreState ? 'firestore' : localState ? 'local' : 'initial state');
+            debugLines.push(firestoreState ? '→fire' : localState ? '→local' : '→new');
           }
 
           if (best) {
             dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(best), Date.now()) });
+            debugLines.push(`loaded lv${best.level}`);
+          } else {
+            debugLines.push('NO DATA → initial');
           }
+
+          // Show debug overlay on screen (for devices without console)
+          const dbg = document.createElement('div');
+          dbg.textContent = debugLines.join(' | ');
+          dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#000c;color:#0f0;font:12px monospace;padding:4px 8px;pointer-events:none;';
+          document.body.appendChild(dbg);
+          setTimeout(() => dbg.remove(), 15000);
+
           setLoading(false);
         }
       } catch (err) {
         console.warn('[load] Firestore load failed, trying localStorage:', err);
+        debugLines.push(`ERROR: ${err}`);
         if (!cancelled) {
           const localState = loadGame();
           if (localState) {
             dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localState), Date.now()) });
           }
+
+          const dbg = document.createElement('div');
+          dbg.textContent = debugLines.join(' | ');
+          dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#000c;color:#f00;font:12px monospace;padding:4px 8px;pointer-events:none;';
+          document.body.appendChild(dbg);
+          setTimeout(() => dbg.remove(), 15000);
+
           setLoading(false);
         }
       }

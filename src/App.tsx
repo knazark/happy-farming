@@ -342,6 +342,8 @@ export default function App() {
           setHasId(true);
         }}
         onLogin={(id) => {
+          // Clear old localStorage save to prevent mixing accounts
+          localStorage.removeItem('happyFarmer_save');
           setFarmerId(id);
           setHasId(true);
         }}
