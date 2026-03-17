@@ -25,10 +25,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // Track whether we successfully loaded real data (not initial state)
   const hasRealDataRef = useRef(false);
+  // High-water mark: highest totalEarned ever seen for this session
+  const highWaterMarkRef = useRef(0);
 
   // --- localStorage save (fast, free, every 5s) ---
   const saveToLocal = useCallback(() => {
     if (!getFarmerIdIfExists()) return;
+    // Update high-water mark
+    if (stateRef.current.totalEarned > highWaterMarkRef.current) {
+      highWaterMarkRef.current = stateRef.current.totalEarned;
+    }
     saveGame(stateRef.current);
   }, []);
 
@@ -38,12 +44,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const saveToFirestore = useCallback(() => {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
-    // Don't save initial/empty state to Firestore (could overwrite real data)
-    if (!hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0) return;
-    // Don't save to Firestore until user has set up profile (name + password)
+    // GUARD 1: If real data was never loaded, NEVER write to Firestore
+    // This prevents any initial/near-initial state from overwriting real progress
+    if (!hasRealDataRef.current) return;
+    // GUARD 2: Don't save until user has set up profile (name + password)
     if (!stateRef.current.profile.name || !stateRef.current.profile.password) return;
-    // Extra safety: don't save if state looks like a reset (level 1, 0 earned, but we loaded real data before)
-    if (hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0 && stateRef.current.totalHarvested === 0) return;
+    // GUARD 3: Regression check — don't write if totalEarned dropped to <10% of high-water mark
+    // (protects against state resets that happen to gain a few coins before sync)
+    if (highWaterMarkRef.current > 1000 && stateRef.current.totalEarned < highWaterMarkRef.current * 0.1) {
+      console.warn(`Blocked Firestore write: totalEarned ${stateRef.current.totalEarned} << highWater ${highWaterMarkRef.current}`);
+      return;
+    }
     const snapshot = JSON.stringify(stateRef.current);
     if (snapshot === lastFirestoreJsonRef.current) return;
     savingRef.current = true;
@@ -93,8 +104,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           }
 
           if (best) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(best), Date.now()) });
+            const migrated = tick(migrateSave(best), Date.now());
+            dispatch({ type: 'LOAD_SAVE', state: migrated });
             hasRealDataRef.current = true;
+            highWaterMarkRef.current = migrated.totalEarned ?? 0;
           }
           setLoading(false);
         }
@@ -102,8 +115,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           const localState = loadGame();
           if (localState) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localState), Date.now()) });
+            const migrated = tick(migrateSave(localState), Date.now());
+            dispatch({ type: 'LOAD_SAVE', state: migrated });
             hasRealDataRef.current = true;
+            highWaterMarkRef.current = migrated.totalEarned ?? 0;
           }
           setLoading(false);
         }

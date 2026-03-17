@@ -26,17 +26,20 @@ export async function saveGameAndProfile(state: GameState): Promise<void> {
     const snap = await getDoc(doc(db, 'farmers', id));
     if (snap.exists()) {
       const existing = snap.data();
-      const existingScore = existing.score ?? 0;
       const existingEarned = existing.totalEarned ?? 0;
-      const newScore = calcScore(state);
-      // If existing data is significantly better, skip the write
-      if (existingScore > newScore * 2 && existingEarned > state.totalEarned * 2) {
-        console.warn('Firestore has better data — skipping overwrite');
+      // If existing data has significantly more progress, skip the write
+      // This prevents corrupted/reset state from overwriting good data
+      if (existingEarned > 1000 && state.totalEarned < existingEarned * 0.5) {
+        console.warn(`Firestore has better data (${existingEarned} vs ${state.totalEarned}) — skipping overwrite`);
         return;
       }
     }
   } catch {
-    // Can't read existing — proceed with write (better than losing data)
+    // Can't read existing doc — DON'T proceed with write!
+    // A failed read + successful write is the #1 data loss vector.
+    // It's safer to skip this save and try again next cycle.
+    console.warn('Cannot read Firestore doc before write — skipping save to prevent data loss');
+    return;
   }
 
   const clean = JSON.parse(JSON.stringify(state));
