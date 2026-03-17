@@ -9,7 +9,7 @@ import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } f
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
 import { ACHIEVEMENTS } from '../constants/achievements';
 import { generateDailyQuests } from '../constants/quests';
-import { getUnlockCost, getUnlockLevel } from '../engine/economy';
+import { getUnlockCost, getUnlockLevel, getAnimalPrice } from '../engine/economy';
 import { tick } from '../engine/gameLoop';
 
 function isSameDay(a: number, b: number): boolean {
@@ -25,7 +25,7 @@ function resetDailyIfNeeded(state: GameState): GameState {
     ...state,
     lastDailyReset: now,
     neighbors: state.neighbors.map((n) => ({ ...n, helpedToday: false, giftCollectedToday: false })),
-    dailyQuests: generateDailyQuests(),
+    dailyQuests: generateDailyQuests(state.level ?? 1),
   };
 }
 
@@ -55,7 +55,7 @@ export function migrateSave(state: any): GameState {
     seasonStartedAt: state.seasonStartedAt ?? Date.now(),
     weather: state.weather ?? { type: 'sunny' as const, changesAt: Date.now() + 120000 },
     achievements: state.achievements ?? [],
-    dailyQuests: state.dailyQuests ?? generateDailyQuests(),
+    dailyQuests: state.dailyQuests ?? generateDailyQuests(state.level ?? 1),
     totalHarvested: state.totalHarvested ?? 0,
     totalCrafted: state.totalCrafted ?? 0,
     totalOrdersFulfilled: state.totalOrdersFulfilled ?? 0,
@@ -313,12 +313,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.animals.length >= (state.maxAnimals ?? MAX_ANIMALS)) return state;
 
       const animal = ANIMALS[animalId];
-      if (state.coins < animal.buyPrice) return state;
+      const price = getAnimalPrice(animalId, state.animals);
+      if (state.coins < price) return state;
       if (animal.unlockLevel > state.level) return state;
 
       const bought: GameState = {
         ...state,
-        coins: state.coins - animal.buyPrice,
+        coins: state.coins - price,
         animals: [...state.animals, { animalId, lastCollectedAt: Date.now() }],
       };
       return checkAchievements(bought);

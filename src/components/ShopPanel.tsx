@@ -2,6 +2,7 @@ import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
 import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
+import { getAnimalPrice } from '../engine/economy';
 import { showToast } from './Toast';
 import { playAnimalSound } from '../utils/sounds';
 
@@ -44,7 +45,8 @@ export function ShopPanel() {
         {ANIMAL_LIST.map((animal) => {
           const locked = animal.unlockLevel > state.level;
           const owned = ownedCount(animal.id);
-          const canBuy = !locked && state.coins >= animal.buyPrice && !isFull;
+          const price = getAnimalPrice(animal.id, state.animals);
+          const canBuy = !locked && state.coins >= price && !isFull;
 
           return (
             <button
@@ -55,7 +57,7 @@ export function ShopPanel() {
                 if (!canBuy) return;
                 dispatch({ type: 'BUY_ANIMAL', animalId: animal.id });
                 playAnimalSound(animal.id);
-                showToast(`${animal.emoji} ${animal.name} куплено! −${animal.buyPrice}💰`, 'spend');
+                showToast(`${animal.emoji} ${animal.name} куплено! −${price}💰`, 'spend');
               }}
             >
               <div className="shop-item__emoji">{animal.emoji}</div>
@@ -68,8 +70,8 @@ export function ShopPanel() {
                   <span className="shop-item__product">
                     {animal.productEmoji} {animal.productSellPrice}💰 · {animal.productionTime >= 60 ? `${Math.floor(animal.productionTime / 60)}хв` : `${animal.productionTime}с`}
                   </span>
-                  <span className={`shop-item__price ${state.coins < animal.buyPrice ? 'shop-item__price--cant' : ''}`}>
-                    {animal.buyPrice}💰
+                  <span className={`shop-item__price ${state.coins < price ? 'shop-item__price--cant' : ''}`}>
+                    {price}💰
                   </span>
                 </>
               )}

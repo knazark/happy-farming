@@ -1,5 +1,6 @@
 import { UNLOCK_COST_BASE, UNLOCK_COST_MULTIPLIER, INITIAL_UNLOCKED } from '../constants/grid';
-import type { PlotState } from '../types';
+import type { PlotState, AnimalSlot, AnimalId } from '../types';
+import { ANIMALS } from '../constants/animals';
 
 export function getUnlockCost(plots: PlotState[], plotIndex?: number): number {
   const unlockedCount = plots.filter((p) => p.status !== 'locked').length;
@@ -16,6 +17,13 @@ export function getUnlockLevel(plots: PlotState[], plotIndex?: number): number {
   const t = baseTimesUnlocked + offset;
   // First 2 extra plots: level 2, next 2: level 3, etc.
   return Math.max(1, 2 + Math.floor(t / 2));
+}
+
+/** Price for an animal scales ×2 for each one of the same type already owned */
+export function getAnimalPrice(animalId: AnimalId, animals: AnimalSlot[]): number {
+  const base = ANIMALS[animalId].buyPrice;
+  const owned = animals.filter((a) => a.animalId === animalId).length;
+  return owned === 0 ? base : base * Math.pow(2, owned);
 }
 
 /** How many locked plots come before this one (0-based offset among locked plots) */

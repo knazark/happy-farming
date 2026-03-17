@@ -1,4 +1,4 @@
-export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry' | 'watermelon' | 'melon';
+export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry' | 'watermelon' | 'melon' | 'pumpkin' | 'grape' | 'pineapple' | 'cherry' | 'peach';
 
 export interface CropDef {
   id: CropId;
@@ -36,7 +36,7 @@ export type PlotState =
   | { status: 'gathering_wood'; startedAt: number; gatherTime: number; soilLevel?: number; soilHarvestsLeft?: number }
   | { status: 'wood_ready'; soilLevel?: number; soilHarvestsLeft?: number };
 
-export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey' | 'honey_cake' | 'roast_turkey' | 'down_pillow' | 'horse_carriage' | 'campfire' | 'warm_scarf' | 'wooden_chest';
+export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey' | 'honey_cake' | 'roast_turkey' | 'down_pillow' | 'horse_carriage' | 'campfire' | 'warm_scarf' | 'wooden_chest' | 'pumpkin_soup' | 'pumpkin_pie' | 'cherry_pie' | 'wine' | 'fruit_basket' | 'peach_compote' | 'tropical_cocktail' | 'tropical_feast';
 
 export type ItemId = CropId | `${AnimalId}_product` | CraftedId | 'firewood';
 
@@ -165,6 +165,7 @@ export interface GameState {
   hasAutoCollector: boolean;
   hasAutoPlanter: boolean;
   helpLog?: { helper: string; cropId: CropId; at: number }[];
+  checksum?: string;
 }
 
 export type GameAction =

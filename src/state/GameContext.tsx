@@ -40,6 +40,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!getFarmerIdIfExists()) return;
     // Don't save initial state to Firestore (could overwrite real data)
     if (!hasRealDataRef.current && stateRef.current.level <= 1 && stateRef.current.totalEarned === 0) return;
+    // Don't save to Firestore until user has set up profile (name + password)
+    if (!stateRef.current.profile.name || !stateRef.current.profile.password) return;
     const snapshot = JSON.stringify(stateRef.current);
     if (snapshot === lastFirestoreJsonRef.current) return;
     savingRef.current = true;
@@ -95,9 +97,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  // After loading: ensure profile exists
+  // After loading: ensure profile exists (only if profile is set up — name + password)
   useEffect(() => {
-    if (!loading) {
+    if (!loading && stateRef.current.profile.name && stateRef.current.profile.password) {
       ensureProfile(stateRef.current).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

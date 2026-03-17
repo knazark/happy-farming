@@ -50,7 +50,12 @@ export function WinterSelector({ plotIndex, onClose }: WinterSelectorProps) {
           )}
         </div>
         {soilLevel > 0 && (
-          <div className="winter-soil-info">🌱 Поточний рівень ґрунту: {soilLevel}/{MAX_SOIL_LEVEL} (−{soilLevel * 10}% часу)</div>
+          <div className="winter-soil-info">
+            ⚡ Ґрунт рів.{soilLevel}/{MAX_SOIL_LEVEL}: −{soilLevel * 10}% часу росту
+            {plot && 'soilHarvestsLeft' in plot && plot.soilHarvestsLeft != null && (
+              <span> · ще {plot.soilHarvestsLeft} збирань</span>
+            )}
+          </div>
         )}
       </div>
     </div>

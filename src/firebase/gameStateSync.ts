@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
-import { getFarmerId } from './db';
+import { getFarmerId, calcScore } from './db';
 import { loadGame, clearSave } from '../state/storage';
 import type { GameState, Inventory, ItemId, PlotState } from '../types';
 
@@ -22,7 +22,7 @@ export async function saveGameAndProfile(state: GameState): Promise<void> {
   const clean = JSON.parse(JSON.stringify(state));
 
   const unlockedPlots = state.plots.filter((p: { status: string }) => p.status !== 'locked').length;
-  const score = state.level * state.animals.length * unlockedPlots;
+  const score = calcScore(state);
   const profileName = state.profile.name || 'Фермер';
 
   const data: Record<string, unknown> = {

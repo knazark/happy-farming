@@ -5,6 +5,31 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
+/** Central score formula — used everywhere to keep leaderboard consistent */
+export function calcScore(state: {
+  level: number;
+  totalEarned: number;
+}): number {
+  // level × 100 + totalEarned / 10 — simple, intuitive, always grows
+  return state.level * 100 + Math.floor(state.totalEarned / 10);
+}
+
+/** Simple checksum to detect localStorage tampering (not cryptographic — just a deterrent) */
+const SALT = 'hf_2026';
+export function calcChecksum(state: { level: number; totalEarned: number; coins: number; totalHarvested: number }): string {
+  const raw = `${SALT}:${state.level}:${state.totalEarned}:${state.coins}:${state.totalHarvested}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(36);
+}
+
+export function verifyChecksum(state: { level: number; totalEarned: number; coins: number; totalHarvested: number; checksum?: string }): boolean {
+  if (!state.checksum) return true; // old saves without checksum are OK
+  return state.checksum === calcChecksum(state);
+}
+
 export interface FarmerProfile {
   id: string;
   name: string;
@@ -72,7 +97,7 @@ export async function syncProfile(state: {
 }): Promise<void> {
   const id = getFarmerId();
   const unlockedPlots = state.plots.filter(p => p.status !== 'locked').length;
-  const score = state.level * state.animals.length * unlockedPlots;
+  const score = calcScore(state);
   const profileName = state.profile.name || 'Фермер';
 
   const data: Record<string, unknown> = {
@@ -101,21 +126,38 @@ export async function syncProfile(state: {
 export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): Promise<void> {
   const id = getFarmerId();
   const profileName = state.profile.name || 'Фермер';
+  const score = calcScore(state);
   const snap = await getDoc(doc(db, 'farmers', id));
   if (!snap.exists()) {
-    await setDoc(doc(db, 'farmers', id), {
+    const data: Record<string, unknown> = {
       id,
       name: profileName,
       nameLower: profileName.toLowerCase().trim(),
       avatar: state.profile.avatar || '👨‍🌾',
       neighborIds: [],
+      pendingRequests: [],
       createdAt: serverTimestamp(),
       lastSeen: serverTimestamp(),
       level: state.level,
-      score: 0,
-    });
+      score,
+    };
+    if (state.profile.password) {
+      data.password = state.profile.password;
+    }
+    await setDoc(doc(db, 'farmers', id), data);
+  } else {
+    // Doc exists but might be missing password — update it
+    const existing = snap.data();
+    if (state.profile.password && !existing.password) {
+      await setDoc(doc(db, 'farmers', id), {
+        password: state.profile.password,
+        name: profileName,
+        nameLower: profileName.toLowerCase().trim(),
+        score,
+        lastSeen: serverTimestamp(),
+      }, { merge: true });
+    }
   }
-  // No extra syncProfile call — saveGameAndProfile handles periodic sync
 }
 
 // Fetch farmer profile by ID
@@ -152,11 +194,19 @@ export async function getNeighborProfiles(ids: string[]): Promise<FarmerProfile[
   return results;
 }
 
-// Fetch top 20 leaderboard
+// Fetch top 20 leaderboard (only players with a profile name & password)
 export async function getLeaderboard(): Promise<FarmerProfile[]> {
-  const q = query(collection(db, 'farmers'), orderBy('score', 'desc'), limit(20));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => d.data() as FarmerProfile);
+  try {
+    const q = query(collection(db, 'farmers'), orderBy('score', 'desc'), limit(30));
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(d => d.data() as FarmerProfile)
+      .filter(f => f.name && f.score > 0)
+      .slice(0, 20);
+  } catch (err) {
+    console.error('Leaderboard fetch failed:', err);
+    return [];
+  }
 }
 
 // Record daily help interaction
@@ -191,18 +241,23 @@ export async function getInteraction(myId: string, neighborId: string): Promise<
   return { helpedToday: helpedToday ?? false, giftCollectedToday: giftToday ?? false };
 }
 
-// Send friend request: add myId to their pendingRequests
+/// Send friend request: add myId to their pendingRequests
 export async function sendFriendRequest(myId: string, theirId: string): Promise<boolean> {
   if (myId === theirId) return false;
-  const theirSnap = await getDoc(doc(db, 'farmers', theirId));
-  if (!theirSnap.exists()) return false;
-  const data = theirSnap.data();
-  // Already friends?
-  if ((data.neighborIds ?? []).includes(myId)) return false;
-  // Already pending?
-  if ((data.pendingRequests ?? []).includes(myId)) return false;
-  await updateDoc(doc(db, 'farmers', theirId), { pendingRequests: arrayUnion(myId) });
-  return true;
+  try {
+    const theirSnap = await getDoc(doc(db, 'farmers', theirId));
+    if (!theirSnap.exists()) return false;
+    const data = theirSnap.data();
+    // Already friends?
+    if ((data.neighborIds ?? []).includes(myId)) return false;
+    // Already pending?
+    if ((data.pendingRequests ?? []).includes(myId)) return false;
+    await updateDoc(doc(db, 'farmers', theirId), { pendingRequests: arrayUnion(myId) });
+    return true;
+  } catch (err) {
+    console.error('sendFriendRequest failed:', err);
+    return false;
+  }
 }
 
 // Accept friend request: add as neighbors + remove from pendingRequests

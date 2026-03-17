@@ -157,6 +157,63 @@ export const CROPS: Record<CropId, CropDef> = {
     xpReward: 35,
     seasonOnly: 'summer',
   },
+  pumpkin: {
+    id: 'pumpkin',
+    name: 'Гарбуз',
+    emoji: '🎃',
+    seedEmoji: '🌱',
+    growthTime: 540,      // 9 хв
+    seedPrice: 45,
+    sellPrice: 130,
+    unlockLevel: 7,
+    xpReward: 42,
+    seasonOnly: 'autumn',
+  },
+  grape: {
+    id: 'grape',
+    name: 'Виноград',
+    emoji: '🍇',
+    seedEmoji: '🌱',
+    growthTime: 720,      // 12 хв
+    seedPrice: 55,
+    sellPrice: 160,
+    unlockLevel: 8,
+    xpReward: 50,
+  },
+  cherry: {
+    id: 'cherry',
+    name: 'Вишня',
+    emoji: '🍒',
+    seedEmoji: '🌱',
+    growthTime: 600,      // 10 хв
+    seedPrice: 50,
+    sellPrice: 140,
+    unlockLevel: 8,
+    xpReward: 45,
+    seasonOnly: 'spring',
+  },
+  peach: {
+    id: 'peach',
+    name: 'Персик',
+    emoji: '🍑',
+    seedEmoji: '🌱',
+    growthTime: 900,      // 15 хв
+    seedPrice: 70,
+    sellPrice: 200,
+    unlockLevel: 9,
+    xpReward: 60,
+  },
+  pineapple: {
+    id: 'pineapple',
+    name: 'Ананас',
+    emoji: '🍍',
+    seedEmoji: '🌱',
+    growthTime: 1200,     // 20 хв
+    seedPrice: 100,
+    sellPrice: 300,
+    unlockLevel: 10,
+    xpReward: 80,
+  },
 };
 
 export const CROP_LIST: CropDef[] = Object.values(CROPS).sort((a, b) => a.growthTime - b.growthTime);

@@ -134,7 +134,7 @@ export const PlotCell = memo(function PlotCell({
     }
   }, [plot, now, unlockInfo, index]);
 
-  const cursor = plot.status === 'growing' || plot.status === 'gathering_wood' ? 'default' : 'pointer';
+  const cursor = plot.status === 'gathering_wood' ? 'default' : 'pointer';
 
   return (
     <div
@@ -146,10 +146,10 @@ export const PlotCell = memo(function PlotCell({
     >
       {content}
       {'soilLevel' in plot && (plot.soilLevel ?? 0) > 0 && (
-        <span className="soil-level-badge">
-          🌱{plot.soilLevel}
+        <span className="soil-level-badge" title={`Грунт рів.${plot.soilLevel}: −${(plot.soilLevel ?? 0) * 10}% часу росту, ще ${plot.soilHarvestsLeft ?? 0} збирань`}>
+          ⚡{(plot.soilLevel ?? 0) * 10}%
           {'soilHarvestsLeft' in plot && plot.soilHarvestsLeft != null && (
-            <span style={{ fontSize: '8px', opacity: 0.8 }}> ({plot.soilHarvestsLeft})</span>
+            <span style={{ fontSize: '8px', opacity: 0.7 }}> ×{plot.soilHarvestsLeft}</span>
           )}
         </span>
       )}

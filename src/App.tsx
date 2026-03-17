@@ -142,6 +142,13 @@ function GameContent() {
           break;
         }
         case 'growing':
+          // Allow changing auto-crop on growing plots
+          if (state.hasAutoPlanter) {
+            setCropSelector({
+              plotIndex,
+              position: { x: 300, y: 200 },
+            });
+          }
           break;
       }
     },
@@ -338,6 +345,8 @@ export default function App() {
     return (
       <LoginScreen
         onNewGame={() => {
+          // Clear old localStorage save to prevent mixing with new account
+          localStorage.removeItem('happyFarmer_save');
           createFarmerId();
           setHasId(true);
         }}

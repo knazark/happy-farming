@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
-import { clearFarmerId } from '../firebase/db';
+import { clearFarmerId, ensureProfile } from '../firebase/db';
 import { saveGameAndProfile } from '../firebase/gameStateSync';
 
 interface ProfileEditorProps {
@@ -16,16 +16,18 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!password.trim()) {
       setError('Введіть пароль для захисту акаунта');
       return;
     }
     setError('');
-    dispatch({
-      type: 'SET_PROFILE',
-      profile: { name: name.trim() || 'Фермер', avatar, password: password.trim() },
-    });
+    const profile = { name: name.trim() || 'Фермер', avatar, password: password.trim() };
+    dispatch({ type: 'SET_PROFILE', profile });
+    // Create Firestore profile now (first time for new users)
+    try {
+      await ensureProfile({ ...state, profile });
+    } catch { /* ignore */ }
     onClose();
   };
 
@@ -91,28 +93,51 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
         <button className="btn btn-buy profile-save" onClick={handleSave}>
           Зберегти
         </button>
-        <button
-          className="btn profile-logout"
-          style={{
-            marginTop: '10px',
-            background: 'none',
-            border: '1px solid #E53935',
-            color: '#E53935',
-            fontSize: '14px',
-            padding: '8px 16px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            width: '100%',
-          }}
-          onClick={async () => {
-            // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
-            try { await saveGameAndProfile(state); } catch { /* ignore */ }
-            clearFarmerId();
-            window.location.reload();
-          }}
-        >
-          🚪 Вийти з акаунта
-        </button>
+        {state.profile.password ? (
+          <button
+            className="btn profile-logout"
+            style={{
+              marginTop: '10px',
+              background: 'none',
+              border: '1px solid #E53935',
+              color: '#E53935',
+              fontSize: '14px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            onClick={async () => {
+              // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
+              try { await saveGameAndProfile(state); } catch { /* ignore */ }
+              clearFarmerId();
+              window.location.reload();
+            }}
+          >
+            🚪 Вийти з акаунта
+          </button>
+        ) : (
+          <button
+            className="btn"
+            style={{
+              marginTop: '10px',
+              background: 'none',
+              border: '1px solid #888',
+              color: '#555',
+              fontSize: '14px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            onClick={() => {
+              clearFarmerId();
+              window.location.reload();
+            }}
+          >
+            ← Назад
+          </button>
+        )}
       </div>
     </>
   );

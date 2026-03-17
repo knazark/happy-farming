@@ -9,6 +9,7 @@ interface QuestTemplate {
   targetRange: [number, number];
   rewardPerUnit: number;
   xpPerUnit: number;
+  minLevel?: number;
 }
 
 const QUEST_TEMPLATES: QuestTemplate[] = [
@@ -52,14 +53,52 @@ const QUEST_TEMPLATES: QuestTemplate[] = [
     rewardPerUnit: 0.3,
     xpPerUnit: 0.1,
   },
+  // --- Premium quests for high-level players ---
+  {
+    type: 'harvest',
+    descriptions: ['Зберіть {n} преміум врожаїв 🍇🍒🍑🍍', 'Екзотика! Зберіть {n} рідкісних культур'],
+    emoji: '🍇',
+    targetRange: [2, 5],
+    rewardPerUnit: 25,
+    xpPerUnit: 10,
+    minLevel: 7,
+  },
+  {
+    type: 'craft',
+    descriptions: ['Скрафтіть {n} вишуканих страв', 'Шеф-кухар! Приготуйте {n} делікатесів'],
+    emoji: '🍷',
+    targetRange: [1, 2],
+    rewardPerUnit: 50,
+    xpPerUnit: 20,
+    minLevel: 8,
+  },
+  {
+    type: 'earn',
+    descriptions: ['Заробіть {n} монет за день', 'Магнат! Заробіть {n}💰'],
+    emoji: '👑',
+    targetRange: [300, 800],
+    rewardPerUnit: 0.4,
+    xpPerUnit: 0.15,
+    minLevel: 7,
+  },
+  {
+    type: 'sell',
+    descriptions: ['Продайте {n} крафтових товарів', 'Ярмарок! Продайте {n} виробів'],
+    emoji: '🏪',
+    targetRange: [3, 8],
+    rewardPerUnit: 15,
+    xpPerUnit: 6,
+    minLevel: 5,
+  },
 ];
 
 function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function generateDailyQuests(): DailyQuest[] {
-  const shuffled = [...QUEST_TEMPLATES].sort(() => Math.random() - 0.5);
+export function generateDailyQuests(playerLevel = 1): DailyQuest[] {
+  const available = QUEST_TEMPLATES.filter((t) => !t.minLevel || playerLevel >= t.minLevel);
+  const shuffled = [...available].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, MAX_DAILY_QUESTS);
   const now = Date.now();
 

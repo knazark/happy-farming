@@ -14,9 +14,10 @@ interface CropSelectorProps {
 
 export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
   const { state, dispatch } = useGame();
-  const [autoMode, setAutoMode] = useState(false);
-
   const plot = state.plots[plotIndex];
+  const isGrowing = plot?.status === 'growing';
+  // If plot is growing, open in auto-mode only (can't plant on a growing plot)
+  const [autoMode, setAutoMode] = useState(isGrowing && state.hasAutoPlanter);
   const currentAutoCrop = plot && 'autoCropId' in plot ? (plot as any).autoCropId as CropId | undefined : undefined;
   const autoCount = state.plots.filter(
     (p, i) => i !== plotIndex && 'autoCropId' in p && (p as any).autoCropId
@@ -59,13 +60,15 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
 
         {state.hasAutoPlanter && (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              className={`btn ${!autoMode ? 'btn-buy' : ''}`}
-              style={{ fontSize: '13px', padding: '4px 10px' }}
-              onClick={() => setAutoMode(false)}
-            >
-              🌱 Посадити
-            </button>
+            {!isGrowing && (
+              <button
+                className={`btn ${!autoMode ? 'btn-buy' : ''}`}
+                style={{ fontSize: '13px', padding: '4px 10px' }}
+                onClick={() => setAutoMode(false)}
+              >
+                🌱 Посадити
+              </button>
+            )}
             <button
               className={`btn ${autoMode ? 'btn-buy' : ''}`}
               style={{ fontSize: '13px', padding: '4px 10px' }}
@@ -88,7 +91,7 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
           {CROP_LIST.map((crop) => {
             const locked = crop.unlockLevel > state.level;
             const wrongSeason = crop.seasonOnly && crop.seasonOnly !== state.season;
-            const canAfford = state.coins >= crop.seedPrice;
+            const canAfford = autoMode || state.coins >= crop.seedPrice;
             const disabled = locked || wrongSeason || !canAfford;
             const profit = crop.sellPrice - crop.seedPrice;
             const seasonInfo = crop.seasonOnly ? SEASON_INFO[crop.seasonOnly] : null;

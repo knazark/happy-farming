@@ -271,6 +271,86 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     unlockLevel: 4,
     xpReward: 22,
   },
+  pumpkin_soup: {
+    id: 'pumpkin_soup',
+    name: 'Гарбузовий суп',
+    emoji: '🍜',
+    ingredients: { pumpkin: 2, potato: 1, parsley: 1 },
+    craftTime: 300,       // 5 хв
+    sellPrice: 200,
+    unlockLevel: 7,
+    xpReward: 35,
+  },
+  pumpkin_pie: {
+    id: 'pumpkin_pie',
+    name: 'Гарбузовий пиріг',
+    emoji: '🥧',
+    ingredients: { pumpkin: 1, wheat: 2, butter: 1 },
+    craftTime: 360,       // 6 хв
+    sellPrice: 320,
+    unlockLevel: 7,
+    xpReward: 38,
+  },
+  cherry_pie: {
+    id: 'cherry_pie',
+    name: 'Вишневий пиріг',
+    emoji: '🫕',
+    ingredients: { cherry: 2, wheat: 2, chicken_product: 2 },
+    craftTime: 360,       // 6 хв
+    sellPrice: 280,
+    unlockLevel: 8,
+    xpReward: 40,
+  },
+  wine: {
+    id: 'wine',
+    name: 'Вино',
+    emoji: '🍷',
+    ingredients: { grape: 3 },
+    craftTime: 600,       // 10 хв
+    sellPrice: 350,
+    unlockLevel: 8,
+    xpReward: 50,
+  },
+  fruit_basket: {
+    id: 'fruit_basket',
+    name: 'Фруктовий кошик',
+    emoji: '🧺',
+    ingredients: { cherry: 2, peach: 1, strawberry: 2 },
+    craftTime: 300,       // 5 хв
+    sellPrice: 320,
+    unlockLevel: 8,
+    xpReward: 42,
+  },
+  peach_compote: {
+    id: 'peach_compote',
+    name: 'Персиковий компот',
+    emoji: '🫙',
+    ingredients: { peach: 2, cherry: 1, blueberry: 1 },
+    craftTime: 420,       // 7 хв
+    sellPrice: 380,
+    unlockLevel: 9,
+    xpReward: 55,
+  },
+  tropical_cocktail: {
+    id: 'tropical_cocktail',
+    name: 'Тропічний коктейль',
+    emoji: '🍹',
+    ingredients: { pineapple: 1, watermelon: 1, melon: 1 },
+    craftTime: 480,       // 8 хв
+    sellPrice: 500,
+    unlockLevel: 9,
+    xpReward: 65,
+  },
+  tropical_feast: {
+    id: 'tropical_feast',
+    name: 'Тропічний бенкет',
+    emoji: '🌴',
+    ingredients: { tropical_cocktail: 1, wine: 1, fruit_basket: 1, golden_honey: 1 },
+    craftTime: 1200,      // 20 хв
+    sellPrice: 1200,
+    unlockLevel: 10,
+    xpReward: 120,
+  },
 };
 
 export const STORAGE_BASE = 50;

@@ -254,7 +254,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
         <div>
           {loading && <p style={{ textAlign: 'center', color: '#999' }}>Завантаження...</p>}
           {!loading && leaderboard.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#999' }}>Поки що нікого немає</p>
+            <p style={{ textAlign: 'center', color: '#999' }}>Поки що нікого немає. Спробуйте пізніше.</p>
           )}
           <table className="leaderboard-table">
             <tbody>
