@@ -22,6 +22,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
   const [helpedToday, setHelpedToday] = useState(false);
+  const [helpRecorded, setHelpRecorded] = useState(false);
   const [harvesting, setHarvesting] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
           setState(gs);
           setProfile(fp);
           setHelpedToday(interaction.helpedToday);
+          setHelpRecorded(interaction.helpedToday);
         }
       } catch (err) {
         console.warn('Failed to load friend farm:', err);
@@ -83,14 +85,16 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
       // Update local view of friend's farm
       setState(updated);
 
-      // Step 2: record daily help (non-critical — don't block on failure)
-      try {
-        const myId = getFarmerId();
-        await recordHelp(myId, friendId);
-      } catch (e) {
-        console.warn('recordHelp failed (non-critical):', e);
+      // Step 2: record daily help once per day (non-critical)
+      if (!helpRecorded) {
+        try {
+          const myId = getFarmerId();
+          await recordHelp(myId, friendId);
+          setHelpRecorded(true);
+        } catch (e) {
+          console.warn('recordHelp failed (non-critical):', e);
+        }
       }
-      setHelpedToday(true);
 
       // Step 3: reward myself
       const rewardCoins = Math.max(1, Math.floor(crop.sellPrice * HARVEST_REWARD_PERCENT));
@@ -101,13 +105,19 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
         `${crop.emoji} Зібрано для ${profile?.name ?? 'друга'}! +${rewardCoins}💰 +${rewardXp}⭐`,
         'earn',
       );
+
+      // Check if all ready plots are now harvested
+      const remainingReady = updated.plots.filter(p => p.status === 'ready').length;
+      if (remainingReady === 0) {
+        setHelpedToday(true);
+      }
     } catch (err) {
       console.error('Friend harvest error:', err);
       showToast('Помилка з\'єднання', 'info');
     } finally {
       setHarvesting(false);
     }
-  }, [state, harvesting, helpedToday, friendId, myState.profile.name, profile?.name, dispatch]);
+  }, [state, harvesting, helpedToday, helpRecorded, friendId, myState.profile.name, profile?.name, dispatch]);
 
   if (loading) {
     return (

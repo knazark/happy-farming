@@ -50,6 +50,41 @@ export async function loadFriendGameState(friendId: string): Promise<GameState |
 }
 
 /**
+ * Pure logic: apply harvest to a friend's game state.
+ * Returns updated GameState or null if plot isn't ready.
+ */
+export function applyFriendHarvest(
+  gs: GameState,
+  plotIndex: number,
+  helperName: string,
+): GameState | null {
+  const plot = gs.plots[plotIndex];
+  if (!plot || plot.status !== 'ready') return null;
+
+  const cropId = plot.cropId;
+
+  // Update plot → empty
+  const newPlots = [...gs.plots];
+  const emptyPlot: Record<string, unknown> = { status: 'empty' };
+  if (plot.soilLevel != null) emptyPlot.soilLevel = plot.soilLevel;
+  newPlots[plotIndex] = emptyPlot as PlotState;
+
+  // Add crop to inventory
+  const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
+
+  // Add helper notification (copy array to avoid mutation)
+  const helpLog = [...(gs.helpLog ?? []), { helper: helperName, cropId, at: Date.now() }];
+
+  return {
+    ...gs,
+    plots: newPlots,
+    inventory: newInv,
+    totalHarvested: gs.totalHarvested + 1,
+    helpLog,
+  };
+}
+
+/**
  * Harvest a friend's ready plot: set plot to empty, add crop to their inventory.
  * Returns the updated friend GameState, or null if plot wasn't ready.
  */
@@ -64,29 +99,8 @@ export async function harvestFriendPlot(
   const gs = snap.data()?.gameState as GameState | undefined;
   if (!gs) return null;
 
-  const plot = gs.plots[plotIndex];
-  if (!plot || plot.status !== 'ready') return null;
-
-  const cropId = plot.cropId;
-
-  // Update friend's state: reset plot + add crop to inventory
-  const newPlots = [...gs.plots];
-  const emptyPlot: Record<string, unknown> = { status: 'empty' };
-  if (plot.soilLevel != null) emptyPlot.soilLevel = plot.soilLevel;
-  newPlots[plotIndex] = emptyPlot as PlotState;
-
-  const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
-
-  // Add helper notification (copy array to avoid mutation)
-  const helpLog = [...(gs.helpLog ?? []), { helper: helperName, cropId, at: Date.now() }];
-
-  const updated: GameState = {
-    ...gs,
-    plots: newPlots,
-    inventory: newInv,
-    totalHarvested: gs.totalHarvested + 1,
-    helpLog,
-  };
+  const updated = applyFriendHarvest(gs, plotIndex, helperName);
+  if (!updated) return null;
 
   // Strip undefined values — Firestore rejects them
   const clean = JSON.parse(JSON.stringify(updated));
