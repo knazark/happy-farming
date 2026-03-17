@@ -97,7 +97,7 @@ export async function syncProfile(state: {
   await setDoc(doc(db, 'farmers', id), data, { merge: true });
 }
 
-// Ensure profile exists (called once on mount)
+// Ensure profile exists (called once on mount — creates doc if missing, no extra writes if exists)
 export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): Promise<void> {
   const id = getFarmerId();
   const profileName = state.profile.name || 'Фермер';
@@ -115,7 +115,7 @@ export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): P
       score: 0,
     });
   }
-  await syncProfile(state);
+  // No extra syncProfile call — saveGameAndProfile handles periodic sync
 }
 
 // Fetch farmer profile by ID

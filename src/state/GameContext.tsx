@@ -20,19 +20,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Dirty flag: only save when state actually changed (not just TICK with no growth)
+  const dirtyRef = useRef(false);
+  const lastSavedJsonRef = useRef('');
+
   const savingRef = useRef(false);
   const saveNow = useCallback(() => {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
+    // Skip save if state hasn't meaningfully changed
+    const snapshot = JSON.stringify(stateRef.current);
+    if (snapshot === lastSavedJsonRef.current && !dirtyRef.current) return;
     savingRef.current = true;
+    dirtyRef.current = false;
+    lastSavedJsonRef.current = snapshot;
     saveGameAndProfile(stateRef.current).catch((err) => {
       console.warn('Firestore save failed:', err);
+      dirtyRef.current = true; // retry next interval
     }).finally(() => { savingRef.current = false; });
   }, []);
 
-  // Dispatch wrapper (no per-action save — interval + beforeunload/visibility handle it)
+  // Dispatch wrapper — marks dirty on meaningful actions
   const smartDispatch = useCallback((action: GameAction) => {
     dispatch(action);
+    if (action.type !== 'TICK') {
+      dirtyRef.current = true;
+    }
   }, []);
 
   // Load from Firestore (single source of truth)
@@ -90,11 +103,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // Auto-save to Firestore every 5s + on visibility change + on beforeunload
+  // Auto-save to Firestore every 30s + on visibility change + on beforeunload
   useEffect(() => {
     if (loading) return;
 
-    const id = setInterval(saveNow, 5000);
+    const id = setInterval(saveNow, 30000);
 
     // Save immediately when user switches tab / minimizes
     const onVisibility = () => {
