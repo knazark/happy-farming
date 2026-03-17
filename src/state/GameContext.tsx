@@ -125,6 +125,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const id = setInterval(saveToFirestore, FIRESTORE_SYNC_MS);
 
+    // Save on tab hide/close — visibilitychange is more reliable on mobile
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
         saveToLocal();
@@ -133,16 +134,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
     document.addEventListener('visibilitychange', onVisibility);
 
+    // Also try on beforeunload (desktop browsers)
     const onBeforeUnload = () => {
       saveToLocal();
       saveToFirestore();
     };
     window.addEventListener('beforeunload', onBeforeUnload);
 
+    // pagehide fires reliably on mobile Safari/Chrome when closing tab
+    const onPageHide = () => {
+      saveToLocal();
+      saveToFirestore();
+    };
+    window.addEventListener('pagehide', onPageHide);
+
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('pagehide', onPageHide);
     };
   }, [loading, saveToLocal, saveToFirestore]);
 
