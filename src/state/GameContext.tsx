@@ -6,15 +6,6 @@ import { tick } from '../engine/gameLoop';
 import { ensureProfile, syncProfile, getFarmerIdIfExists } from '../firebase/db';
 import { saveGameToFirestore, loadGameFromFirestore } from '../firebase/gameStateSync';
 
-// Actions that should trigger an immediate Firestore save
-const IMMEDIATE_SAVE_ACTIONS = new Set([
-  'PLANT_CROP', 'HARVEST', 'BUY_ANIMAL', 'SELL_ITEM', 'CRAFT_ITEM',
-  'UNLOCK_PLOT', 'UPGRADE_SOIL', 'GATHER_WOOD', 'COLLECT_WOOD',
-  'BUY_TRACTOR', 'BUY_CALEB', 'BUY_AUTO_PLANTER', 'SET_AUTO_CROP',
-  'CLEAR_AUTO_CROP', 'ACCEPT_ORDER', 'COMPLETE_ORDER', 'FERTILIZE_PLOT',
-  'UPDATE_PROFILE', 'LOAD_SAVE',
-]);
-
 interface GameContextValue {
   state: GameState;
   dispatch: Dispatch<GameAction>;
@@ -42,23 +33,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }).finally(() => { savingRef.current = false; });
   }, []);
 
-  // Debounced save: coalesces rapid actions into one save after 1s
-  const debouncedSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debouncedSave = useCallback(() => {
-    if (debouncedSaveRef.current) clearTimeout(debouncedSaveRef.current);
-    debouncedSaveRef.current = setTimeout(() => {
-      debouncedSaveRef.current = null;
-      saveNow();
-    }, 2000);
-  }, [saveNow]);
-
-  // Wrapped dispatch that triggers debounced save for important actions
+  // Dispatch wrapper (no per-action save — interval + beforeunload/visibility handle it)
   const smartDispatch = useCallback((action: GameAction) => {
     dispatch(action);
-    if (!loading && IMMEDIATE_SAVE_ACTIONS.has(action.type)) {
-      debouncedSave();
-    }
-  }, [loading, debouncedSave]);
+  }, []);
 
   // Load from Firestore (single source of truth)
   useEffect(() => {
