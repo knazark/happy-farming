@@ -1,3 +1,4 @@
+// @ts-nocheck — Legacy canvas renderer, replaced by FarmView (DOM)
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useGame } from '../state/GameContext';
 import { GRID_COLS, GRID_ROWS, CELL_SIZE, GRID_PADDING, GRID_Y_START } from '../constants/grid';

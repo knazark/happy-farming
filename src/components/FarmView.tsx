@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useGame } from '../state/GameContext';
-import { GRID_COLS } from '../constants/grid';
 import { ANIMALS } from '../constants/animals';
 import { getPerPlotUnlockInfo } from '../engine/economy';
 import { PlotCell } from './PlotCell';
