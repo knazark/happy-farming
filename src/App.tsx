@@ -250,6 +250,16 @@ function GameContent() {
 export default function App() {
   const [hasId, setHasId] = useState(() => !!getFarmerIdIfExists());
 
+  // Detect if farmer ID was removed (e.g. manual localStorage clear) → show LoginScreen
+  useEffect(() => {
+    const checkId = setInterval(() => {
+      if (hasId && !getFarmerIdIfExists()) {
+        setHasId(false);
+      }
+    }, 2000);
+    return () => clearInterval(checkId);
+  }, [hasId]);
+
   if (!hasId) {
     return (
       <LoginScreen

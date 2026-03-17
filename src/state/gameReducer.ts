@@ -2,8 +2,8 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
-import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
+import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
@@ -62,6 +62,7 @@ export function migrateSave(state: any): GameState {
     maxAnimals: state.maxAnimals ?? MAX_ANIMALS,
     hasTractor: state.hasTractor ?? false,
     hasAutoCollector: state.hasAutoCollector ?? false,
+    hasAutoPlanter: state.hasAutoPlanter ?? false,
   } as GameState);
 }
 
@@ -101,6 +102,7 @@ export function createInitialState(): GameState {
     maxAnimals: MAX_ANIMALS,
     hasTractor: false,
     hasAutoCollector: false,
+    hasAutoPlanter: false,
   };
 }
 
@@ -187,13 +189,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       growthTime *= SOIL_GROWTH_BONUS[soilLevel];
 
       const newPlots = [...state.plots];
-      newPlots[plotIndex] = {
+      const growingPlot: PlotState = {
         status: 'growing',
         cropId,
         plantedAt: Date.now(),
         growthTime: Math.round(growthTime),
         soilLevel: (plot as any).soilLevel,
+        soilHarvestsLeft: (plot as any).soilHarvestsLeft,
       };
+      if ((plot as any).autoCropId) (growingPlot as any).autoCropId = (plot as any).autoCropId;
+      newPlots[plotIndex] = growingPlot;
 
       return { ...state, plots: newPlots, coins: state.coins - crop.seedPrice };
     }
@@ -205,7 +210,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const crop = CROPS[plot.cropId];
       const newPlots = [...state.plots];
-      newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
+
+      // Decrement soil harvests, reset soil level when depleted
+      let newSoilLevel = plot.soilLevel;
+      let newSoilHarvests = plot.soilHarvestsLeft;
+      if (newSoilLevel && newSoilLevel > 0 && newSoilHarvests != null) {
+        newSoilHarvests = newSoilHarvests - 1;
+        if (newSoilHarvests <= 0) {
+          newSoilLevel = undefined;
+          newSoilHarvests = undefined;
+        }
+      }
+
+      const emptyPlot: PlotState = { status: 'empty', soilLevel: newSoilLevel, soilHarvestsLeft: newSoilHarvests };
+      if (plot.autoCropId) (emptyPlot as any).autoCropId = plot.autoCropId;
+      newPlots[plotIndex] = emptyPlot;
 
       let harvested: GameState = {
         ...state,
@@ -232,6 +251,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         startedAt: Date.now(),
         gatherTime: WOOD_GATHER_TIME,
         soilLevel: plot.soilLevel,
+        soilHarvestsLeft: plot.soilHarvestsLeft,
       };
       return { ...state, plots: newPlots };
     }
@@ -242,7 +262,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!plot || plot.status !== 'wood_ready') return state;
 
       const newPlots = [...state.plots];
-      newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel };
+      newPlots[plotIndex] = { status: 'empty', soilLevel: plot.soilLevel, soilHarvestsLeft: plot.soilHarvestsLeft };
 
       let newState: GameState = {
         ...state,
@@ -267,7 +287,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.coins < cost) return state;
 
       const newPlots = [...state.plots];
-      newPlots[plotIndex] = { status: 'empty', soilLevel: currentLevel + 1 };
+      newPlots[plotIndex] = { status: 'empty', soilLevel: currentLevel + 1, soilHarvestsLeft: SOIL_HARVESTS_PER_LEVEL };
       return { ...state, plots: newPlots, coins: state.coins - cost };
     }
 
@@ -652,6 +672,61 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         inventory: newInv2,
         hasAutoCollector: true,
       };
+    }
+
+    case 'BUY_AUTO_PLANTER': {
+      if (state.hasAutoPlanter) return state;
+      if (state.coins < AUTO_PLANTER_PRICE) return state;
+
+      for (const craftId of AUTO_PLANTER_REQUIRED_CRAFTS) {
+        if ((state.inventory[craftId] ?? 0) < 1) return state;
+      }
+
+      const newInvAP = { ...state.inventory };
+      for (const craftId of AUTO_PLANTER_REQUIRED_CRAFTS) {
+        const remaining = (newInvAP[craftId] ?? 0) - 1;
+        if (remaining <= 0) {
+          delete newInvAP[craftId];
+        } else {
+          newInvAP[craftId] = remaining;
+        }
+      }
+
+      return {
+        ...state,
+        coins: state.coins - AUTO_PLANTER_PRICE,
+        inventory: newInvAP,
+        hasAutoPlanter: true,
+      };
+    }
+
+    case 'SET_AUTO_CROP': {
+      if (!state.hasAutoPlanter) return state;
+      const { plotIndex, cropId } = action;
+      const plot = state.plots[plotIndex];
+      if (!plot || plot.status === 'locked') return state;
+
+      // Check max auto-plant plots (excluding this one if it already has autoCropId)
+      const currentAutoCount = state.plots.filter(
+        (p, i) => i !== plotIndex && 'autoCropId' in p && (p as any).autoCropId
+      ).length;
+      if (currentAutoCount >= AUTO_PLANTER_MAX_PLOTS) return state;
+
+      const newPlots = [...state.plots];
+      newPlots[plotIndex] = { ...plot, autoCropId: cropId } as PlotState;
+      return { ...state, plots: newPlots };
+    }
+
+    case 'CLEAR_AUTO_CROP': {
+      const { plotIndex } = action;
+      const plot = state.plots[plotIndex];
+      if (!plot || plot.status === 'locked') return state;
+
+      const newPlots = [...state.plots];
+      const cleaned = { ...plot };
+      delete (cleaned as any).autoCropId;
+      newPlots[plotIndex] = cleaned as PlotState;
+      return { ...state, plots: newPlots };
     }
 
     case 'FRIEND_HARVEST_REWARD': {

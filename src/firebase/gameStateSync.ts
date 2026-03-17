@@ -65,8 +65,21 @@ export function applyFriendHarvest(
 
   // Update plot → empty
   const newPlots = [...gs.plots];
+  // Decrement soil harvests
+  let soilLevel = plot.soilLevel;
+  let soilHarvestsLeft = plot.soilHarvestsLeft;
+  if (soilLevel && soilLevel > 0 && soilHarvestsLeft != null) {
+    soilHarvestsLeft -= 1;
+    if (soilHarvestsLeft <= 0) {
+      soilLevel = undefined;
+      soilHarvestsLeft = undefined;
+    }
+  }
+
   const emptyPlot: Record<string, unknown> = { status: 'empty' };
-  if (plot.soilLevel != null) emptyPlot.soilLevel = plot.soilLevel;
+  if (soilLevel != null) emptyPlot.soilLevel = soilLevel;
+  if (soilHarvestsLeft != null) emptyPlot.soilHarvestsLeft = soilHarvestsLeft;
+  if (plot.autoCropId) emptyPlot.autoCropId = plot.autoCropId;
   newPlots[plotIndex] = emptyPlot as PlotState;
 
   // Add crop to inventory

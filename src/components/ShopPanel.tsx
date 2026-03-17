@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS } from '../constants/game';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
 import { showToast } from './Toast';
 import { playAnimalSound } from '../utils/sounds';
@@ -23,6 +23,12 @@ export function ShopPanel() {
     (id) => (state.inventory[id] ?? 0) >= 1
   );
   const canBuyAutoCollector = !state.hasAutoCollector && state.coins >= AUTO_COLLECTOR_PRICE && hasAllCollectorCrafts;
+
+  // Auto-planter requirements
+  const hasAllPlanterCrafts = AUTO_PLANTER_REQUIRED_CRAFTS.every(
+    (id) => (state.inventory[id] ?? 0) >= 1
+  );
+  const canBuyAutoPlanter = !state.hasAutoPlanter && state.coins >= AUTO_PLANTER_PRICE && hasAllPlanterCrafts;
 
   return (
     <div className="shop-panel">
@@ -193,6 +199,60 @@ export function ShopPanel() {
               }}
             >
               🐕 Завести Калеба
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ─── Автопосів ─── */}
+      <div className="market-item" style={{ marginTop: '12px' }}>
+        <div className="market-item-header">
+          <span className="market-item-emoji">🌾</span>
+          <div className="market-item-info">
+            <strong>Автопосів</strong>
+            {state.hasAutoPlanter ? (
+              <span className="market-item-count" style={{ color: '#2E7D32' }}>✅ Куплено!</span>
+            ) : (
+              <span className="market-item-count">{AUTO_PLANTER_PRICE.toLocaleString()}💰</span>
+            )}
+          </div>
+        </div>
+        {state.hasAutoPlanter ? (
+          <p className="market-item-how" style={{ color: '#2E7D32' }}>
+            🌾 Автопосів працює! Натисніть на порожню ділянку, щоб обрати культуру для автопосіву (до {AUTO_PLANTER_MAX_PLOTS} ділянок).
+          </p>
+        ) : (
+          <>
+            <p className="market-item-how">
+              Автоматично садить обрану культуру після збору — до {AUTO_PLANTER_MAX_PLOTS} ділянок!
+            </p>
+            <div className="market-item-tip">
+              📋 Для покупки потрібно:
+            </div>
+            <div className="tractor-requirements">
+              <div className={`tractor-req ${state.coins >= AUTO_PLANTER_PRICE ? 'tractor-req--done' : ''}`}>
+                {state.coins >= AUTO_PLANTER_PRICE ? '✅' : '❌'} {AUTO_PLANTER_PRICE.toLocaleString()}💰
+              </div>
+              {AUTO_PLANTER_REQUIRED_CRAFTS.map((craftId) => {
+                const recipe = RECIPES[craftId];
+                const has = (state.inventory[craftId] ?? 0) >= 1;
+                return (
+                  <div key={craftId} className={`tractor-req ${has ? 'tractor-req--done' : ''}`}>
+                    {has ? '✅' : '❌'} {recipe.emoji} {recipe.name}
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              className="btn btn-buy market-activate-btn"
+              style={{ marginTop: '8px' }}
+              disabled={!canBuyAutoPlanter}
+              onClick={() => {
+                dispatch({ type: 'BUY_AUTO_PLANTER' });
+                showToast('🌾 Автопосів куплено! Оберіть культуру на ділянках для автоматичного посіву!', 'earn');
+              }}
+            >
+              🌾 Купити автопосів
             </button>
           </>
         )}

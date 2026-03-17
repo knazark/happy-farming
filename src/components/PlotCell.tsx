@@ -146,7 +146,17 @@ export const PlotCell = memo(function PlotCell({
     >
       {content}
       {'soilLevel' in plot && (plot.soilLevel ?? 0) > 0 && (
-        <span className="soil-level-badge">🌱{plot.soilLevel}</span>
+        <span className="soil-level-badge">
+          🌱{plot.soilLevel}
+          {'soilHarvestsLeft' in plot && plot.soilHarvestsLeft != null && (
+            <span style={{ fontSize: '8px', opacity: 0.8 }}> ({plot.soilHarvestsLeft})</span>
+          )}
+        </span>
+      )}
+      {'autoCropId' in plot && (plot as any).autoCropId && (
+        <span className="auto-crop-badge">
+          🔄{CROPS[(plot as any).autoCropId as keyof typeof CROPS]?.emoji ?? ''}
+        </span>
       )}
     </div>
   );

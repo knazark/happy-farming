@@ -32,8 +32,9 @@ export function getFarmerIdIfExists(): string | null {
   return localStorage.getItem(FARMER_ID_KEY);
 }
 
-/** Create a new farmer ID and store in localStorage */
+/** Create a new farmer ID and store in localStorage (clears old save to prevent cloning) */
 export function createFarmerId(): string {
+  localStorage.removeItem('happyFarmer_save');
   const id = crypto.randomUUID();
   localStorage.setItem(FARMER_ID_KEY, id);
   return id;
@@ -44,12 +45,17 @@ export function setFarmerId(id: string): void {
   localStorage.setItem(FARMER_ID_KEY, id);
 }
 
-/** Get or create farmer ID (backward compat) */
+/** Clear farmer ID and game save from localStorage (logout) */
+export function clearFarmerId(): void {
+  localStorage.removeItem(FARMER_ID_KEY);
+  localStorage.removeItem('happyFarmer_save');
+}
+
+/** Get farmer ID — throws if not set (must login or create first) */
 export function getFarmerId(): string {
-  let id = localStorage.getItem(FARMER_ID_KEY);
+  const id = localStorage.getItem(FARMER_ID_KEY);
   if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(FARMER_ID_KEY, id);
+    throw new Error('No farmer ID set — user must login or create account first');
   }
   return id;
 }

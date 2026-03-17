@@ -1,6 +1,8 @@
-import type { GameState, PlotState, NpcOrder, ItemId, WeatherType, Inventory } from '../types';
+import type { GameState, PlotState, NpcOrder, ItemId, WeatherType, Inventory, CropId } from '../types';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
+import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER } from '../constants/seasons';
+import { SOIL_GROWTH_BONUS } from '../constants/winter';
 import { NPC_CUSTOMERS, getMaxOrders, ORDER_EXPIRE_TIME, ORDER_REWARD_MULTIPLIER, MARKET_FLUCTUATION_MIN, MARKET_FLUCTUATION_MAX, MARKET_UPDATE_INTERVAL } from '../constants/recipes';
 import { SEASON_DURATION, SEASON_ORDER, WEATHER_BY_SEASON, WEATHER_DURATION_MIN, WEATHER_DURATION_MAX } from '../constants/seasons';
 
@@ -63,14 +65,16 @@ export function tick(state: GameState, now: number): GameState {
       const elapsed = (now - plot.plantedAt) / 1000;
       if (elapsed >= plot.growthTime) {
         changed = true;
-        return { status: 'ready' as const, cropId: plot.cropId, soilLevel: plot.soilLevel };
+        const ready: PlotState = { status: 'ready' as const, cropId: plot.cropId, soilLevel: plot.soilLevel, soilHarvestsLeft: plot.soilHarvestsLeft };
+        if (plot.autoCropId) (ready as any).autoCropId = plot.autoCropId;
+        return ready;
       }
     }
     if (plot.status === 'gathering_wood') {
       const elapsed = (now - plot.startedAt) / 1000;
       if (elapsed >= plot.gatherTime) {
         changed = true;
-        return { status: 'wood_ready' as const, soilLevel: plot.soilLevel };
+        return { status: 'wood_ready' as const, soilLevel: plot.soilLevel, soilHarvestsLeft: plot.soilHarvestsLeft };
       }
     }
     return plot;
@@ -86,7 +90,19 @@ export function tick(state: GameState, now: number): GameState {
     const tractorPlots: PlotState[] = newState.plots.map((plot) => {
       if (plot.status === 'ready') {
         tractorHarvested = true;
-        return { status: 'empty' as const, soilLevel: plot.soilLevel };
+        // Decrement soil harvests
+        let soilLevel = plot.soilLevel;
+        let soilHarvestsLeft = plot.soilHarvestsLeft;
+        if (soilLevel && soilLevel > 0 && soilHarvestsLeft != null) {
+          soilHarvestsLeft -= 1;
+          if (soilHarvestsLeft <= 0) {
+            soilLevel = undefined;
+            soilHarvestsLeft = undefined;
+          }
+        }
+        const empty: PlotState = { status: 'empty' as const, soilLevel, soilHarvestsLeft };
+        if (plot.autoCropId) (empty as any).autoCropId = plot.autoCropId;
+        return empty;
       }
       return plot;
     });
@@ -150,6 +166,51 @@ export function tick(state: GameState, now: number): GameState {
         animals: collectorAnimals,
         inventory: inv,
       };
+    }
+  }
+
+  // Auto-planter: auto-plant on empty plots with autoCropId
+  if (newState.hasAutoPlanter && newState.season !== 'winter') {
+    let autoPlanted = false;
+    let autoPlots = [...newState.plots];
+    let autoCoins = newState.coins;
+
+    for (let i = 0; i < autoPlots.length; i++) {
+      const plot = autoPlots[i];
+      if (plot.status !== 'empty' || !('autoCropId' in plot) || !(plot as any).autoCropId) continue;
+
+      const cropId: CropId = (plot as any).autoCropId;
+      const crop = CROPS[cropId];
+      if (!crop) continue;
+      if (crop.unlockLevel > newState.level) continue;
+      if (crop.seasonOnly && crop.seasonOnly !== newState.season) continue;
+      if (autoCoins < crop.seedPrice) continue;
+
+      // Calculate growth time (same as reducer PLANT_CROP)
+      let growthTime = crop.growthTime * SEASON_CROP_MULTIPLIER[newState.season] * WEATHER_CROP_MULTIPLIER[newState.weather.type];
+      const bonusCrops = SEASONAL_CROP_BONUS[newState.season];
+      if (bonusCrops && bonusCrops.includes(cropId)) {
+        growthTime *= SEASONAL_BONUS_MULTIPLIER;
+      }
+      const soilLevel = (plot as any).soilLevel ?? 0;
+      growthTime *= SOIL_GROWTH_BONUS[soilLevel];
+
+      const growing: PlotState = {
+        status: 'growing',
+        cropId,
+        plantedAt: now,
+        growthTime: Math.round(growthTime),
+        soilLevel: (plot as any).soilLevel,
+        soilHarvestsLeft: (plot as any).soilHarvestsLeft,
+        autoCropId: cropId,
+      };
+      autoPlots[i] = growing;
+      autoCoins -= crop.seedPrice;
+      autoPlanted = true;
+    }
+
+    if (autoPlanted) {
+      newState = { ...newState, plots: autoPlots, coins: autoCoins };
     }
   }
 

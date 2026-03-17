@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
+import { clearFarmerId } from '../firebase/db';
 
 interface ProfileEditorProps {
   onClose: () => void;
@@ -89,6 +90,28 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
           </div>
           <button className="btn btn-buy profile-save" onClick={handleSave}>
             Зберегти
+          </button>
+          <button
+            className="btn profile-logout"
+            style={{
+              marginTop: '10px',
+              background: 'none',
+              border: '1px solid #E53935',
+              color: '#E53935',
+              fontSize: '14px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            onClick={() => {
+              if (window.confirm('Вийти з акаунта? Ви зможете увійти знову через ім\'я та пароль.')) {
+                clearFarmerId();
+                window.location.reload();
+              }
+            }}
+          >
+            🚪 Вийти з акаунта
           </button>
         </div>
       </div>

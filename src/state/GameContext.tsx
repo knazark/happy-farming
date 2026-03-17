@@ -1,10 +1,10 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState, type ReactNode, type Dispatch } from 'react';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
-import { loadGame, saveGame } from './storage';
+import { loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
-import { ensureProfile, syncProfile } from '../firebase/db';
-import { saveGameToFirestore, loadGameFromFirestore, migrateFromLocalStorage } from '../firebase/gameStateSync';
+import { ensureProfile, syncProfile, getFarmerIdIfExists } from '../firebase/db';
+import { saveGameToFirestore, loadGameFromFirestore } from '../firebase/gameStateSync';
 
 interface GameContextValue {
   state: GameState;
@@ -20,53 +20,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Async load: migrate localStorage → Firestore, or load from Firestore
+  // Load from Firestore (single source of truth)
   useEffect(() => {
     let cancelled = false;
 
     async function initLoad() {
       try {
-        // Step 1: Try migrating localStorage data to Firestore
-        const migrated = await migrateFromLocalStorage();
-        if (migrated) {
+        // One-time migration: if old localStorage save exists, push to Firestore and delete
+        const localSave = loadGame();
+        if (localSave) {
+          await saveGameToFirestore(localSave);
+          clearSave();
           if (!cancelled) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(migrated), Date.now()) });
+            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localSave), Date.now()) });
             setLoading(false);
           }
           return;
         }
 
-        // Step 2: No localStorage — check if there's a beforeunload backup
-        const localBackup = loadGame();
-
-        // Step 3: Load from Firestore
+        // Normal path: load from Firestore
         const firestoreState = await loadGameFromFirestore();
-
         if (!cancelled) {
-          if (localBackup && firestoreState) {
-            // Compare timestamps — use whichever is newer
-            const useLocal = (localBackup.lastTickAt ?? 0) > (firestoreState.lastTickAt ?? 0);
-            const chosen = useLocal ? localBackup : firestoreState;
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(chosen), Date.now()) });
-            if (useLocal) {
-              saveGameToFirestore(chosen).catch(() => {});
-            }
-          } else if (firestoreState) {
+          if (firestoreState) {
             dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(firestoreState), Date.now()) });
-          } else if (localBackup) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(localBackup), Date.now()) });
-            saveGameToFirestore(localBackup).catch(() => {});
           }
           // else: new player — keep initial state
           setLoading(false);
         }
       } catch (err) {
-        console.warn('Firestore load failed, falling back to localStorage:', err);
+        console.warn('Firestore load failed:', err);
         if (!cancelled) {
-          const local = loadGame();
-          if (local) {
-            dispatch({ type: 'LOAD_SAVE', state: tick(migrateSave(local), Date.now()) });
-          }
           setLoading(false);
         }
       }
@@ -92,12 +75,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // Save to localStorage on every state change (cheap, synchronous)
-  useEffect(() => {
-    if (loading) return;
-    saveGame(state);
-  }, [state, loading]);
-
   // Auto-save to Firestore every 5s + on visibility change (tab hide / app switch)
   useEffect(() => {
     if (loading) return;
@@ -105,6 +82,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     let saving = false;
     const doSave = () => {
       if (saving) return;
+      if (!getFarmerIdIfExists()) return; // ID removed — stop saving
       saving = true;
       Promise.all([
         saveGameToFirestore(stateRef.current),
@@ -120,20 +98,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
         doSave();
-        // Also sync localStorage as a backup
-        saveGame(stateRef.current);
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    // beforeunload: synchronous localStorage backup
-    const onUnload = () => saveGame(stateRef.current);
-    window.addEventListener('beforeunload', onUnload);
-
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('beforeunload', onUnload);
     };
   }, [loading]);
 

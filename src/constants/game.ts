@@ -40,6 +40,11 @@ export const TRACTOR_REQUIRED_CRAFTS = ['royal_feast', 'golden_honey', 'gourmet_
 export const AUTO_COLLECTOR_PRICE = 12000;
 export const AUTO_COLLECTOR_REQUIRED_CRAFTS = ['cheese', 'butter', 'jam'] as const;
 
+// Auto-planter (auto-replant after harvest)
+export const AUTO_PLANTER_PRICE = 8000;
+export const AUTO_PLANTER_REQUIRED_CRAFTS = ['bread', 'pirozhki', 'farmer_pie'] as const;
+export const AUTO_PLANTER_MAX_PLOTS = 3;
+
 export function xpForLevel(level: number): number {
   return Math.floor(XP_BASE * Math.pow(level, XP_EXPONENT));
 }

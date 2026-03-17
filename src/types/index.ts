@@ -30,11 +30,11 @@ export interface AnimalDef {
 
 export type PlotState =
   | { status: 'locked' }
-  | { status: 'empty'; soilLevel?: number }
-  | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean; soilLevel?: number }
-  | { status: 'ready'; cropId: CropId; soilLevel?: number }
-  | { status: 'gathering_wood'; startedAt: number; gatherTime: number; soilLevel?: number }
-  | { status: 'wood_ready'; soilLevel?: number };
+  | { status: 'empty'; soilLevel?: number; soilHarvestsLeft?: number; autoCropId?: CropId }
+  | { status: 'growing'; cropId: CropId; plantedAt: number; growthTime: number; fertilized?: boolean; soilLevel?: number; soilHarvestsLeft?: number; autoCropId?: CropId }
+  | { status: 'ready'; cropId: CropId; soilLevel?: number; soilHarvestsLeft?: number; autoCropId?: CropId }
+  | { status: 'gathering_wood'; startedAt: number; gatherTime: number; soilLevel?: number; soilHarvestsLeft?: number }
+  | { status: 'wood_ready'; soilLevel?: number; soilHarvestsLeft?: number };
 
 export type CraftedId = 'bread' | 'cheese' | 'butter' | 'cake' | 'sweater' | 'salad' | 'truffle_oil' | 'pickle' | 'meat_pie' | 'gourmet_dish' | 'jam' | 'pizza' | 'borscht' | 'juice' | 'pirozhki' | 'ratatouille' | 'smoothie' | 'farmer_pie' | 'royal_feast' | 'golden_honey' | 'honey_cake' | 'roast_turkey' | 'down_pillow' | 'horse_carriage' | 'campfire' | 'warm_scarf' | 'wooden_chest';
 
@@ -163,6 +163,7 @@ export interface GameState {
   maxAnimals: number;
   hasTractor: boolean;
   hasAutoCollector: boolean;
+  hasAutoPlanter: boolean;
   helpLog?: { helper: string; cropId: CropId; at: number }[];
 }
 
@@ -189,6 +190,9 @@ export type GameAction =
   | { type: 'UPGRADE_PEN' }
   | { type: 'BUY_TRACTOR' }
   | { type: 'BUY_AUTO_COLLECTOR' }
+  | { type: 'BUY_AUTO_PLANTER' }
+  | { type: 'SET_AUTO_CROP'; plotIndex: number; cropId: CropId }
+  | { type: 'CLEAR_AUTO_CROP'; plotIndex: number }
   | { type: 'GATHER_WOOD'; plotIndex: number }
   | { type: 'COLLECT_WOOD'; plotIndex: number }
   | { type: 'UPGRADE_SOIL'; plotIndex: number }
