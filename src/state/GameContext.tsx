@@ -49,7 +49,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     debouncedSaveRef.current = setTimeout(() => {
       debouncedSaveRef.current = null;
       saveNow();
-    }, 1000);
+    }, 2000);
   }, [saveNow]);
 
   // Wrapped dispatch that triggers debounced save for important actions
