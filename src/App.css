@@ -1183,11 +1183,13 @@ body::after {
 .crop-selector-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(45, 27, 78, 0.3);
+  background: rgba(45, 27, 78, 0.25);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .crop-selector {
