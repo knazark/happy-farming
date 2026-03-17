@@ -23,9 +23,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Dirty flag: only save to Firestore when state actually changed
-  const dirtyRef = useRef(false);
-
   // --- localStorage save (fast, free, every 5s) ---
   const saveToLocal = useCallback(() => {
     saveGame(stateRef.current);
@@ -33,24 +30,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // --- Firestore save (remote backup, every 2 min) ---
   const savingRef = useRef(false);
+  const lastFirestoreJsonRef = useRef('');
   const saveToFirestore = useCallback(() => {
     if (savingRef.current) return;
     if (!getFarmerIdIfExists()) return;
-    if (!dirtyRef.current) return;
+    // Skip if state hasn't changed since last Firestore save
+    const snapshot = JSON.stringify(stateRef.current);
+    if (snapshot === lastFirestoreJsonRef.current) return;
     savingRef.current = true;
-    dirtyRef.current = false;
+    lastFirestoreJsonRef.current = snapshot;
     saveGameAndProfile(stateRef.current).catch((err) => {
       console.warn('Firestore save failed:', err);
-      dirtyRef.current = true; // retry next interval
+      lastFirestoreJsonRef.current = ''; // retry next interval
     }).finally(() => { savingRef.current = false; });
   }, []);
 
-  // Dispatch wrapper — marks dirty on meaningful actions
+  // Dispatch wrapper
   const smartDispatch = useCallback((action: GameAction) => {
     dispatch(action);
-    if (action.type !== 'TICK') {
-      dirtyRef.current = true;
-    }
   }, []);
 
   // Load: try Firestore first (cross-device sync), fall back to localStorage
