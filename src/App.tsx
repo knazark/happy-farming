@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GameProvider, useGame } from './state/GameContext';
@@ -21,6 +21,7 @@ import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
 import { NeighborsPanel } from './components/NeighborsPanel';
 import { FriendFarmView } from './components/FriendFarmView';
+import { useHarvestEffect, HarvestEffectLayer } from './components/HarvestEffect';
 import './App.css';
 import './styles/farm.css';
 
@@ -74,6 +75,17 @@ function GameContent() {
   const [activePanel, setActivePanel] = useState<PanelId>(null);
   const [visitingFriendId, setVisitingFriendId] = useState<string | null>(null);
   const { pendingRequests } = useFriends();
+  const { effects, spawnEffect } = useHarvestEffect();
+
+  // Track last click position for harvest effects
+  const lastClickRef = useRef({ clientX: 0, clientY: 0 });
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      lastClickRef.current = { clientX: e.clientX, clientY: e.clientY };
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, []);
 
   const togglePanel = (id: PanelId) => {
     setActivePanel((prev) => (prev === id ? null : id));
@@ -98,6 +110,7 @@ function GameContent() {
           break;
         case 'ready': {
           const crop = CROPS[plot.cropId];
+          spawnEffect(crop.emoji, lastClickRef.current);
           showToast(`${crop.emoji} ${crop.name} зібрано! +${crop.sellPrice}💰`, 'earn');
           dispatch({ type: 'HARVEST', plotIndex });
           break;
@@ -116,6 +129,7 @@ function GameContent() {
           break;
         }
         case 'wood_ready': {
+          spawnEffect('🪵', lastClickRef.current);
           dispatch({ type: 'COLLECT_WOOD', plotIndex });
           showToast('🪵 Дрова зібрано!', 'earn');
           break;
@@ -124,7 +138,7 @@ function GameContent() {
           break;
       }
     },
-    [state.plots, state.coins, state.level, dispatch],
+    [state.plots, state.coins, state.level, dispatch, spawnEffect],
   );
 
   const handleAnimalClick = useCallback(
@@ -132,11 +146,12 @@ function GameContent() {
       const slot = state.animals[animalIndex];
       if (slot) {
         const animal = ANIMALS[slot.animalId];
+        spawnEffect(animal.productEmoji, lastClickRef.current);
         showToast(`${animal.productEmoji} ${animal.productName} зібрано! +${animal.productSellPrice}💰`, 'earn');
       }
       dispatch({ type: 'COLLECT_PRODUCT', animalIndex });
     },
-    [dispatch, state.animals],
+    [dispatch, state.animals, spawnEffect],
   );
 
   // Badge counts
@@ -155,6 +170,7 @@ function GameContent() {
     <div className={`game-layout-v2 season-${state.season}`}>
       <SeasonalBackground />
       <ToastContainer />
+      <HarvestEffectLayer effects={effects} />
       <HUD onProfileClick={() => setShowProfile(true)} />
 
       <div className="game-center">
