@@ -97,12 +97,6 @@ export const PlotCell = memo(function PlotCell({
         const crop = CROPS[plot.cropId];
         return (
           <div className="plot-inner plot-ready">
-            <div className="plot-ready-sparkles">
-              <span className="sparkle s1">✦</span>
-              <span className="sparkle s2">✦</span>
-              <span className="sparkle s3">✦</span>
-              <span className="sparkle s4">✦</span>
-            </div>
             <span className="plot-ready-emoji">{crop.emoji}</span>
             <div className="plot-harvest-pill">
               {crop.emoji} Зібрати +{crop.sellPrice}💰
@@ -133,12 +127,6 @@ export const PlotCell = memo(function PlotCell({
       case 'wood_ready':
         return (
           <div className="plot-inner plot-wood-ready">
-            <div className="plot-ready-sparkles">
-              <span className="sparkle s1">✦</span>
-              <span className="sparkle s2">✦</span>
-              <span className="sparkle s3">✦</span>
-              <span className="sparkle s4">✦</span>
-            </div>
             <span className="plot-ready-emoji">🪵</span>
             <div className="plot-harvest-pill">🪵 Зібрати</div>
           </div>

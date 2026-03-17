@@ -92,23 +92,47 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // Auto-save to Firestore every 5s + localStorage backup on unload
+  // Save to localStorage on every state change (cheap, synchronous)
+  useEffect(() => {
+    if (loading) return;
+    saveGame(state);
+  }, [state, loading]);
+
+  // Auto-save to Firestore every 5s + on visibility change (tab hide / app switch)
   useEffect(() => {
     if (loading) return;
 
-    const id = setInterval(() => {
-      saveGameToFirestore(stateRef.current).catch((err) => {
+    let saving = false;
+    const doSave = () => {
+      if (saving) return;
+      saving = true;
+      Promise.all([
+        saveGameToFirestore(stateRef.current),
+        syncProfile(stateRef.current),
+      ]).catch((err) => {
         console.warn('Firestore save failed:', err);
-      });
-      syncProfile(stateRef.current).catch(() => {});
-    }, 5000);
+      }).finally(() => { saving = false; });
+    };
 
-    // beforeunload: synchronous localStorage backup (reliable)
+    const id = setInterval(doSave, 5000);
+
+    // Save immediately when user switches tab / minimizes / closes app
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        doSave();
+        // Also sync localStorage as a backup
+        saveGame(stateRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // beforeunload: synchronous localStorage backup
     const onUnload = () => saveGame(stateRef.current);
     window.addEventListener('beforeunload', onUnload);
 
     return () => {
       clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onUnload);
     };
   }, [loading]);
