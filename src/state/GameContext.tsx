@@ -42,14 +42,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }).finally(() => { savingRef.current = false; });
   }, []);
 
-  // Wrapped dispatch that triggers immediate save for important actions
+  // Debounced save: coalesces rapid actions into one save after 1s
+  const debouncedSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedSave = useCallback(() => {
+    if (debouncedSaveRef.current) clearTimeout(debouncedSaveRef.current);
+    debouncedSaveRef.current = setTimeout(() => {
+      debouncedSaveRef.current = null;
+      saveNow();
+    }, 1000);
+  }, [saveNow]);
+
+  // Wrapped dispatch that triggers debounced save for important actions
   const smartDispatch = useCallback((action: GameAction) => {
     dispatch(action);
     if (!loading && IMMEDIATE_SAVE_ACTIONS.has(action.type)) {
-      // Small delay to let React process the state update first
-      setTimeout(() => saveNow(), 50);
+      debouncedSave();
     }
-  }, [loading, saveNow]);
+  }, [loading, debouncedSave]);
 
   // Load from Firestore (single source of truth)
   useEffect(() => {
