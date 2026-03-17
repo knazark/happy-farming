@@ -32,15 +32,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const savingRef = useRef(false);
   const lastFirestoreJsonRef = useRef('');
   const saveToFirestore = useCallback(() => {
-    if (savingRef.current) return;
-    if (!getFarmerIdIfExists()) return;
+    if (savingRef.current) { console.log('[save] skipped: already saving'); return; }
+    if (!getFarmerIdIfExists()) { console.log('[save] skipped: no farmer ID'); return; }
     // Skip if state hasn't changed since last Firestore save
     const snapshot = JSON.stringify(stateRef.current);
-    if (snapshot === lastFirestoreJsonRef.current) return;
+    if (snapshot === lastFirestoreJsonRef.current) { console.log('[save] skipped: no changes'); return; }
     savingRef.current = true;
     lastFirestoreJsonRef.current = snapshot;
-    saveGameAndProfile(stateRef.current).catch((err) => {
-      console.warn('Firestore save failed:', err);
+    console.log('[save] saving to Firestore...');
+    saveGameAndProfile(stateRef.current).then(() => {
+      console.log('[save] ✅ Firestore save OK');
+    }).catch((err) => {
+      console.warn('[save] ❌ Firestore save failed:', err);
       lastFirestoreJsonRef.current = ''; // retry next interval
     }).finally(() => { savingRef.current = false; });
   }, []);
