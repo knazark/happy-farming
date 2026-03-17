@@ -12,11 +12,17 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
   const [avatar, setAvatar] = useState(state.profile.avatar);
   const [password, setPassword] = useState(state.profile.password || '');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSave = () => {
+    if (!password.trim()) {
+      setError('Введіть пароль для захисту акаунта');
+      return;
+    }
+    setError('');
     dispatch({
       type: 'SET_PROFILE',
-      profile: { name: name.trim() || 'Фермер', avatar, password: password || undefined },
+      profile: { name: name.trim() || 'Фермер', avatar, password: password.trim() },
     });
     onClose();
   };
@@ -61,6 +67,11 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
               </button>
             </div>
           </label>
+          {error && (
+            <div style={{ fontSize: '13px', color: '#E53935', fontWeight: 600, margin: '-4px 0 4px' }}>
+              {error}
+            </div>
+          )}
           <div style={{ fontSize: '12px', color: '#888', margin: '-4px 0 8px' }}>
             Потрібен для входу з іншого пристрою
           </div>
