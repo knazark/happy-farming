@@ -117,7 +117,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🍲',
     ingredients: { cabbage: 2, potato: 1, carrot: 2, tomato: 1 },
     craftTime: 360,       // 6 хв
-    sellPrice: 250,
+    sellPrice: 380,
     unlockLevel: 5,
     xpReward: 32,
   },
@@ -177,7 +177,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🫓',
     ingredients: { potato: 2, corn: 2, chicken_product: 2, wheat: 1 },
     craftTime: 420,       // 7 хв
-    sellPrice: 300,
+    sellPrice: 420,
     unlockLevel: 7,
     xpReward: 45,
   },
@@ -187,7 +187,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '👑',
     ingredients: { gourmet_dish: 1, cake: 1, borscht: 1, cheese: 1 },
     craftTime: 900,       // 15 хв
-    sellPrice: 1600,
+    sellPrice: 2400,
     unlockLevel: 10,
     xpReward: 100,
   },
@@ -197,7 +197,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🍯',
     ingredients: { jam: 2, butter: 1, sunflower: 3, strawberry: 3 },
     craftTime: 720,       // 12 хв
-    sellPrice: 1300,
+    sellPrice: 2150,
     unlockLevel: 9,
     xpReward: 75,
   },
@@ -347,7 +347,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🌴',
     ingredients: { grape_juice: 1, wine: 1, fruit_basket: 1, golden_honey: 1 },
     craftTime: 1200,      // 20 хв
-    sellPrice: 5300,
+    sellPrice: 6500,
     unlockLevel: 10,
     xpReward: 120,
   },
