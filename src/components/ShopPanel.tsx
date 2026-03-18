@@ -94,36 +94,36 @@ export function ShopPanel() {
         🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰)
       </button>
 
-      {/* ─── Трактор ─── */}
+      {/* ─── Автопосів ─── */}
       <div className="market-item" style={{ marginTop: '12px' }}>
         <div className="market-item-header">
-          <span className="market-item-emoji">🚜</span>
+          <span className="market-item-emoji">🌾</span>
           <div className="market-item-info">
-            <strong>Трактор</strong>
-            {state.hasTractor ? (
+            <strong>Автопосів</strong>
+            {state.hasAutoPlanter ? (
               <span className="market-item-count" style={{ color: '#2E7D32' }}>✅ Куплено!</span>
             ) : (
-              <span className="market-item-count">{TRACTOR_PRICE.toLocaleString()}💰</span>
+              <span className="market-item-count">{AUTO_PLANTER_PRICE.toLocaleString()}💰</span>
             )}
           </div>
         </div>
-        {state.hasTractor ? (
+        {state.hasAutoPlanter ? (
           <p className="market-item-how" style={{ color: '#2E7D32' }}>
-            🚜 Трактор автоматично збирає готові рослини!
+            🌾 Автопосів працює! Натисніть на порожню ділянку, щоб обрати культуру для автопосіву (до {AUTO_PLANTER_MAX_PLOTS} ділянок).
           </p>
         ) : (
           <>
             <p className="market-item-how">
-              Автоматично збирає всі готові рослини — не треба натискати вручну!
+              Автоматично садить обрану культуру після збору — до {AUTO_PLANTER_MAX_PLOTS} ділянок!
             </p>
             <div className="market-item-tip">
               📋 Для покупки потрібно:
             </div>
             <div className="tractor-requirements">
-              <div className={`tractor-req ${state.coins >= TRACTOR_PRICE ? 'tractor-req--done' : ''}`}>
-                {state.coins >= TRACTOR_PRICE ? '✅' : '❌'} {TRACTOR_PRICE.toLocaleString()}💰
+              <div className={`tractor-req ${state.coins >= AUTO_PLANTER_PRICE ? 'tractor-req--done' : ''}`}>
+                {state.coins >= AUTO_PLANTER_PRICE ? '✅' : '❌'} {AUTO_PLANTER_PRICE.toLocaleString()}💰
               </div>
-              {TRACTOR_REQUIRED_CRAFTS.map((craftId) => {
+              {AUTO_PLANTER_REQUIRED_CRAFTS.map((craftId) => {
                 const recipe = RECIPES[craftId];
                 const has = (state.inventory[craftId] ?? 0) >= 1;
                 return (
@@ -136,13 +136,13 @@ export function ShopPanel() {
             <button
               className="btn btn-buy market-activate-btn"
               style={{ marginTop: '8px' }}
-              disabled={!canBuyTractor}
+              disabled={!canBuyAutoPlanter}
               onClick={() => {
-                dispatch({ type: 'BUY_TRACTOR' });
-                showToast('🚜 Трактор куплено! Тепер рослини збираються автоматично!', 'earn');
+                dispatch({ type: 'BUY_AUTO_PLANTER' });
+                showToast('🌾 Автопосів куплено! Оберіть культуру на ділянках для автоматичного посіву!', 'earn');
               }}
             >
-              🚜 Купити трактор
+              🌾 Купити автопосів
             </button>
           </>
         )}
@@ -202,36 +202,36 @@ export function ShopPanel() {
         )}
       </div>
 
-      {/* ─── Автопосів ─── */}
+      {/* ─── Трактор ─── */}
       <div className="market-item" style={{ marginTop: '12px' }}>
         <div className="market-item-header">
-          <span className="market-item-emoji">🌾</span>
+          <span className="market-item-emoji">🚜</span>
           <div className="market-item-info">
-            <strong>Автопосів</strong>
-            {state.hasAutoPlanter ? (
+            <strong>Трактор</strong>
+            {state.hasTractor ? (
               <span className="market-item-count" style={{ color: '#2E7D32' }}>✅ Куплено!</span>
             ) : (
-              <span className="market-item-count">{AUTO_PLANTER_PRICE.toLocaleString()}💰</span>
+              <span className="market-item-count">{TRACTOR_PRICE.toLocaleString()}💰</span>
             )}
           </div>
         </div>
-        {state.hasAutoPlanter ? (
+        {state.hasTractor ? (
           <p className="market-item-how" style={{ color: '#2E7D32' }}>
-            🌾 Автопосів працює! Натисніть на порожню ділянку, щоб обрати культуру для автопосіву (до {AUTO_PLANTER_MAX_PLOTS} ділянок).
+            🚜 Трактор автоматично збирає готові рослини!
           </p>
         ) : (
           <>
             <p className="market-item-how">
-              Автоматично садить обрану культуру після збору — до {AUTO_PLANTER_MAX_PLOTS} ділянок!
+              Автоматично збирає всі готові рослини — не треба натискати вручну!
             </p>
             <div className="market-item-tip">
               📋 Для покупки потрібно:
             </div>
             <div className="tractor-requirements">
-              <div className={`tractor-req ${state.coins >= AUTO_PLANTER_PRICE ? 'tractor-req--done' : ''}`}>
-                {state.coins >= AUTO_PLANTER_PRICE ? '✅' : '❌'} {AUTO_PLANTER_PRICE.toLocaleString()}💰
+              <div className={`tractor-req ${state.coins >= TRACTOR_PRICE ? 'tractor-req--done' : ''}`}>
+                {state.coins >= TRACTOR_PRICE ? '✅' : '❌'} {TRACTOR_PRICE.toLocaleString()}💰
               </div>
-              {AUTO_PLANTER_REQUIRED_CRAFTS.map((craftId) => {
+              {TRACTOR_REQUIRED_CRAFTS.map((craftId) => {
                 const recipe = RECIPES[craftId];
                 const has = (state.inventory[craftId] ?? 0) >= 1;
                 return (
@@ -244,13 +244,13 @@ export function ShopPanel() {
             <button
               className="btn btn-buy market-activate-btn"
               style={{ marginTop: '8px' }}
-              disabled={!canBuyAutoPlanter}
+              disabled={!canBuyTractor}
               onClick={() => {
-                dispatch({ type: 'BUY_AUTO_PLANTER' });
-                showToast('🌾 Автопосів куплено! Оберіть культуру на ділянках для автоматичного посіву!', 'earn');
+                dispatch({ type: 'BUY_TRACTOR' });
+                showToast('🚜 Трактор куплено! Тепер рослини збираються автоматично!', 'earn');
               }}
             >
-              🌾 Купити автопосів
+              🚜 Купити трактор
             </button>
           </>
         )}
