@@ -97,13 +97,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const localState = loadGame();
 
         if (!cancelled) {
-          // If farmerId exists but Firestore doc was deleted — wipe everything, treat as new user
+          // If farmerId exists but Firestore doc was deleted — wipe and reload to login screen
           const farmerId = getFarmerIdIfExists();
           if (farmerId && !firestoreState && localState) {
             clearSave();
             clearFarmerId();
-            setLoading(false);
-            return; // stop — user will see login/new game screen
+            window.location.reload();
+            return;
           }
 
           let best: GameState | null = null;

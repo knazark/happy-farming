@@ -394,14 +394,19 @@ function GameContent() {
 export default function App() {
   const [hasId, setHasId] = useState(() => !!getFarmerIdIfExists());
 
-  // Detect if farmer ID was removed (e.g. manual localStorage clear) → show LoginScreen
+  // Detect if farmer ID was removed → show LoginScreen immediately
   useEffect(() => {
-    const checkId = setInterval(() => {
-      if (hasId && !getFarmerIdIfExists()) {
-        setHasId(false);
-      }
-    }, 2000);
-    return () => clearInterval(checkId);
+    if (!hasId) return;
+    // Check quickly on mount + periodic fallback
+    const check = () => {
+      if (!getFarmerIdIfExists()) setHasId(false);
+    };
+    // Immediate check after potential clearFarmerId in GameContext
+    const t = setTimeout(check, 100);
+    const id = setInterval(check, 1000);
+    // Listen for storage events (cross-tab)
+    window.addEventListener('storage', check);
+    return () => { clearTimeout(t); clearInterval(id); window.removeEventListener('storage', check); };
   }, [hasId]);
 
   if (!hasId) {
