@@ -65,45 +65,74 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
       {items.length === 0 ? (
         <p className="panel-empty">Порожньо</p>
       ) : (
-        <ul className="inventory-list">
+        <>
           {items.length > 1 && (
             <button className="btn btn-sell-all" onClick={handleSellAll}>
               Продати все · {sellAllTotal}💰
             </button>
           )}
-          {items.map(([id, qty]) => {
-            const info = getItemInfo(id as ItemId);
-            const unitPrice = Math.round(info.sellPrice * state.marketPriceMultiplier);
-            const totalPrice = Math.round(info.sellPrice * qty! * state.marketPriceMultiplier);
-            return (
-              <li key={id} className="inventory-item">
-                <span className="inventory-item-info">
-                  {info.emoji} {info.name} × {qty}
-                </span>
-                <div className="inventory-buttons">
-                  <button
-                    className="btn btn-sell"
-                    onClick={() =>
-                      dispatch({ type: 'SELL_ITEM', itemId: id as ItemId, quantity: 1 })
-                    }
-                  >
-                    1 ({unitPrice}💰)
-                  </button>
-                  {qty! > 1 && (
-                    <button
-                      className="btn btn-sell"
-                      onClick={() =>
-                        dispatch({ type: 'SELL_ITEM', itemId: id as ItemId, quantity: qty! })
-                      }
-                    >
-                      Все ({totalPrice}💰)
-                    </button>
-                  )}
+          {(() => {
+            const crops: typeof items = [];
+            const products: typeof items = [];
+            const crafts: typeof items = [];
+            const other: typeof items = [];
+            for (const item of items) {
+              const id = item[0];
+              if (id === 'firewood') other.push(item);
+              else if (id.endsWith('_product')) products.push(item);
+              else if (id in RECIPES) crafts.push(item);
+              else crops.push(item);
+            }
+            const groups = [
+              { label: '🌾 Культури', items: crops },
+              { label: '🐾 Продукти', items: products },
+              { label: '🧑‍🍳 Крафт', items: crafts },
+              { label: '🪵 Інше', items: other },
+            ].filter(g => g.items.length > 0);
+
+            return groups.map(group => (
+              <div key={group.label}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#9E86B8', padding: '8px 0 4px', borderBottom: '1px solid #F0E8F8' }}>
+                  {group.label}
                 </div>
-              </li>
-            );
-          })}
-        </ul>
+                <ul className="inventory-list">
+                  {group.items.map(([id, qty]) => {
+                    const info = getItemInfo(id as ItemId);
+                    const unitPrice = Math.round(info.sellPrice * state.marketPriceMultiplier);
+                    const totalPrice = Math.round(info.sellPrice * qty! * state.marketPriceMultiplier);
+                    return (
+                      <li key={id} className="inventory-item">
+                        <span className="inventory-item-info">
+                          {info.emoji} {info.name} × {qty}
+                        </span>
+                        <div className="inventory-buttons">
+                          <button
+                            className="btn btn-sell"
+                            onClick={() =>
+                              dispatch({ type: 'SELL_ITEM', itemId: id as ItemId, quantity: 1 })
+                            }
+                          >
+                            1 ({unitPrice}💰)
+                          </button>
+                          {qty! > 1 && (
+                            <button
+                              className="btn btn-sell"
+                              onClick={() =>
+                                dispatch({ type: 'SELL_ITEM', itemId: id as ItemId, quantity: qty! })
+                              }
+                            >
+                              Все ({totalPrice}💰)
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ));
+          })()}
+        </>
       )}
 
       <button
