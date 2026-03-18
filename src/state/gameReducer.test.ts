@@ -147,12 +147,12 @@ describe('HARVEST action', () => {
     expect(result).toEqual(state);
   });
 
-  it('adds XP on harvest', () => {
+  it('does NOT add XP on harvest (XP only from crafts/orders)', () => {
     const plots = [...createInitialState().plots];
     plots[0] = { status: 'ready', cropId: 'wheat' };
     const state = makeState({ plots, xp: 0, level: 1 });
     const result = gameReducer(state, { type: 'HARVEST', plotIndex: 0 });
-    expect(result.xp).toBe(CROPS.wheat.xpReward);
+    expect(result.xp).toBe(0);
   });
 
   it('grants first_harvest achievement', () => {
@@ -413,7 +413,7 @@ describe('COLLECT_PRODUCT action', () => {
     expect(result).toEqual(state);
   });
 
-  it('adds xp on collection', () => {
+  it('does NOT add xp on collection (XP only from crafts/orders)', () => {
     const past = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
@@ -422,7 +422,7 @@ describe('COLLECT_PRODUCT action', () => {
       level: 1,
     });
     const result = gameReducer(state, { type: 'COLLECT_PRODUCT', animalIndex: 0 });
-    expect(result.xp).toBe(ANIMALS.chicken.xpReward);
+    expect(result.xp).toBe(0);
     vi.restoreAllMocks();
   });
 });
@@ -1403,25 +1403,31 @@ describe('migrateSave', () => {
 });
 
 describe('XP and leveling', () => {
-  it('levels up when enough XP accumulated', () => {
-    // Give enough xp to level up from 1 to 2
+  it('levels up when enough XP accumulated via craft', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const xpNeeded = xpForLevel(1);
-    const plots = [...createInitialState().plots];
-    plots[0] = { status: 'ready', cropId: 'grape' }; // grape gives 50 xp
-    // Set xp just below threshold
-    const state = makeState({ plots, xp: xpNeeded - 1, level: 1 });
-    // Harvest gives grape xpReward = 50, which should push over
-    const result = gameReducer(state, { type: 'HARVEST', plotIndex: 0 });
+    const slot: CraftingSlot = { recipeId: 'bread', startedAt: NOW - 200 * 1000, craftTime: 120 };
+    const state = makeState({
+      crafting: [slot],
+      inventory: {},
+      xp: xpNeeded - 1,
+      level: 1,
+      storageCapacity: 50,
+    });
+    const result = gameReducer(state, { type: 'COLLECT_CRAFT', slotIndex: 0 });
+    // bread gives 15 XP, should push over threshold
     expect(result.level).toBeGreaterThanOrEqual(2);
+    vi.restoreAllMocks();
   });
 
   it('does not gain XP at max level', () => {
-    const plots = [...createInitialState().plots];
-    plots[0] = { status: 'ready', cropId: 'wheat' };
-    const state = makeState({ plots, xp: 0, level: MAX_LEVEL });
-    const result = gameReducer(state, { type: 'HARVEST', plotIndex: 0 });
+    vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    const slot: CraftingSlot = { recipeId: 'bread', startedAt: NOW - 200 * 1000, craftTime: 120 };
+    const state = makeState({ crafting: [slot], inventory: {}, xp: 0, level: MAX_LEVEL, storageCapacity: 50 });
+    const result = gameReducer(state, { type: 'COLLECT_CRAFT', slotIndex: 0 });
     expect(result.level).toBe(MAX_LEVEL);
     expect(result.xp).toBe(0);
+    vi.restoreAllMocks();
   });
 
   it('grants level_5 achievement', () => {

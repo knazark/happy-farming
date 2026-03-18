@@ -236,7 +236,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         totalHarvested: state.totalHarvested + 1,
       };
 
-      harvested = addXp(harvested, crop.xpReward);
+      // XP only from crafts and orders, not from harvesting
       harvested = progressQuests(harvested, 'harvest', 1);
       return checkAchievements(harvested);
     }
@@ -341,13 +341,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const itemId: ItemId = `${slot.animalId}_product`;
 
       const qty = state.season === 'summer' ? 2 : 1;
-      const collected = {
+      // XP only from crafts and orders, not from collecting
+      return {
         ...state,
         animals: newAnimals,
         inventory: addToInventory(state.inventory, itemId, qty),
       };
-
-      return addXp(collected, animal.xpReward);
     }
 
     case 'SELL_ITEM': {
