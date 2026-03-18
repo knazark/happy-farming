@@ -75,7 +75,7 @@ export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewPro
 
       {/* Animal pen */}
       <div className="animal-pen">
-        <div className="animal-pen-label">🐾 Тварини</div>
+        <div className="animal-pen-label">Тварини</div>
         <div className="animal-grid">
           {groups.map((group, i) => (
             <AnimalCard
