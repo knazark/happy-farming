@@ -132,7 +132,7 @@ function GameContent() {
           const crop = CROPS[plot.cropId];
           const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
           if (totalItems >= state.storageCapacity) {
-            showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+            showToast('🧺 Інвентар повний! Продайте щось або збільшіть місце', 'info');
             break;
           }
           spawnEffect(crop.emoji, lastClickRef.current);
@@ -156,7 +156,7 @@ function GameContent() {
         case 'wood_ready': {
           const totalItems2 = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
           if (totalItems2 >= state.storageCapacity) {
-            showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+            showToast('🧺 Інвентар повний! Продайте щось або збільшіть місце', 'info');
             break;
           }
           spawnEffect('🪵', lastClickRef.current);
@@ -185,7 +185,7 @@ function GameContent() {
 
       const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
       if (totalItems >= state.storageCapacity) {
-        showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+        showToast('🧺 Інвентар повний! Продайте щось або збільшіть місце', 'info');
         return;
       }
 

@@ -50,7 +50,7 @@ export function CraftingPanel() {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">🔨 Крафт ({slotsUsed}/{isWinter ? '∞' : totalSlots}){isWinter ? ' ❄️×2' : ''}</h2>
+      <h2 className="panel-title">⚒️ Крафт ({slotsUsed}/{isWinter ? '∞' : totalSlots}){isWinter ? ' ❄️×2' : ''}</h2>
 
       {/* Active crafting slots */}
       {activeSlots.map((slot, idx) => {
@@ -71,7 +71,7 @@ export function CraftingPanel() {
               <button className="btn btn-sell" onClick={() => {
                 const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
                 if (totalItems >= state.storageCapacity) {
-                  showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+                  showToast('🧺 Інвентар повний! Продайте щось або збільшіть місце', 'info');
                   return;
                 }
                 dispatch({ type: 'COLLECT_CRAFT', slotIndex: idx });
@@ -148,7 +148,7 @@ export function CraftingPanel() {
           disabled={!canUpgrade}
           onClick={() => {
             dispatch({ type: 'UPGRADE_CRAFTING' });
-            showToast(`🔨 Крафт збільшено! Слотів: ${totalSlots + 1} −${upgradeCost}💰`, 'spend');
+            showToast(`⚒️ Крафт збільшено! Слотів: ${totalSlots + 1} −${upgradeCost}💰`, 'spend');
           }}
         >
           ⬆️ Збільшити слоти крафту → {totalSlots + 1} ({upgradeCost}💰)

@@ -54,7 +54,7 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
   return (
     <div className="panel">
       <h2 className="panel-title">
-        📦 Інвентар ({totalItems}/{state.storageCapacity})
+        🧺 Інвентар ({totalItems}/{state.storageCapacity})
         {marketLabel && <span className="market-label"> {marketLabel}</span>}
       </h2>
       {totalItems >= state.storageCapacity && (
@@ -111,10 +111,10 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
         disabled={state.coins < STORAGE_UPGRADE_COST}
         onClick={() => {
           dispatch({ type: 'UPGRADE_STORAGE' });
-          showToast(`📦 Інвентар збільшено! +${STORAGE_UPGRADE_AMOUNT} місць −${STORAGE_UPGRADE_COST}💰`, 'spend');
+          showToast(`🧺 Інвентар збільшено! +${STORAGE_UPGRADE_AMOUNT} місць −${STORAGE_UPGRADE_COST}💰`, 'spend');
         }}
       >
-        📦 Збільшити +{STORAGE_UPGRADE_AMOUNT} ({STORAGE_UPGRADE_COST}💰)
+        🧺 Збільшити +{STORAGE_UPGRADE_AMOUNT} ({STORAGE_UPGRADE_COST}💰)
       </button>
     </div>
   );

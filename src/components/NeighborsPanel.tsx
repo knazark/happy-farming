@@ -109,7 +109,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">👥 Друзі та рейтинг</h2>
+      <h2 className="panel-title">🤝 Друзі та рейтинг</h2>
 
       {/* Tabs */}
       <div className="neighbor-tabs">
@@ -117,7 +117,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
           className={`neighbor-tab ${activeTab === 'friends' ? 'neighbor-tab-active' : ''}`}
           onClick={() => setActiveTab('friends')}
         >
-          👥 Друзі
+          🤝 Друзі
           {pendingRequests.length > 0 && (
             <span style={{
               background: '#F44336', color: '#fff', borderRadius: '10px',

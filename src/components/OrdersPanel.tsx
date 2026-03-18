@@ -31,7 +31,7 @@ export function OrdersPanel() {
   if (state.orders.length === 0) {
     return (
       <div className="panel">
-        <h2 className="panel-title">📋 Замовлення</h2>
+        <h2 className="panel-title">📜 Замовлення</h2>
         <p className="panel-empty">Немає замовлень</p>
       </div>
     );
@@ -71,7 +71,7 @@ export function OrdersPanel() {
   return (
     <div className="panel">
       <h2 className="panel-title">
-        📋 Замовлення
+        📜 Замовлення
         {streak > 0 && (
           <span style={{ fontSize: '13px', marginLeft: '8px', color: '#FF6B35' }}>
             🔥 {streak} (+{streakBonus}%)
