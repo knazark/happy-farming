@@ -246,7 +246,7 @@ function GameContent() {
           aria-label="Крафт"
           aria-current={activePanel === 'crafting' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">⚒️</span>
+          <span className="bar-btn-icon" aria-hidden="true">🍳</span>
           <span className="bar-btn-label">Крафт</span>
           {craftReady > 0 && <span className="bar-badge">{craftReady}</span>}
         </button>
