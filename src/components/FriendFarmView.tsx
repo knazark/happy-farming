@@ -168,7 +168,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: '16px' }}>{profile.name}</div>
         <div style={{ fontSize: '13px', color: '#666' }}>
-          ⭐ Рівень {profile.level}
+          {'⭐'.repeat(Math.min(profile.level, 10))}
           {friendOnline && <span style={{ marginLeft: '6px', color: '#4CAF50' }}>🟢 онлайн</span>}
         </div>
       </div>

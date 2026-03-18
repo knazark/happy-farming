@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
-import { getFarmerId, calcScore } from './db';
+import { getFarmerId, calcScore, hashPassword } from './db';
 import { loadGame, clearSave } from '../state/storage';
 import { isFirestoreRegression } from '../state/saveGuards';
 import type { GameState, Inventory, ItemId, PlotState } from '../types';
@@ -66,7 +66,7 @@ export async function saveGameAndProfile(state: GameState): Promise<void> {
   };
 
   if (state.profile.password) {
-    data.password = state.profile.password;
+    data.password = await hashPassword(state.profile.password);
   }
 
   await setDoc(doc(db, 'farmers', id), data, { merge: true });
