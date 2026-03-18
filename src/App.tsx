@@ -237,7 +237,7 @@ function GameContent() {
           aria-label="Магазин"
           aria-current={activePanel === 'shop' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">🏪</span>
+          <span className="bar-btn-icon" aria-hidden="true">🌾</span>
           <span className="bar-btn-label">Ринок</span>
         </button>
         <button
@@ -246,7 +246,7 @@ function GameContent() {
           aria-label="Крафт"
           aria-current={activePanel === 'crafting' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">🔨</span>
+          <span className="bar-btn-icon" aria-hidden="true">⚒️</span>
           <span className="bar-btn-label">Крафт</span>
           {craftReady > 0 && <span className="bar-badge">{craftReady}</span>}
         </button>
@@ -256,7 +256,7 @@ function GameContent() {
           aria-label="Замовлення"
           aria-current={activePanel === 'orders' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">📋</span>
+          <span className="bar-btn-icon" aria-hidden="true">📜</span>
           <span className="bar-btn-label">Замовлення</span>
           {readyOrders > 0 && <span className="bar-badge">{readyOrders}</span>}
         </button>
@@ -266,7 +266,7 @@ function GameContent() {
           aria-label="Інвентар"
           aria-current={activePanel === 'inventory' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">📦</span>
+          <span className="bar-btn-icon" aria-hidden="true">🧺</span>
           <span className="bar-btn-label">Інвентар</span>
           {inventoryCount > 0 && <span className="bar-badge">{inventoryCount}</span>}
         </button>
@@ -276,7 +276,7 @@ function GameContent() {
           aria-label="Друзі"
           aria-current={activePanel === 'friends' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">👥</span>
+          <span className="bar-btn-icon" aria-hidden="true">🤝</span>
           <span className="bar-btn-label">Друзі</span>
           {pendingRequests.length > 0 && <span className="bar-badge">{pendingRequests.length}</span>}
         </button>

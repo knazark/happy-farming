@@ -169,7 +169,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
                 >
                   <span style={{ fontSize: '20px' }}>{requester.avatar}</span>
                   <span style={{ flex: 1 }}>{requester.name}</span>
-                  <span style={{ color: '#666', fontSize: '12px' }}>⭐{requester.level}</span>
+                  <span style={{ color: '#666', fontSize: '12px' }}>Рів.{requester.level}</span>
                   <button
                     className="btn btn-buy"
                     onClick={() => handleAccept(requester.id)}
@@ -223,7 +223,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
                 >
                   <span style={{ fontSize: '20px' }}>{friend.avatar}</span>
                   <span style={{ flex: 1 }}>{friend.name}</span>
-                  <span style={{ color: '#666', marginRight: '8px' }}>⭐{friend.level}</span>
+                  <span style={{ color: '#666', marginRight: '8px' }}>Рів.{friend.level}</span>
                   <button
                     className="btn btn-buy"
                     onClick={() => onVisitFriend(friend.id)}
@@ -271,7 +271,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
                     {farmer.name}
                     {farmer.id === myId && <span style={{ color: '#7C4DFF', marginLeft: '4px' }}>(ви)</span>}
                   </td>
-                  <td style={{ textAlign: 'right', color: '#666' }}>⭐{farmer.level}</td>
+                  <td style={{ textAlign: 'right', color: '#666' }}>Рів.{farmer.level}</td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: '#F59E0B' }}>🏆{farmer.score}</td>
                   <td style={{ width: '90px', textAlign: 'right' }}>
                     {farmer.id !== myId && !friendIds.has(farmer.id) && !sentRequests.has(farmer.id) && (
