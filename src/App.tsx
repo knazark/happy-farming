@@ -224,7 +224,7 @@ function GameContent() {
             onBack={() => setVisitingFriendId(null)}
           />
         ) : (
-          <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} />
+          <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} onOpenShop={() => setActivePanel('shop')} />
         )}
       </div>
 

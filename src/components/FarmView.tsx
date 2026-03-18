@@ -8,9 +8,10 @@ import { AnimalCard, groupAnimals } from './AnimalCard';
 interface FarmViewProps {
   onPlotClick: (plotIndex: number) => void;
   onAnimalClick: (animalIndex: number) => void;
+  onOpenShop?: () => void;
 }
 
-export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
+export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewProps) {
   const { state } = useGame();
   const [hoveredPlot, setHoveredPlot] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -75,22 +76,28 @@ export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
       {/* Animal pen */}
       <div className="animal-pen">
         <div className="animal-pen-label">🐾 Тварини</div>
-        {state.animals.length === 0 ? (
-          <div className="animal-pen-empty">Купіть тварину на ринку</div>
-        ) : (
-          <div className="animal-grid">
-            {groups.map((group, i) => (
-              <AnimalCard
-                key={group.animalId}
-                group={group}
-                now={now}
-                feedActiveUntil={state.feedActiveUntil}
-                season={state.season}
-                onClick={() => handleAnimalClick(i)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="animal-grid">
+          {groups.map((group, i) => (
+            <AnimalCard
+              key={group.animalId}
+              group={group}
+              now={now}
+              feedActiveUntil={state.feedActiveUntil}
+              season={state.season}
+              onClick={() => handleAnimalClick(i)}
+            />
+          ))}
+          {state.animals.length < (state.maxAnimals ?? 16) && (
+            <button
+              type="button"
+              className="animal-card animal-add-btn"
+              onClick={onOpenShop}
+              aria-label="Купити тварину"
+            >
+              <span className="animal-add-plus">+</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

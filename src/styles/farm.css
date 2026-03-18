@@ -307,9 +307,9 @@
 /* ===== Animal Pen ===== */
 .animal-pen {
   padding: 12px 14px 14px;
-  background: linear-gradient(135deg, #2E7D32, #1B5E20);
+  background: linear-gradient(135deg, #5D7A3E, #4A6332);
   border-radius: 16px;
-  border: 2px solid #4CAF50;
+  border: 2px solid #7A9A56;
   margin: 8px 0;
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15);
   overflow: hidden;
@@ -335,6 +335,28 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
+}
+
+/* ===== Animal Add Button ===== */
+.animal-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px dashed rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.animal-add-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.animal-add-plus {
+  font-size: 24px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1;
 }
 
 /* ===== Animal Card ===== */
