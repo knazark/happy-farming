@@ -56,8 +56,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productEmoji: '🥛',
     productName: 'Козине молоко',
     productionTime: 360,    // 6 хв
-    buyPrice: 550,
-    productSellPrice: 35,
+    buyPrice: 400,
+    productSellPrice: 45,
     unlockLevel: 5,
     xpReward: 25,
   },
