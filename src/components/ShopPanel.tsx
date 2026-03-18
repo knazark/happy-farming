@@ -34,7 +34,7 @@ export function ShopPanel() {
   return (
     <div className="shop-panel">
       <div className="shop-header">
-        <h2 className="shop-title">🐾 Ринок</h2>
+        <h2 className="shop-title">🏡 Ринок</h2>
         <span className="shop-capacity">Загін: {state.animals.length}/{maxAnimals}</span>
       </div>
 
