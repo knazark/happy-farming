@@ -4,7 +4,7 @@ import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { saveGame, loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, getFarmerIdIfExists, clearFarmerId } from '../firebase/db';
-import { loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
+import { loadGameFromFirestoreEx, saveGameAndProfile } from '../firebase/gameStateSync';
 import { shouldBlockFirestoreSave, pickBetterSave } from './saveGuards';
 
 interface GameContextValue {
@@ -93,13 +93,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     async function initLoad() {
       try {
-        const firestoreState = await loadGameFromFirestore();
+        const { gameState: firestoreState, docExists } = await loadGameFromFirestoreEx();
         const localState = loadGame();
 
         if (!cancelled) {
-          // If farmerId exists but Firestore doc was deleted — wipe and reload to login screen
           const farmerId = getFarmerIdIfExists();
-          if (farmerId && !firestoreState && localState) {
+
+          // Doc was DELETED from Firestore (not just missing gameState) — wipe and reload
+          if (farmerId && !docExists && localState) {
             clearSave();
             clearFarmerId();
             window.location.reload();
@@ -116,8 +117,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
             best = winner === 'local' ? localState : firestoreState;
           } else {
-            // Firestore takes priority — only use localStorage if no farmerId or Firestore failed
-            best = firestoreState ?? (farmerId ? null : localState);
+            // Doc exists but no gameState yet (new profile) → use localStorage
+            // Doc doesn't exist and no farmerId → use localStorage
+            // Otherwise Firestore wins
+            best = firestoreState ?? localState;
           }
 
           if (best) {

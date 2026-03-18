@@ -75,12 +75,23 @@ export async function saveGameAndProfile(state: GameState): Promise<void> {
 /**
  * Load full game state from Firestore
  */
+/** Result of loading from Firestore: gameState + whether the doc exists at all */
+export interface FirestoreLoadResult {
+  gameState: GameState | null;
+  docExists: boolean;
+}
+
 export async function loadGameFromFirestore(): Promise<GameState | null> {
+  const result = await loadGameFromFirestoreEx();
+  return result.gameState;
+}
+
+export async function loadGameFromFirestoreEx(): Promise<FirestoreLoadResult> {
   const id = getFarmerId();
   const snap = await getDoc(doc(db, 'farmers', id));
-  if (!snap.exists()) return null;
+  if (!snap.exists()) return { gameState: null, docExists: false };
   const data = snap.data();
-  return (data?.gameState as GameState) ?? null;
+  return { gameState: (data?.gameState as GameState) ?? null, docExists: true };
 }
 
 /**
