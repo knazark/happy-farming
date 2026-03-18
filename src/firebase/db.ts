@@ -30,6 +30,14 @@ export function verifyChecksum(state: { level: number; totalEarned: number; coin
   return state.checksum === calcChecksum(state);
 }
 
+/** Hash password using SHA-256 (not reversible) */
+const PWD_SALT = 'hf_pwd_2026';
+export async function hashPassword(password: string): Promise<string> {
+  const data = new TextEncoder().encode(`${PWD_SALT}:${password}`);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export interface FarmerProfile {
   id: string;
   name: string;
@@ -116,7 +124,7 @@ export async function syncProfile(state: {
   };
 
   if (state.profile.password) {
-    data.password = state.profile.password;
+    data.password = await hashPassword(state.profile.password);
   }
 
   await setDoc(doc(db, 'farmers', id), data, { merge: true });
@@ -143,7 +151,7 @@ export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): P
       score,
     };
     if (state.profile.password) {
-      data.password = state.profile.password;
+      data.password = await hashPassword(state.profile.password);
     }
     await setDoc(doc(db, 'farmers', id), data);
   } else {
@@ -151,7 +159,7 @@ export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): P
     const existing = snap.data();
     if (state.profile.password && !existing.password) {
       await setDoc(doc(db, 'farmers', id), {
-        password: state.profile.password,
+        password: await hashPassword(state.profile.password),
         name: profileName,
         nameLower: profileName.toLowerCase().trim(),
         score,
@@ -296,15 +304,16 @@ export async function getPendingRequests(myId: string): Promise<FarmerProfile[]>
   return getNeighborProfiles(ids);
 }
 
-// Login by name (case-insensitive) + password (case-sensitive)
+// Login by name (case-insensitive) + password (hashed comparison)
 export async function loginByNameAndPassword(name: string, password: string): Promise<string | null> {
   const nameLower = name.toLowerCase().trim();
   if (!nameLower || !password) return null;
 
+  const hashed = await hashPassword(password);
   const q = query(
     collection(db, 'farmers'),
     where('nameLower', '==', nameLower),
-    where('password', '==', password),
+    where('password', '==', hashed),
     limit(1),
   );
   const snap = await getDocs(q);
