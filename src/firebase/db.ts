@@ -130,14 +130,18 @@ export async function syncProfile(state: {
   await setDoc(doc(db, 'farmers', id), data, { merge: true });
 }
 
-// Ensure profile exists (called once on mount — creates doc if missing, no extra writes if exists)
-// Deleted profile protection is handled in GameContext initLoad (clearFarmerId + early return)
+// Ensure profile + gameState exist in Firestore.
+// Creates full doc if missing, updates password/profile if doc exists.
+// Always writes gameState so it's never missing after profile save.
 export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): Promise<void> {
   const id = getFarmerId();
   const profileName = state.profile.name || 'Фермер';
   const score = calcScore(state);
+  const gameState = JSON.parse(JSON.stringify(state)); // clean copy for Firestore
+
   const snap = await getDoc(doc(db, 'farmers', id));
   if (!snap.exists()) {
+    // Create full doc with profile + gameState
     const data: Record<string, unknown> = {
       id,
       name: profileName,
@@ -149,23 +153,30 @@ export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): P
       lastSeen: serverTimestamp(),
       level: state.level,
       score,
+      gameState,
     };
     if (state.profile.password) {
       data.password = await hashPassword(state.profile.password);
     }
     await setDoc(doc(db, 'farmers', id), data);
   } else {
-    // Doc exists but might be missing password — update it
+    // Doc exists — update profile fields + ensure gameState exists
     const existing = snap.data();
-    if (state.profile.password && !existing.password) {
-      await setDoc(doc(db, 'farmers', id), {
-        password: await hashPassword(state.profile.password),
-        name: profileName,
-        nameLower: profileName.toLowerCase().trim(),
-        score,
-        lastSeen: serverTimestamp(),
-      }, { merge: true });
+    const updates: Record<string, unknown> = {
+      name: profileName,
+      nameLower: profileName.toLowerCase().trim(),
+      score,
+      lastSeen: serverTimestamp(),
+    };
+    // Write gameState if missing
+    if (!existing.gameState) {
+      updates.gameState = gameState;
     }
+    // Hash and set password if new or missing
+    if (state.profile.password && !existing.password) {
+      updates.password = await hashPassword(state.profile.password);
+    }
+    await setDoc(doc(db, 'farmers', id), updates, { merge: true });
   }
 }
 

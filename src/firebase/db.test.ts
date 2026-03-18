@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calcScore, calcChecksum, verifyChecksum } from './db';
+import { calcScore, calcChecksum, verifyChecksum, hashPassword } from './db';
 
 describe('calcScore', () => {
   it('returns level * 100 + floor(totalEarned / 100)', () => {
@@ -77,5 +77,40 @@ describe('verifyChecksum', () => {
 
   it('returns false for a completely wrong checksum', () => {
     expect(verifyChecksum({ level: 1, totalEarned: 0, coins: 100, totalHarvested: 0, checksum: 'bogus' })).toBe(false);
+  });
+});
+
+describe('hashPassword', () => {
+  it('returns a 64-char hex string (SHA-256)', async () => {
+    const hash = await hashPassword('test123');
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('is deterministic', async () => {
+    const a = await hashPassword('myPassword');
+    const b = await hashPassword('myPassword');
+    expect(a).toBe(b);
+  });
+
+  it('different passwords produce different hashes', async () => {
+    const a = await hashPassword('password1');
+    const b = await hashPassword('password2');
+    expect(a).not.toBe(b);
+  });
+
+  it('hash is not the same as the input', async () => {
+    const hash = await hashPassword('abc');
+    expect(hash).not.toBe('abc');
+    expect(hash.length).toBe(64);
+  });
+
+  it('empty password still produces a hash', async () => {
+    const hash = await hashPassword('');
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('unicode passwords work', async () => {
+    const hash = await hashPassword('пароль123');
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
   });
 });
