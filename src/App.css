@@ -2131,24 +2131,39 @@ body::after {
 @media (max-width: 500px) {
   .hud {
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     padding: 6px 10px;
     border-radius: 14px;
   }
-  .hud-left { gap: 6px; }
+  .hud-left {
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
   .hud-profile-btn { width: 30px; height: 30px; font-size: 18px; }
   .hud-title { font-size: 13px; }
-  .hud-level-badge { font-size: 11px; padding: 2px 8px; }
-  .hud-xp-bar { width: 50px; height: 6px; }
-  .hud-xp-label { font-size: 10px; }
-  .hud-right { gap: 4px; }
+  .hud-level-badge { font-size: 10px; padding: 2px 6px; }
+  .hud-xp-bar { width: 45px; height: 5px; }
+  .hud-xp-label { font-size: 9px; }
+  .hud-right {
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hud-coins { font-size: 13px; padding: 3px 8px; font-weight: 800; order: -1; }
+  .hud-env {
+    width: 100%;
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 4px;
+    order: 10;
+  }
   .hud-env-item { padding: 2px 6px; }
-  .hud-env-emoji { font-size: 13px; }
+  .hud-env-emoji { font-size: 12px; }
   .hud-env-name { font-size: 10px; }
-  .hud-env-desc { font-size: 8px; }
+  .hud-env-desc { font-size: 8px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hud-env-timer { font-size: 8px; }
   .hud-mod { font-size: 9px; padding: 1px 5px; }
-  .hud-coins { font-size: 12px; padding: 3px 8px; }
   .hud-fertilizers { font-size: 12px; padding: 3px 8px; }
 
   .bottom-bar { padding: 2px 4px; }
