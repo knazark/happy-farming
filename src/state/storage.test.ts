@@ -116,3 +116,41 @@ describe('clearSave', () => {
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('happyFarmer_save');
   });
 });
+
+describe('storage roundtrip', () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+    vi.clearAllMocks();
+  });
+
+  it('saveGame then loadGame returns equivalent state', () => {
+    const state = makeState({ coins: 1234, level: 5, xp: 300, totalEarned: 9999 });
+    saveGame(state);
+
+    const loaded = loadGame();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.coins).toBe(1234);
+    expect(loaded!.level).toBe(5);
+    expect(loaded!.xp).toBe(300);
+    expect(loaded!.totalEarned).toBe(9999);
+  });
+});
+
+describe('clearSave isolation', () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+    vi.clearAllMocks();
+  });
+
+  it('only removes happyFarmer_save key', () => {
+    localStorageMock.setItem('other_key', 'other_value');
+    saveGame(makeState({ coins: 100 }));
+
+    clearSave();
+
+    // other_key should still exist
+    expect(localStorageMock._getStore()['other_key']).toBe('other_value');
+    // happyFarmer_save should be removed
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith('happyFarmer_save');
+  });
+});

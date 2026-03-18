@@ -80,8 +80,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productEmoji: '🍄',
     productName: 'Трюфелі',
     productionTime: 600,    // 10 хв
-    buyPrice: 1000,
-    productSellPrice: 85,
+    buyPrice: 700,
+    productSellPrice: 110,
     unlockLevel: 7,
     xpReward: 40,
   },
@@ -128,8 +128,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productEmoji: '🍗',
     productName: 'Індичатина',
     productionTime: 420,    // 7 хв
-    buyPrice: 600,
-    productSellPrice: 45,
+    buyPrice: 450,
+    productSellPrice: 55,
     unlockLevel: 5,
     xpReward: 22,
   },
@@ -140,8 +140,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productEmoji: '🍯',
     productName: 'Мед',
     productionTime: 300,    // 5 хв
-    buyPrice: 800,
-    productSellPrice: 50,
+    buyPrice: 600,
+    productSellPrice: 65,
     unlockLevel: 6,
     xpReward: 28,
   },
@@ -152,8 +152,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productEmoji: '🏇',
     productName: 'Верхова їзда',
     productionTime: 540,    // 9 хв
-    buyPrice: 1200,
-    productSellPrice: 75,
+    buyPrice: 800,
+    productSellPrice: 100,
     unlockLevel: 7,
     xpReward: 35,
   },

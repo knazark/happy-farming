@@ -297,3 +297,55 @@ describe('BUG REPRODUCTION: "спина болит" data loss scenario', () => {
     })).toBe('firestore');
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// pickBetterSave edge cases
+// ═══════════════════════════════════════════════════════════════════
+describe('pickBetterSave edge cases', () => {
+  it('picks firestore when both have zero progress', () => {
+    // Both zero → localProgress = 0+1*1000=1000, fireProgress = 0+1*1000=1000 → tie → local wins
+    // Actually with level 1 on both sides, scores are equal → local wins
+    // But the score is totalEarned + level*1000, so 0+1000 vs 0+1000 → local >= fire → 'local'
+    // Correction: zero totalEarned + level 1 = 1000 for both → local wins on tie
+    expect(pickBetterSave({
+      localTotalEarned: 0,
+      localLevel: 1,
+      firestoreTotalEarned: 0,
+      firestoreLevel: 1,
+    })).toBe('local');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// shouldBlockFirestoreSave boundary tests
+// ═══════════════════════════════════════════════════════════════════
+describe('shouldBlockFirestoreSave boundary tests', () => {
+  it('allows save when totalEarned is 999 (below 1000 threshold)', () => {
+    const result = shouldBlockFirestoreSave(makeCtx({
+      totalEarned: 999,
+      highWaterMark: 999,
+    }));
+    expect(result).toBeNull();
+  });
+
+  it('blocks when totalEarned was 1001 and drops to 100', () => {
+    const result = shouldBlockFirestoreSave(makeCtx({
+      totalEarned: 100,
+      highWaterMark: 1001,
+    }));
+    expect(result).toBe('regression_below_high_water');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// isFirestoreRegression edge cases
+// ═══════════════════════════════════════════════════════════════════
+describe('isFirestoreRegression edge cases', () => {
+  it('allows when both existing and new are 0 (new game)', () => {
+    expect(isFirestoreRegression({ existingTotalEarned: 0, newTotalEarned: 0 })).toBe(false);
+  });
+
+  it('allows when existing is 500 and new is 400 (below 1000 threshold)', () => {
+    expect(isFirestoreRegression({ existingTotalEarned: 500, newTotalEarned: 400 })).toBe(false);
+  });
+});

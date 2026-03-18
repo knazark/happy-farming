@@ -67,7 +67,11 @@ export function ShopPanel() {
               ) : (
                 <>
                   <span className="shop-item__product">
-                    {animal.productEmoji} {animal.productSellPrice}💰 · {animal.productionTime >= 60 ? `${Math.floor(animal.productionTime / 60)}хв` : `${animal.productionTime}с`}
+                    {(animal.id === 'cat' || animal.id === 'dog') ? (
+                      <span style={{ color: '#9C27B0' }}>🐾 Улюбленець · {animal.xpReward} XP</span>
+                    ) : (
+                      <>{animal.productEmoji} {animal.productSellPrice}💰 · {animal.productionTime >= 60 ? `${Math.floor(animal.productionTime / 60)}хв` : `${animal.productionTime}с`}</>
+                    )}
                   </span>
                   <span className={`shop-item__price ${state.coins < price ? 'shop-item__price--cant' : ''}`}>
                     {price}💰

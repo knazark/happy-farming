@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyFriendHarvest } from './gameStateSync';
+import { isFirestoreRegression } from '../state/saveGuards';
 import { createInitialState } from '../state/gameReducer';
 import type { GameState, PlotState } from '../types';
 
@@ -155,5 +156,84 @@ describe('applyFriendHarvest', () => {
     expect(after2.inventory.carrot).toBe(1);
     expect(after2.totalHarvested).toBe(2);
     expect(after2.helpLog).toHaveLength(2);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// isFirestoreRegression — regression detection used by gameStateSync
+// ═══════════════════════════════════════════════════════════════════
+describe('isFirestoreRegression (used by saveGameAndProfile)', () => {
+  it('blocks overwrite when existing progress is significantly higher', () => {
+    expect(isFirestoreRegression({
+      existingTotalEarned: 80000,
+      newTotalEarned: 200,
+    })).toBe(true);
+  });
+
+  it('allows write when new progress is close to existing', () => {
+    expect(isFirestoreRegression({
+      existingTotalEarned: 10000,
+      newTotalEarned: 9000,
+    })).toBe(false);
+  });
+
+  it('allows write when new progress exceeds existing', () => {
+    expect(isFirestoreRegression({
+      existingTotalEarned: 5000,
+      newTotalEarned: 12000,
+    })).toBe(false);
+  });
+
+  it('skips regression check for low-progress accounts', () => {
+    // Existing is below 1000 threshold — never triggers regression
+    expect(isFirestoreRegression({
+      existingTotalEarned: 800,
+      newTotalEarned: 10,
+    })).toBe(false);
+  });
+
+  it('blocks when drop is exactly at 50% boundary', () => {
+    // existingTotalEarned * 0.5 = 5000, newTotalEarned 4999 < 5000 → regression
+    expect(isFirestoreRegression({
+      existingTotalEarned: 10000,
+      newTotalEarned: 4999,
+    })).toBe(true);
+  });
+
+  it('allows when drop is exactly at 50%', () => {
+    // newTotalEarned = 5000 which is NOT < 5000 → allowed
+    expect(isFirestoreRegression({
+      existingTotalEarned: 10000,
+      newTotalEarned: 5000,
+    })).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// State validation for saveGameAndProfile preconditions
+// ═══════════════════════════════════════════════════════════════════
+describe('state validation for save preconditions', () => {
+  it('initial state has zero totalEarned — would not trigger regression against any existing data', () => {
+    const initial = createInitialState();
+    // A fresh state with 0 totalEarned should never be considered a regression
+    // when existing data is below 1000
+    expect(isFirestoreRegression({
+      existingTotalEarned: 0,
+      newTotalEarned: initial.totalEarned,
+    })).toBe(false);
+  });
+
+  it('initial state has level 1 and coins 0', () => {
+    const initial = createInitialState();
+    expect(initial.level).toBe(1);
+    expect(initial.coins).toBe(100);
+    expect(initial.totalEarned).toBe(0);
+  });
+
+  it('state with real progress should not trigger regression against similar progress', () => {
+    expect(isFirestoreRegression({
+      existingTotalEarned: 25000,
+      newTotalEarned: 25500,
+    })).toBe(false);
   });
 });

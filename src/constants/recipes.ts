@@ -7,7 +7,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🍞',
     ingredients: { wheat: 3 },
     craftTime: 120,       // 2 хв
-    sellPrice: 65,
+    sellPrice: 45,
     unlockLevel: 2,
     xpReward: 15,
   },
@@ -17,7 +17,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     emoji: '🥗',
     ingredients: { tomato: 2, carrot: 2 },
     craftTime: 90,        // 1.5 хв
-    sellPrice: 80,
+    sellPrice: 120,
     unlockLevel: 2,
     xpReward: 12,
   },
@@ -361,7 +361,7 @@ export const MARKET_FLUCTUATION_MIN = 0.7;
 export const MARKET_FLUCTUATION_MAX = 1.4;
 export const MARKET_UPDATE_INTERVAL = 300; // seconds
 
-export const ORDER_EXPIRE_TIME = 600; // seconds
+export const ORDER_EXPIRE_TIME = 900; // seconds (15 min)
 export function getMaxOrders(level: number): number {
   // Lv1-4: 2 orders, Lv5+: 3 orders
   return level >= 5 ? 3 : 2;
