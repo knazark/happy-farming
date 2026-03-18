@@ -24,6 +24,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   const [helpedToday, setHelpedToday] = useState(false);
   const [helpRecorded, setHelpRecorded] = useState(false);
   const [harvesting, setHarvesting] = useState(false);
+  const [friendOnline, setFriendOnline] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,6 +41,13 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
           setProfile(fp);
           setHelpedToday(interaction.helpedToday);
           setHelpRecorded(interaction.helpedToday);
+          // Check if friend is online (lastSeen < 5 min ago)
+          if (fp?.lastSeen) {
+            const lastSeenMs = (fp.lastSeen as { toMillis?: () => number })?.toMillis?.()
+              ?? (fp.lastSeen as { seconds?: number })?.seconds ? (fp.lastSeen as { seconds: number }).seconds * 1000
+              : 0;
+            setFriendOnline(Date.now() - lastSeenMs < 5 * 60 * 1000);
+          }
         }
       } catch (err) {
         console.warn('Failed to load friend farm:', err);
@@ -159,7 +167,10 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
       <span style={{ fontSize: '28px' }}>{profile.avatar}</span>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: '16px' }}>{profile.name}</div>
-        <div style={{ fontSize: '13px', color: '#666' }}>⭐ Рівень {profile.level}</div>
+        <div style={{ fontSize: '13px', color: '#666' }}>
+          ⭐ Рівень {profile.level}
+          {friendOnline && <span style={{ marginLeft: '6px', color: '#4CAF50' }}>🟢 онлайн</span>}
+        </div>
       </div>
       {state && !helpedToday && readyCount > 0 && (
         <div style={{
@@ -207,13 +218,22 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   }
 
   const groups = groupAnimals(state.animals, now, state.feedActiveUntil);
-  const canHarvest = !helpedToday && !harvesting;
+  const canHarvest = !helpedToday && !harvesting && !friendOnline;
 
   return (
     <div className={`friend-farm ${canHarvest ? 'friend-farm-harvest' : ''}`}>
       {header}
 
-      {!helpedToday && readyCount > 0 && (
+      {friendOnline && (
+        <div style={{
+          textAlign: 'center', padding: '8px', marginBottom: '8px',
+          background: 'rgba(33, 150, 243, 0.15)', borderRadius: '10px',
+          fontSize: '13px', color: '#1565C0',
+        }}>
+          🟢 {profile.name} зараз онлайн — збирати можна коли друг офлайн
+        </div>
+      )}
+      {!friendOnline && !helpedToday && readyCount > 0 && (
         <div style={{
           textAlign: 'center', padding: '8px', marginBottom: '8px',
           background: 'rgba(76, 175, 80, 0.15)', borderRadius: '10px',
