@@ -633,11 +633,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_TRACTOR': {
       if (state.hasTractor) return state;
-      // Must unlock all plots first
-      if (state.plots.some((p) => p.status === 'locked')) return state;
       if (state.coins < TRACTOR_PRICE) return state;
 
-      // Must have crafted all 3 required items (at least 1 in inventory)
+      // Must have crafted all required items (at least 1 in inventory)
       for (const craftId of TRACTOR_REQUIRED_CRAFTS) {
         if ((state.inventory[craftId] ?? 0) < 1) return state;
       }

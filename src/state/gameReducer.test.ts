@@ -1136,13 +1136,11 @@ describe('UPGRADE_PEN action', () => {
 
 describe('BUY_TRACTOR action', () => {
   it('buys tractor when all conditions met', () => {
-    const plots: PlotState[] = Array(TOTAL_PLOTS).fill(null).map(() => ({ status: 'empty' as const }));
     const inv: Inventory = {};
     for (const id of TRACTOR_REQUIRED_CRAFTS) {
       inv[id] = 1;
     }
     const state = makeState({
-      plots,
       coins: TRACTOR_PRICE + 100,
       inventory: inv,
       hasTractor: false,
@@ -1157,33 +1155,25 @@ describe('BUY_TRACTOR action', () => {
   });
 
   it('does nothing if already has tractor', () => {
-    const plots: PlotState[] = Array(TOTAL_PLOTS).fill(null).map(() => ({ status: 'empty' as const }));
     const inv: Inventory = {};
     for (const id of TRACTOR_REQUIRED_CRAFTS) inv[id] = 1;
-    const state = makeState({ plots, coins: 99999, inventory: inv, hasTractor: true });
+    const state = makeState({ coins: 99999, inventory: inv, hasTractor: true });
     const result = gameReducer(state, { type: 'BUY_TRACTOR' });
     expect(result.hasTractor).toBe(true);
     expect(result.coins).toBe(99999); // no change
   });
 
-  it('does nothing if some plots still locked', () => {
-    const state = makeState({ coins: 99999, hasTractor: false });
-    const result = gameReducer(state, { type: 'BUY_TRACTOR' });
-    expect(result.hasTractor).toBe(false);
-  });
 
   it('does nothing if not enough coins', () => {
-    const plots: PlotState[] = Array(TOTAL_PLOTS).fill(null).map(() => ({ status: 'empty' as const }));
     const inv: Inventory = {};
     for (const id of TRACTOR_REQUIRED_CRAFTS) inv[id] = 1;
-    const state = makeState({ plots, coins: 0, inventory: inv, hasTractor: false });
+    const state = makeState({ coins: 0, inventory: inv, hasTractor: false });
     const result = gameReducer(state, { type: 'BUY_TRACTOR' });
     expect(result.hasTractor).toBe(false);
   });
 
   it('does nothing if missing required crafts', () => {
-    const plots: PlotState[] = Array(TOTAL_PLOTS).fill(null).map(() => ({ status: 'empty' as const }));
-    const state = makeState({ plots, coins: 99999, inventory: {}, hasTractor: false });
+    const state = makeState({ coins: 99999, inventory: {}, hasTractor: false });
     const result = gameReducer(state, { type: 'BUY_TRACTOR' });
     expect(result.hasTractor).toBe(false);
   });

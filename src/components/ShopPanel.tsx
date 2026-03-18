@@ -13,11 +13,10 @@ export function ShopPanel() {
   const isFull = state.animals.length >= maxAnimals;
 
   // Tractor requirements
-  const allPlotsUnlocked = state.plots.every((p) => p.status !== 'locked');
   const hasAllCrafts = TRACTOR_REQUIRED_CRAFTS.every(
     (id) => (state.inventory[id] ?? 0) >= 1
   );
-  const canBuyTractor = !state.hasTractor && allPlotsUnlocked && state.coins >= TRACTOR_PRICE && hasAllCrafts;
+  const canBuyTractor = !state.hasTractor && state.coins >= TRACTOR_PRICE && hasAllCrafts;
 
   // Auto-collector requirements
   const hasAllCollectorCrafts = AUTO_COLLECTOR_REQUIRED_CRAFTS.every(
@@ -121,9 +120,6 @@ export function ShopPanel() {
               📋 Для покупки потрібно:
             </div>
             <div className="tractor-requirements">
-              <div className={`tractor-req ${allPlotsUnlocked ? 'tractor-req--done' : ''}`}>
-                {allPlotsUnlocked ? '✅' : '❌'} 🔓 Всі ділянки відкриті
-              </div>
               <div className={`tractor-req ${state.coins >= TRACTOR_PRICE ? 'tractor-req--done' : ''}`}>
                 {state.coins >= TRACTOR_PRICE ? '✅' : '❌'} {TRACTOR_PRICE.toLocaleString()}💰
               </div>
