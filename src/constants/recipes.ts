@@ -8,7 +8,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     ingredients: { wheat: 3 },
     craftTime: 120,       // 2 хв
     sellPrice: 45,
-    unlockLevel: 2,
+    unlockLevel: 1,
     xpReward: 15,
   },
   salad: {
@@ -18,7 +18,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
     ingredients: { tomato: 2, carrot: 2 },
     craftTime: 90,        // 1.5 хв
     sellPrice: 120,
-    unlockLevel: 2,
+    unlockLevel: 1,
     xpReward: 12,
   },
   cake: {
