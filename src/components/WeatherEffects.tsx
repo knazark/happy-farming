@@ -24,7 +24,6 @@ export const WeatherEffects = memo(function WeatherEffects() {
       size: 3 + Math.random() * 5,
     })),
   []);
-  const sunParticles = useMemo(() => makeParticles(12, [3, 5]), []);
 
   if (type === 'rainy') {
     return (
@@ -82,23 +81,9 @@ export const WeatherEffects = memo(function WeatherEffects() {
     );
   }
 
+  // Sunny: no particles — clear sky
   if (type === 'sunny') {
-    return (
-      <div className="weather-fx weather-sunny">
-        {sunParticles.map(p => (
-          <div
-            key={p.id}
-            className="sun-sparkle"
-            style={{
-              left: p.left,
-              top: `${Math.random() * 30}%`,
-              animationDuration: p.duration,
-              animationDelay: p.delay,
-            }}
-          />
-        ))}
-      </div>
-    );
+    return null;
   }
 
   return null;

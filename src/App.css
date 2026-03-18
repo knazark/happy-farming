@@ -1428,7 +1428,7 @@ body::after {
 /* ===== Recipe Grid 3-col ===== */
 .recipe-grid-3col {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
 }
 
