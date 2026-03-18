@@ -74,7 +74,7 @@ export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
 
       {/* Animal pen */}
       <div className="animal-pen">
-        <div className="animal-pen-label">🐾 Тварини</div>
+        <div className="animal-pen-label">🐔 Тварини</div>
         {state.animals.length === 0 ? (
           <div className="animal-pen-empty">Купіть тварину на ринку</div>
         ) : (

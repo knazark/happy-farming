@@ -316,10 +316,11 @@
 }
 
 .animal-pen-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
-  color: #FFECB3;
+  color: #FFF;
   padding: 0 2px 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .animal-pen-empty {
