@@ -290,9 +290,9 @@ function GameContent() {
             key="panel-overlay"
             className="panel-popup-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
+            exit={{ opacity: 0, pointerEvents: 'none' as const }}
+            transition={{ duration: 0.15 }}
             onClick={() => setActivePanel(null)}
           >
             <motion.div
@@ -301,10 +301,10 @@ function GameContent() {
               role="dialog"
               aria-modal="true"
               aria-label={activePanel === 'shop' ? 'Магазин' : activePanel === 'crafting' ? 'Крафт' : activePanel === 'orders' ? 'Замовлення' : activePanel === 'inventory' ? 'Інвентар' : 'Друзі'}
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.12 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button className="panel-popup-close" aria-label="Закрити" onClick={() => setActivePanel(null)}>✕</button>
@@ -324,9 +324,9 @@ function GameContent() {
             key="crop-overlay"
             className="crop-selector-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
+            exit={{ opacity: 0, pointerEvents: 'none' as const }}
+            transition={{ duration: 0.15 }}
             onClick={() => setCropSelector(null)}
           >
             <motion.div
@@ -335,10 +335,10 @@ function GameContent() {
               role="dialog"
               aria-modal="true"
               aria-label="Вибір культури"
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.12 }}
               onClick={(e) => e.stopPropagation()}
             >
               {state.season === 'winter' && state.plots[cropSelector.plotIndex]?.status === 'empty' ? (
@@ -364,9 +364,9 @@ function GameContent() {
             key="profile-overlay"
             className="panel-popup-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
+            exit={{ opacity: 0, pointerEvents: 'none' as const }}
+            transition={{ duration: 0.15 }}
             onClick={state.profile.password ? () => setShowProfile(false) : undefined}
           >
             <motion.div
@@ -375,10 +375,10 @@ function GameContent() {
               role="dialog"
               aria-modal="true"
               aria-label="Профіль"
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.12 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button className="panel-popup-close" aria-label="Закрити" onClick={() => setShowProfile(false)} style={{ display: state.profile.password ? undefined : 'none' }}>✕</button>
