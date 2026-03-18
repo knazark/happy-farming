@@ -9,5 +9,5 @@ export const SOIL_HARVESTS_PER_LEVEL = 20; // soil bonus expires after N harvest
 
 // Winter passive bonuses
 export const WINTER_CRAFT_ORDER_BONUS = 1.5;   // +50% coins for craft orders
-export const WINTER_ANIMAL_DOUBLE = 2;          // double animal products
 export const WINTER_ORDER_XP_BONUS = 1.25;      // +25% XP from orders
+// Note: double animal products is SUMMER, not winter (see gameReducer COLLECT_PRODUCT)
