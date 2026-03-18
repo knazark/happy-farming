@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
-import { clearFarmerId, ensureProfile } from '../firebase/db';
+import { clearFarmerId, ensureProfile, isNameTaken } from '../firebase/db';
 import { saveGameAndProfile, saveGameToFirestore } from '../firebase/gameStateSync';
 
 interface ProfileEditorProps {
@@ -16,20 +16,43 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
+  const [saving, setSaving] = useState(false);
+
   const handleSave = async () => {
+    const trimmedName = name.trim() || 'Фермер';
     if (!password.trim()) {
       setError('Введіть пароль для захисту акаунта');
       return;
     }
+    if (!trimmedName) {
+      setError('Введіть ім\'я');
+      return;
+    }
+
+    setSaving(true);
     setError('');
-    const profile = { name: name.trim() || 'Фермер', avatar, password: password.trim() };
-    dispatch({ type: 'SET_PROFILE', profile });
-    // Create Firestore profile + save full game state immediately
-    const updatedState = { ...state, profile };
+
     try {
+      // Check duplicate name (only for new profiles or name change)
+      const isNew = !state.profile.name;
+      const nameChanged = state.profile.name && state.profile.name.toLowerCase() !== trimmedName.toLowerCase();
+      if (isNew || nameChanged) {
+        const taken = await isNameTaken(trimmedName);
+        if (taken) {
+          setError('Це ім\'я вже зайняте — оберіть інше');
+          setSaving(false);
+          return;
+        }
+      }
+
+      const profile = { name: trimmedName, avatar, password: password.trim() };
+      dispatch({ type: 'SET_PROFILE', profile });
+      // Create Firestore profile + save full game state immediately
+      const updatedState = { ...state, profile };
       await ensureProfile(updatedState);
       await saveGameToFirestore(updatedState);
     } catch { /* ignore */ }
+    setSaving(false);
     onClose();
   };
 
@@ -93,8 +116,8 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
             </button>
           ))}
         </div>
-        <button className="btn btn-buy profile-save" onClick={handleSave}>
-          Зберегти
+        <button className="btn btn-buy profile-save" onClick={handleSave} disabled={saving}>
+          {saving ? 'Збереження...' : 'Зберегти'}
         </button>
         {state.profile.password ? (
           <button

@@ -304,19 +304,50 @@ export async function getPendingRequests(myId: string): Promise<FarmerProfile[]>
   return getNeighborProfiles(ids);
 }
 
-// Login by name (case-insensitive) + password (hashed comparison)
+// Login by name (case-insensitive) + password (supports both hashed and legacy plain-text)
 export async function loginByNameAndPassword(name: string, password: string): Promise<string | null> {
   const nameLower = name.toLowerCase().trim();
   if (!nameLower || !password) return null;
 
   const hashed = await hashPassword(password);
-  const q = query(
+
+  // Try hashed password first
+  const q1 = query(
     collection(db, 'farmers'),
     where('nameLower', '==', nameLower),
     where('password', '==', hashed),
     limit(1),
   );
+  const snap1 = await getDocs(q1);
+  if (!snap1.empty) return snap1.docs[0].data().id as string;
+
+  // Fallback: try plain-text password (legacy accounts) and migrate to hash
+  const q2 = query(
+    collection(db, 'farmers'),
+    where('nameLower', '==', nameLower),
+    where('password', '==', password),
+    limit(1),
+  );
+  const snap2 = await getDocs(q2);
+  if (!snap2.empty) {
+    const farmer = snap2.docs[0];
+    // Migrate: replace plain-text with hash
+    await setDoc(doc(db, 'farmers', farmer.id), { password: hashed }, { merge: true });
+    return farmer.data().id as string;
+  }
+
+  return null;
+}
+
+// Check if name is already taken
+export async function isNameTaken(name: string): Promise<boolean> {
+  const nameLower = name.toLowerCase().trim();
+  if (!nameLower) return false;
+  const q = query(
+    collection(db, 'farmers'),
+    where('nameLower', '==', nameLower),
+    limit(1),
+  );
   const snap = await getDocs(q);
-  if (snap.empty) return null;
-  return snap.docs[0].data().id as string;
+  return !snap.empty;
 }
