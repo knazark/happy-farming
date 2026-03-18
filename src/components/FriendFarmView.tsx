@@ -43,6 +43,9 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
         }
       } catch (err) {
         console.warn('Failed to load friend farm:', err);
+        if (!cancelled) {
+          showToast('Не вдалось завантажити ферму друга', 'info');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -191,9 +194,13 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
           <div style={{ color: '#666', fontSize: '14px', marginBottom: '8px' }}>
             🏆 Рахунок: {profile.score} · 🐾 Тварин: {profile.animalCount} · 🌱 Ділянок: {profile.unlockedPlots}
           </div>
-          <div style={{ color: '#999', fontSize: '13px' }}>
-            Ферма ще не синхронізована для перегляду
+          <div style={{ color: '#999', fontSize: '13px', marginBottom: '12px' }}>
+            Ферма ще зберігається — спробуйте пізніше
           </div>
+          <button onClick={() => window.location.reload()} style={{
+            background: '#7C4DFF', color: '#fff', border: 'none', borderRadius: '10px',
+            padding: '8px 20px', fontSize: '14px', cursor: 'pointer',
+          }}>🔄 Оновити</button>
         </div>
       </div>
     );
