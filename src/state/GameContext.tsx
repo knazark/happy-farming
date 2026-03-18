@@ -31,7 +31,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // --- localStorage save (fast, free, every 5s) ---
   const saveToLocal = useCallback(() => {
-    if (!getFarmerIdIfExists()) return;
+    if (!getFarmerIdIfExists() || !hasRealDataRef.current) return;
     // Update high-water mark
     if (stateRef.current.totalEarned > highWaterMarkRef.current) {
       highWaterMarkRef.current = stateRef.current.totalEarned;
@@ -133,12 +133,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         if (!cancelled) {
-          const localState = loadGame();
-          if (localState) {
-            const migrated = tick(migrateSave(localState), Date.now());
-            dispatch({ type: 'LOAD_SAVE', state: migrated });
-            hasRealDataRef.current = true;
-            highWaterMarkRef.current = migrated.totalEarned ?? 0;
+          // Firestore failed — only use localStorage if NO farmerId (truly offline new game)
+          // If farmerId exists, DON'T load from localStorage — it could overwrite deleted data
+          const farmerId = getFarmerIdIfExists();
+          if (!farmerId) {
+            const localState = loadGame();
+            if (localState) {
+              const migrated = tick(migrateSave(localState), Date.now());
+              dispatch({ type: 'LOAD_SAVE', state: migrated });
+              hasRealDataRef.current = true;
+              highWaterMarkRef.current = migrated.totalEarned ?? 0;
+            }
           }
           setLoading(false);
         }
@@ -149,9 +154,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  // After loading: ensure profile exists (only if profile is set up — name + password)
+  // After loading: ensure profile exists (only if profile is set up — name + password + farmerId)
   useEffect(() => {
-    if (!loading && stateRef.current.profile.name && stateRef.current.profile.password) {
+    if (!loading && getFarmerIdIfExists() && stateRef.current.profile.name && stateRef.current.profile.password) {
       ensureProfile(stateRef.current).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
