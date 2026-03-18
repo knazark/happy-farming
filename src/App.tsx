@@ -237,7 +237,7 @@ function GameContent() {
           aria-label="Магазин"
           aria-current={activePanel === 'shop' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon" aria-hidden="true">🌾</span>
+          <span className="bar-btn-icon" aria-hidden="true">🐾</span>
           <span className="bar-btn-label">Ринок</span>
         </button>
         <button
