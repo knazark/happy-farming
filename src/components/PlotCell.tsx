@@ -136,10 +136,36 @@ export const PlotCell = memo(function PlotCell({
 
   const cursor = plot.status === 'gathering_wood' ? 'default' : 'pointer';
 
+  const ariaLabel = useMemo(() => {
+    switch (plot.status) {
+      case 'locked':
+        return unlockInfo
+          ? `Закрита ділянка, ${unlockInfo.cost} монет, рівень ${unlockInfo.level}`
+          : 'Закрита ділянка';
+      case 'empty':
+        return 'Порожня ділянка — натисніть щоб посадити';
+      case 'growing': {
+        const crop = CROPS[plot.cropId];
+        const remaining = Math.max(0, plot.growthTime - (now - plot.plantedAt) / 1000);
+        const mins = Math.floor(remaining / 60);
+        const secs = Math.floor(remaining % 60);
+        return `${crop.name} росте, ${mins > 0 ? `${mins} хв ${secs} с` : `${secs} с`} залишилось`;
+      }
+      case 'ready':
+        return `${CROPS[plot.cropId].name} готово до збору`;
+      case 'gathering_wood':
+        return 'Збір дров';
+      case 'wood_ready':
+        return 'Дрова готові — натисніть щоб зібрати';
+    }
+  }, [plot, now, unlockInfo]);
+
   return (
-    <div
+    <button
+      type="button"
       className={`plot-cell ${isHovered ? 'plot-hovered' : ''}`}
       style={{ cursor }}
+      aria-label={ariaLabel}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -158,6 +184,6 @@ export const PlotCell = memo(function PlotCell({
           🔄{CROPS[(plot as any).autoCropId as keyof typeof CROPS]?.emoji ?? ''}
         </span>
       )}
-    </div>
+    </button>
   );
 });

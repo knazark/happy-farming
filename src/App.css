@@ -16,6 +16,40 @@
   box-sizing: border-box;
 }
 
+/* ===== Accessibility: Focus Styles ===== */
+:focus-visible {
+  outline: 3px solid #7C4DFF;
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button resets for semantic buttons */
+button.plot-cell {
+  border: none;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+button.animal-card {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+/* Semantic list resets */
+ul.inventory-list,
+ul.order-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 body {
   font-family: 'Inter', 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #2D1B4E;
@@ -141,7 +175,7 @@ body::after {
 
 /* ===== Layout ===== */
 .game-layout-v2 {
-  max-width: 1020px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 8px 16px 76px;
   display: flex;
@@ -356,41 +390,42 @@ body::after {
   right: 0;
   display: flex;
   justify-content: center;
-  gap: 0;
-  background: linear-gradient(180deg, #FFFFFF, #F8F4FF);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 4px 8px;
-  padding-bottom: max(6px, env(safe-area-inset-bottom));
-  border-top: 2px solid #E8E0F0;
+  gap: 2px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 6px 12px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(124,77,255,0.12);
   z-index: 90;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
 }
 
 .bar-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   background: none;
   border: none;
-  color: #A090B8;
+  color: #B0A0C8;
   cursor: pointer;
-  padding: 4px 12px;
-  border-radius: 12px;
+  padding: 6px 14px;
+  border-radius: 14px;
   position: relative;
-  transition: all 0.2s;
-  min-width: 56px;
+  transition: all 0.2s ease;
+  min-width: 60px;
 }
 
 .bar-btn:hover {
   color: #7C4DFF;
-  transform: translateY(-3px);
-  background: rgba(124, 77, 255, 0.06);
+  transform: translateY(-2px);
+  background: rgba(124, 77, 255, 0.08);
 }
 
 .bar-btn-active {
   color: #7C4DFF;
+  background: rgba(124, 77, 255, 0.1);
 }
 
 .bar-btn-active .bar-btn-label {
@@ -404,8 +439,9 @@ body::after {
 
 .bar-btn-label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 .bar-badge {
@@ -1461,6 +1497,7 @@ body::after {
   padding: 5px 10px;
   font-size: 12px;
   width: 100%;
+  margin-top: auto;
 }
 
 /* ===== Profile ===== */
@@ -1680,9 +1717,10 @@ body::after {
 
 .crafting-upgrade-btn {
   width: 100%;
+  margin-top: 12px;
   margin-bottom: 12px;
-  padding: 10px;
-  font-size: 13px;
+  padding: 12px 10px;
+  font-size: 14px;
   text-align: center;
 }
 

@@ -85,6 +85,7 @@ export function FarmView({ onPlotClick, onAnimalClick }: FarmViewProps) {
                 group={group}
                 now={now}
                 feedActiveUntil={state.feedActiveUntil}
+                season={state.season}
                 onClick={() => handleAnimalClick(i)}
               />
             ))}

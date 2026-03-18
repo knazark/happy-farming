@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type ReactNode, type Dispatch } from 'react';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
-import { saveGame, loadGame } from './storage';
+import { saveGame, loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, getFarmerIdIfExists } from '../firebase/db';
 import { loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
@@ -97,6 +97,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const localState = loadGame();
 
         if (!cancelled) {
+          // If farmerId exists but Firestore doc was deleted — clear localStorage, treat as fresh
+          const farmerId = getFarmerIdIfExists();
+          if (farmerId && !firestoreState && localState) {
+            clearSave();
+          }
+
           let best: GameState | null = null;
           if (firestoreState && localState) {
             const winner = pickBetterSave({
@@ -107,7 +113,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             });
             best = winner === 'local' ? localState : firestoreState;
           } else {
-            best = firestoreState ?? localState;
+            // Firestore takes priority — only use localStorage if no farmerId or Firestore failed
+            best = firestoreState ?? (farmerId ? null : localState);
           }
 
           if (best) {

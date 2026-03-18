@@ -57,10 +57,15 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
         📦 Інвентар ({totalItems}/{state.storageCapacity})
         {marketLabel && <span className="market-label"> {marketLabel}</span>}
       </h2>
+      {totalItems >= state.storageCapacity && (
+        <div style={{ background: '#FFF3E0', border: '1px solid #FF9800', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 13, textAlign: 'center', color: '#E65100' }}>
+          ⚠️ Інвентар повний! Продайте предмети або збільшіть місце
+        </div>
+      )}
       {items.length === 0 ? (
         <p className="panel-empty">Порожньо</p>
       ) : (
-        <div className="inventory-list">
+        <ul className="inventory-list">
           {items.length > 1 && (
             <button className="btn btn-sell-all" onClick={handleSellAll}>
               Продати все · {sellAllTotal}💰
@@ -71,7 +76,7 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
             const unitPrice = Math.round(info.sellPrice * state.marketPriceMultiplier);
             const totalPrice = Math.round(info.sellPrice * qty! * state.marketPriceMultiplier);
             return (
-              <div key={id} className="inventory-item">
+              <li key={id} className="inventory-item">
                 <span className="inventory-item-info">
                   {info.emoji} {info.name} × {qty}
                 </span>
@@ -95,10 +100,10 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
                     </button>
                   )}
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
 
       <button

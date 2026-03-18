@@ -38,7 +38,7 @@ export function HUD({ onProfileClick }: HUDProps) {
   return (
     <div className="hud">
       <div className="hud-left">
-        <button className="hud-profile-btn" onClick={onProfileClick} title="Редагувати профіль">
+        <button className="hud-profile-btn" onClick={onProfileClick} title="Редагувати профіль" aria-label="Редагувати профіль">
           {state.profile.avatar}
         </button>
         <div>

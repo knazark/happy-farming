@@ -50,9 +50,9 @@ export function CropSelector({ plotIndex, onClose }: CropSelectorProps) {
 
   return (
     <>
-      <h3 className="crop-selector-title">
+      <h2 className="crop-selector-title">
         {autoMode ? '🔄 Автопосів' : '🌱 Оберіть культуру'}
-      </h3>
+      </h2>
 
         {state.hasAutoPlanter && (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>

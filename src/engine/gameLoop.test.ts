@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { tick } from './gameLoop';
 import { createInitialState } from '../state/gameReducer';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
-import { SEASON_DURATION, SEASON_ORDER } from '../constants/seasons';
+import { SEASON_DURATION } from '../constants/seasons';
 import { MARKET_UPDATE_INTERVAL } from '../constants/recipes';
 import type { GameState, PlotState, NpcOrder } from '../types';
 
@@ -572,6 +572,80 @@ describe('tick — weather changes', () => {
     const result = tick(state, NOW);
     expect(result.weather.changesAt).toBe(changesAt);
     expect(result.weather.type).toBe('sunny');
+  });
+});
+
+describe('tick — inventory full guards', () => {
+  it('tractor skips harvest when inventory is full', () => {
+    const inv: Record<string, number> = { wheat: 50 };
+    const state = makeState({
+      lastTickAt: NOW - 1000,
+      hasTractor: true,
+      inventory: inv,
+      storageCapacity: 50,
+      plots: [
+        { status: 'ready', cropId: 'wheat' },
+        ...Array(23).fill({ status: 'locked' }),
+      ] as PlotState[],
+    });
+
+    const result = tick(state, NOW);
+    // Plot should remain ready — tractor didn't harvest
+    expect(result.plots[0].status).toBe('ready');
+    expect(result.inventory.wheat).toBe(50);
+  });
+
+  it('tractor harvests when inventory has space', () => {
+    const inv: Record<string, number> = { wheat: 10 };
+    const state = makeState({
+      lastTickAt: NOW - 1000,
+      hasTractor: true,
+      inventory: inv,
+      storageCapacity: 50,
+      plots: [
+        { status: 'ready', cropId: 'wheat' },
+        ...Array(23).fill({ status: 'locked' }),
+      ] as PlotState[],
+    });
+
+    const result = tick(state, NOW);
+    expect(result.plots[0].status).toBe('empty');
+    expect(result.inventory.wheat).toBe(11);
+  });
+
+  it('auto-collector skips collection when inventory is full', () => {
+    const lastCollectedAt = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
+    const inv: Record<string, number> = { wheat: 50 };
+    const state = makeState({
+      lastTickAt: NOW - 1000,
+      hasAutoCollector: true,
+      feedActiveUntil: 0,
+      inventory: inv,
+      storageCapacity: 50,
+      animals: [{ animalId: 'chicken', lastCollectedAt }],
+    });
+
+    const result = tick(state, NOW);
+    // Should not collect — lastCollectedAt unchanged
+    expect(result.animals[0].lastCollectedAt).toBe(lastCollectedAt);
+    expect(result.inventory.chicken_product).toBeUndefined();
+  });
+
+  it('auto-collector collects when inventory has space', () => {
+    const lastCollectedAt = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
+    const inv: Record<string, number> = { wheat: 10 };
+    const state = makeState({
+      lastTickAt: NOW - 1000,
+      hasAutoCollector: true,
+      feedActiveUntil: 0,
+      inventory: inv,
+      storageCapacity: 50,
+      animals: [{ animalId: 'chicken', lastCollectedAt }],
+    });
+
+    const result = tick(state, NOW);
+    expect(result.animals[0].lastCollectedAt).toBe(NOW);
+    expect(result.inventory.chicken_product).toBe(1);
   });
 });
 

@@ -25,7 +25,8 @@ export function CraftingPanel() {
   const activeSlots = state.crafting;
   const slotsUsed = activeSlots.length;
   const totalSlots = state.craftingSlots;
-  const canStartNew = slotsUsed < totalSlots;
+  const isWinter = state.season === 'winter';
+  const canStartNew = isWinter || slotsUsed < totalSlots;
   const upgradeCost = craftingUpgradeCost(totalSlots);
   const canUpgrade = totalSlots < CRAFTING_SLOTS_MAX && state.coins >= upgradeCost;
 
@@ -49,7 +50,7 @@ export function CraftingPanel() {
 
   return (
     <div className="panel">
-      <h2 className="panel-title">🔨 Крафт ({slotsUsed}/{totalSlots})</h2>
+      <h2 className="panel-title">🔨 Крафт ({slotsUsed}/{isWinter ? '∞' : totalSlots}){isWinter ? ' ❄️×2' : ''}</h2>
 
       {/* Active crafting slots */}
       {activeSlots.map((slot, idx) => {
@@ -67,7 +68,14 @@ export function CraftingPanel() {
               <div className="crafting-progress-fill" style={{ width: `${progress * 100}%` }} />
             </div>
             {ready ? (
-              <button className="btn btn-sell" onClick={() => dispatch({ type: 'COLLECT_CRAFT', slotIndex: idx })}>
+              <button className="btn btn-sell" onClick={() => {
+                const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
+                if (totalItems >= state.storageCapacity) {
+                  showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+                  return;
+                }
+                dispatch({ type: 'COLLECT_CRAFT', slotIndex: idx });
+              }}>
                 Забрати!
               </button>
             ) : (
@@ -114,9 +122,9 @@ export function CraftingPanel() {
                   </span>
                   {max > 1 && (
                     <div className="craft-qty">
-                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)}>−</button>
+                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)} aria-label="Зменшити кількість">−</button>
                       <span className="craft-qty-val">{qty}</span>
-                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)}>+</button>
+                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)} aria-label="Збільшити кількість">+</button>
                     </div>
                   )}
                   <button

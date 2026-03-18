@@ -13,6 +13,7 @@ interface AnimalCardProps {
   group: AnimalGroup;
   now: number;
   feedActiveUntil: number;
+  season?: string;
   onClick: () => void;
 }
 
@@ -37,10 +38,11 @@ export function groupAnimals(animals: AnimalSlot[], now: number, feedActiveUntil
 }
 
 export const AnimalCard = memo(function AnimalCard({
-  group, now, feedActiveUntil, onClick,
+  group, now, feedActiveUntil, season, onClick,
 }: AnimalCardProps) {
   const animal = ANIMALS[group.animalId];
   const isReady = group.readyCount > 0;
+  const isSummer = season === 'summer';
 
   const progressInfo = useMemo(() => {
     if (isReady) return null;
@@ -61,10 +63,17 @@ export const AnimalCard = memo(function AnimalCard({
     return { avg, timeStr };
   }, [isReady, now, feedActiveUntil, animal, group]);
 
+  const ariaLabel = isReady
+    ? `${animal.name} — ${group.readyCount} готово, натисніть щоб зібрати +${animal.productSellPrice * group.readyCount} монет`
+    : `${animal.name}${group.count > 1 ? ` ×${group.count}` : ''}${progressInfo ? `, ${progressInfo.timeStr} залишилось` : ''}`;
+
   return (
-    <div
+    <button
+      type="button"
       className={`animal-card ${isReady ? 'animal-ready' : ''}`}
       onClick={isReady ? onClick : undefined}
+      disabled={!isReady}
+      aria-label={ariaLabel}
       style={{ cursor: isReady ? 'pointer' : 'default' }}
     >
       <div className="animal-left">
@@ -80,7 +89,7 @@ export const AnimalCard = memo(function AnimalCard({
       <div className="animal-right">
         {isReady ? (
           <div className="animal-collect-pill">
-            {animal.productEmoji} +{animal.productSellPrice * group.readyCount}💰
+            {animal.productEmoji} {isSummer ? '×2 ' : ''}+{animal.productSellPrice * group.readyCount * (isSummer ? 2 : 1)}💰
           </div>
         ) : progressInfo && (
           <>
@@ -96,6 +105,6 @@ export const AnimalCard = memo(function AnimalCard({
           </>
         )}
       </div>
-    </div>
+    </button>
   );
 });

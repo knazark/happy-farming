@@ -5,12 +5,14 @@ import { GameProvider, useGame } from './state/GameContext';
 import { getFarmerId, getFarmerIdIfExists, createFarmerId, setFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
 import { LoginScreen } from './components/LoginScreen';
 import { useFriends } from './hooks/useFriends';
+import { useFocusTrap } from './hooks/useFocusTrap';
 import { FarmView } from './components/FarmView';
 import { ToastContainer, showToast } from './components/Toast';
 import { getUnlockCost, getUnlockLevel } from './engine/economy';
 import { ANIMALS } from './constants/animals';
 import { CROPS } from './constants/crops';
 import { HUD } from './components/HUD';
+import { WeatherEffects } from './components/WeatherEffects';
 import { Inventory } from './components/Inventory';
 import { ShopPanel } from './components/ShopPanel';
 import { CropSelector } from './components/CropSelector';
@@ -84,6 +86,17 @@ function GameContent() {
   const { pendingRequests } = useFriends();
   const { effects, spawnEffect } = useHarvestEffect();
 
+  // Focus trap refs for modals
+  const panelRef = useRef<HTMLDivElement>(null);
+  const cropRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const closePanelCb = useCallback(() => setActivePanel(null), []);
+  const closeCropCb = useCallback(() => setCropSelector(null), []);
+  const closeProfileCb = useCallback(() => setShowProfile(false), []);
+  useFocusTrap(panelRef, !!activePanel, closePanelCb);
+  useFocusTrap(cropRef, !!cropSelector, closeCropCb);
+  useFocusTrap(profileRef, showProfile, closeProfileCb);
+
   // Track last click position for harvest effects
   const lastClickRef = useRef({ clientX: 0, clientY: 0 });
   useEffect(() => {
@@ -117,6 +130,11 @@ function GameContent() {
           break;
         case 'ready': {
           const crop = CROPS[plot.cropId];
+          const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
+          if (totalItems >= state.storageCapacity) {
+            showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+            break;
+          }
           spawnEffect(crop.emoji, lastClickRef.current);
           showToast(`${crop.emoji} ${crop.name} зібрано! +${crop.sellPrice}💰`, 'earn');
           dispatch({ type: 'HARVEST', plotIndex });
@@ -136,6 +154,11 @@ function GameContent() {
           break;
         }
         case 'wood_ready': {
+          const totalItems2 = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
+          if (totalItems2 >= state.storageCapacity) {
+            showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+            break;
+          }
           spawnEffect('🪵', lastClickRef.current);
           dispatch({ type: 'COLLECT_WOOD', plotIndex });
           showToast('🪵 Дрова зібрано!', 'earn');
@@ -158,14 +181,20 @@ function GameContent() {
   const handleAnimalClick = useCallback(
     (animalIndex: number) => {
       const slot = state.animals[animalIndex];
-      if (slot) {
-        const animal = ANIMALS[slot.animalId];
-        spawnEffect(animal.productEmoji, lastClickRef.current);
-        showToast(`${animal.productEmoji} ${animal.productName} зібрано! +${animal.productSellPrice}💰`, 'earn');
+      if (!slot) return;
+
+      const totalItems = Object.values(state.inventory).reduce((s, n) => s + (n ?? 0), 0);
+      if (totalItems >= state.storageCapacity) {
+        showToast('📦 Інвентар повний! Продайте щось або збільшіть місце', 'info');
+        return;
       }
+
+      const animal = ANIMALS[slot.animalId];
+      spawnEffect(animal.productEmoji, lastClickRef.current);
+      showToast(`${animal.productEmoji} ${animal.productName} зібрано! +${animal.productSellPrice}💰`, 'earn');
       dispatch({ type: 'COLLECT_PRODUCT', animalIndex });
     },
-    [dispatch, state.animals, spawnEffect],
+    [dispatch, state.animals, state.inventory, state.storageCapacity, spawnEffect],
   );
 
   // Badge counts
@@ -183,6 +212,7 @@ function GameContent() {
   return (
     <div className={`game-layout-v2 season-${state.season}`}>
       <SeasonalBackground />
+      <WeatherEffects />
       <ToastContainer />
       <HarvestEffectLayer effects={effects} />
       <HUD onProfileClick={() => setShowProfile(true)} />
@@ -204,39 +234,49 @@ function GameContent() {
         <button
           className={`bar-btn ${activePanel === 'shop' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('shop')}
+          aria-label="Магазин"
+          aria-current={activePanel === 'shop' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon">🏪</span>
+          <span className="bar-btn-icon" aria-hidden="true">🏪</span>
           <span className="bar-btn-label">Ринок</span>
         </button>
         <button
           className={`bar-btn ${activePanel === 'crafting' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('crafting')}
+          aria-label="Крафт"
+          aria-current={activePanel === 'crafting' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon">🔨</span>
+          <span className="bar-btn-icon" aria-hidden="true">🔨</span>
           <span className="bar-btn-label">Крафт</span>
           {craftReady > 0 && <span className="bar-badge">{craftReady}</span>}
         </button>
         <button
           className={`bar-btn ${activePanel === 'orders' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('orders')}
+          aria-label="Замовлення"
+          aria-current={activePanel === 'orders' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon">📋</span>
+          <span className="bar-btn-icon" aria-hidden="true">📋</span>
           <span className="bar-btn-label">Замовлення</span>
           {readyOrders > 0 && <span className="bar-badge">{readyOrders}</span>}
         </button>
         <button
           className={`bar-btn ${activePanel === 'inventory' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('inventory')}
+          aria-label="Інвентар"
+          aria-current={activePanel === 'inventory' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon">📦</span>
+          <span className="bar-btn-icon" aria-hidden="true">📦</span>
           <span className="bar-btn-label">Інвентар</span>
           {inventoryCount > 0 && <span className="bar-badge">{inventoryCount}</span>}
         </button>
         <button
           className={`bar-btn ${activePanel === 'friends' ? 'bar-btn-active' : ''}`}
           onClick={() => togglePanel('friends')}
+          aria-label="Друзі"
+          aria-current={activePanel === 'friends' ? 'page' : undefined}
         >
-          <span className="bar-btn-icon">👥</span>
+          <span className="bar-btn-icon" aria-hidden="true">👥</span>
           <span className="bar-btn-label">Друзі</span>
           {pendingRequests.length > 0 && <span className="bar-badge">{pendingRequests.length}</span>}
         </button>
@@ -256,14 +296,18 @@ function GameContent() {
             onClick={() => setActivePanel(null)}
           >
             <motion.div
+              ref={panelRef}
               className="panel-popup"
+              role="dialog"
+              aria-modal="true"
+              aria-label={activePanel === 'shop' ? 'Магазин' : activePanel === 'crafting' ? 'Крафт' : activePanel === 'orders' ? 'Замовлення' : activePanel === 'inventory' ? 'Інвентар' : 'Друзі'}
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
               transition={{ type: 'spring', damping: 22, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="panel-popup-close" onClick={() => setActivePanel(null)}>✕</button>
+              <button className="panel-popup-close" aria-label="Закрити" onClick={() => setActivePanel(null)}>✕</button>
               {activePanel === 'shop' && <ShopPanel />}
               {activePanel === 'crafting' && <CraftingPanel />}
               {activePanel === 'orders' && <OrdersPanel />}
@@ -286,7 +330,11 @@ function GameContent() {
             onClick={() => setCropSelector(null)}
           >
             <motion.div
+              ref={cropRef}
               className="crop-selector"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Вибір культури"
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -322,14 +370,18 @@ function GameContent() {
             onClick={state.profile.password ? () => setShowProfile(false) : undefined}
           >
             <motion.div
+              ref={profileRef}
               className="panel-popup"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Профіль"
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
               transition={{ type: 'spring', damping: 22, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="panel-popup-close" onClick={() => setShowProfile(false)} style={{ display: state.profile.password ? undefined : 'none' }}>✕</button>
+              <button className="panel-popup-close" aria-label="Закрити" onClick={() => setShowProfile(false)} style={{ display: state.profile.password ? undefined : 'none' }}>✕</button>
               <ProfileEditor onClose={() => setShowProfile(false)} />
             </motion.div>
           </motion.div>

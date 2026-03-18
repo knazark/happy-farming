@@ -84,8 +84,9 @@ export function tick(state: GameState, now: number): GameState {
     newState = { ...newState, plots: newPlots };
   }
 
-  // Tractor: auto-harvest ready crops
-  if (newState.hasTractor) {
+  // Tractor: auto-harvest ready crops (skip if inventory full)
+  const totalItemsForTractor = Object.values(newState.inventory).reduce((s, n) => s + (n ?? 0), 0);
+  if (newState.hasTractor && totalItemsForTractor < newState.storageCapacity) {
     let tractorHarvested = false;
     const tractorPlots: PlotState[] = newState.plots.map((plot) => {
       if (plot.status === 'ready') {
@@ -131,8 +132,9 @@ export function tick(state: GameState, now: number): GameState {
     }
   }
 
-  // Auto-collector: auto-collect ready animal products
-  if (newState.hasAutoCollector) {
+  // Auto-collector: auto-collect ready animal products (skip if inventory full)
+  const totalItemsForCollector = Object.values(newState.inventory).reduce((s, n) => s + (n ?? 0), 0);
+  if (newState.hasAutoCollector && totalItemsForCollector < newState.storageCapacity) {
     let collectorCollected = false;
     const collectorAnimals = newState.animals.map((slot) => {
       const animal = ANIMALS[slot.animalId];

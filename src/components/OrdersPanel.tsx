@@ -78,7 +78,7 @@ export function OrdersPanel() {
           </span>
         )}
       </h2>
-      <div className="order-list">
+      <ul className="order-list">
         {state.orders.map((order) => {
           const isExpired = !!order.expired;
           const timeLeft = Math.max(0, Math.ceil((order.expiresAt - Date.now()) / 1000));
@@ -86,7 +86,7 @@ export function OrdersPanel() {
           const seconds = timeLeft % 60;
 
           return (
-            <div
+            <li
               key={order.id}
               className={`order-item ${isExpired ? 'order-expired' : ''}`}
             >
@@ -129,10 +129,10 @@ export function OrdersPanel() {
                   {isExpired ? '💀 Виконати' : 'Виконати'}
                 </button>
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }

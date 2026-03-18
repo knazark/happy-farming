@@ -340,7 +340,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now() };
       const itemId: ItemId = `${slot.animalId}_product`;
 
-      const qty = state.season === 'winter' ? 2 : 1;
+      const qty = state.season === 'summer' ? 2 : 1;
       const collected = {
         ...state,
         animals: newAnimals,
@@ -457,7 +457,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'START_CRAFT': {
       const { recipeId, quantity: rawQty } = action;
       const qty = Math.max(1, rawQty ?? 1);
-      if (state.crafting.length >= state.craftingSlots) return state;
+      // Winter: unlimited crafting slots; otherwise check limit
+      if (state.season !== 'winter' && state.crafting.length >= state.craftingSlots) return state;
 
       const recipe = RECIPES[recipeId];
       if (recipe.unlockLevel > state.level) return state;
@@ -478,10 +479,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
+      // Winter: craft time ×0.5
+      const craftTime = recipe.craftTime * qty * (state.season === 'winter' ? 0.5 : 1);
+
       return {
         ...state,
         inventory: newInventory,
-        crafting: [...state.crafting, { recipeId, startedAt: Date.now(), craftTime: recipe.craftTime * qty, quantity: qty }],
+        crafting: [...state.crafting, { recipeId, startedAt: Date.now(), craftTime, quantity: qty }],
       };
     }
 

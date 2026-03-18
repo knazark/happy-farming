@@ -33,7 +33,7 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
 
   return (
     <>
-      <h3 className="crop-selector-title">Ваш профіль</h3>
+      <h2 className="crop-selector-title">Ваш профіль</h2>
       <div className="profile-form">
         <label className="profile-label">
           Ім'я:
@@ -61,6 +61,7 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Сховати пароль" : "Показати пароль"}
               style={{
                 background: 'none', border: '1px solid #ccc', borderRadius: '8px',
                 padding: '6px 10px', cursor: 'pointer', fontSize: '16px',

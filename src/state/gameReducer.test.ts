@@ -385,12 +385,12 @@ describe('COLLECT_PRODUCT action', () => {
     vi.restoreAllMocks();
   });
 
-  it('collects double in winter', () => {
+  it('collects double in summer', () => {
     const past = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
       animals: [{ animalId: 'chicken', lastCollectedAt: past }],
-      season: 'winter',
+      season: 'summer',
     });
     const result = gameReducer(state, { type: 'COLLECT_PRODUCT', animalIndex: 0 });
     expect(result.inventory.chicken_product).toBe(2);

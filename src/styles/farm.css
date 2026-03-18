@@ -18,7 +18,6 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 10px;
-  margin: 8px;
 }
 
 .plot-cell {
@@ -33,6 +32,13 @@
 
 .plot-cell:hover {
   transform: translateY(-1px);
+}
+
+.plot-cell:focus-visible {
+  outline: 3px solid #7C4DFF;
+  outline-offset: 2px;
+  border-radius: inherit;
+  z-index: 2;
 }
 
 .plot-hovered {
@@ -129,7 +135,7 @@
 .plot-plus {
   font-size: 30px;
   font-weight: 500;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.75);
   position: relative;
   z-index: 1;
 }
@@ -300,112 +306,95 @@
 
 /* ===== Animal Pen ===== */
 .animal-pen {
-  padding: 8px 14px 14px;
-  min-height: 180px;
+  padding: 12px 14px 14px;
+  background: linear-gradient(135deg, #5D4037, #4E342E);
+  border-radius: 16px;
+  border: 2px solid #795548;
+  margin: 8px 10px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
 }
 
 .animal-pen-label {
   font-size: 14px;
   font-weight: 800;
-  color: #1a1a1a;
-  padding: 4px 4px 8px;
+  color: #FFECB3;
+  padding: 0 2px 8px;
 }
 
 .animal-pen-empty {
   text-align: center;
-  color: #333;
-  font-size: 13px;
+  color: #BCAAA4;
+  font-size: 12px;
   font-weight: 600;
-  padding: 20px 0;
+  padding: 14px 0;
 }
 
 .animal-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
 }
 
 /* ===== Animal Card ===== */
 .animal-card {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px;
+  gap: 10px;
+  padding: 10px 12px;
   border-radius: 12px;
-  background: linear-gradient(to bottom, #FFF8E1, #FFECB3);
-  border: 1.5px solid #FFD54F;
-  box-shadow: 2px 2px 4px rgba(0,0,0,0.07);
+  background: #FFF;
+  border: none;
   position: relative;
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  min-height: 56px;
+  min-height: 52px;
   contain: layout style paint;
 }
 
-/* Hay texture */
-.animal-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    135deg,
-    transparent,
-    transparent 6px,
-    rgba(255, 213, 79, 0.15) 6px,
-    rgba(255, 213, 79, 0.15) 7px
-  );
-  pointer-events: none;
-}
+/* Hay texture — disabled for cleaner look */
 
 .animal-ready {
-  background: linear-gradient(to bottom, #FFF3E0, #FFE0B2);
-  border-color: #FF6B35;
-  border-width: 2px;
-  animation: animal-ready-glow 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes animal-ready-glow {
-  0% { box-shadow: 0 0 4px rgba(255, 107, 53, 0.2); }
-  100% { box-shadow: 0 0 12px rgba(255, 107, 53, 0.5); }
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(198, 124, 47, 0.35), inset 0 0 0 2px #FF6B35;
 }
 
 .animal-left {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .animal-emoji-disc {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.7);
+  background: #F5F0E0;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  flex-shrink: 0;
 }
 
 .animal-emoji-disc.disc-ready {
-  background: rgba(255,255,255,0.85);
+  background: #FFE0B2;
 }
 
 .animal-emoji {
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .animal-bounce {
-  animation: ready-bounce 0.8s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 
-
 .animal-count {
-  font-size: 10px;
-  font-weight: bold;
-  color: #9E86B8;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8D6E63;
 }
 
 .animal-right {
@@ -413,35 +402,34 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 3px;
+  align-items: flex-end;
+  gap: 2px;
 }
 
 .animal-collect-pill {
   background: #FF6B35;
   color: #FFF;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
-  padding: 3px 8px;
+  padding: 4px 8px;
   border-radius: 10px;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(180, 120, 0, 0.25);
-  animation: pill-pulse 1.2s ease-in-out infinite alternate;
+  box-shadow: 0 2px 4px rgba(180, 120, 0, 0.3);
 }
 
 .animal-timer {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   color: #9E86B8;
 }
 
 .animal-progress-bar {
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: #E8E0F0;
   border-radius: 3px;
   overflow: hidden;
-  border: 0.5px solid rgba(42, 30, 18, 0.2);
+  border: 0.5px solid rgba(42, 30, 18, 0.15);
 }
 
 .animal-progress-fill {
@@ -498,14 +486,23 @@
   .animal-emoji-disc { width: 30px; height: 30px; }
   .animal-collect-pill { font-size: 9px; padding: 2px 5px; }
   .animal-timer { font-size: 9px; }
-  .animal-card { min-height: 44px; padding: 4px; }
+  .animal-card { min-height: 50px; padding: 8px; }
+  .animal-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; }
 }
 
 @media (max-width: 500px) {
   /* Switch to 3 columns on mobile */
   .farm-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px; }
   .animal-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .animal-pen { padding: 6px 8px 8px; }
+  .animal-pen { padding: 8px 8px 10px; margin: 8px 6px; }
+  .animal-pen-label { font-size: 13px; margin-bottom: 4px; }
+  .animal-card { min-height: 40px; padding: 6px 8px; gap: 6px; border-radius: 10px; }
+  .animal-emoji-disc { width: 26px; height: 26px; }
+  .animal-emoji { font-size: 15px; }
+  .animal-count { font-size: 10px; }
+  .animal-collect-pill { font-size: 9px; padding: 3px 6px; border-radius: 8px; }
+  .animal-timer { font-size: 9px; }
+  .animal-progress-bar { height: 3px; }
   .plot-lock-emoji { font-size: 22px; }
   .plot-lock-cost { font-size: 10px; }
   .plot-lock-level { font-size: 9px; }
@@ -514,7 +511,12 @@
   .plot-harvest-pill { font-size: 10px; padding: 3px 5px; }
   .plot-time-pill { font-size: 10px; padding: 2px 6px; }
   .plot-progress-bar { height: 5px; }
-  .animal-card { min-height: 50px; }
+}
+
+@media (max-width: 360px) {
+  .animal-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .animal-pen { padding: 6px; margin: 6px 4px; }
+  .farm-grid { gap: 3px; padding: 6px; }
 }
 
 /* ===== Winter Selector ===== */
