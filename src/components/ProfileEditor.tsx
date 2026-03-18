@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
 import { clearFarmerId, ensureProfile } from '../firebase/db';
-import { saveGameAndProfile } from '../firebase/gameStateSync';
+import { saveGameAndProfile, saveGameToFirestore } from '../firebase/gameStateSync';
 
 interface ProfileEditorProps {
   onClose: () => void;
@@ -24,9 +24,11 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
     setError('');
     const profile = { name: name.trim() || 'Фермер', avatar, password: password.trim() };
     dispatch({ type: 'SET_PROFILE', profile });
-    // Create Firestore profile now (first time for new users)
+    // Create Firestore profile + save full game state immediately
+    const updatedState = { ...state, profile };
     try {
-      await ensureProfile({ ...state, profile });
+      await ensureProfile(updatedState);
+      await saveGameToFirestore(updatedState);
     } catch { /* ignore */ }
     onClose();
   };

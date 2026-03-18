@@ -123,16 +123,13 @@ export async function syncProfile(state: {
 }
 
 // Ensure profile exists (called once on mount — creates doc if missing, no extra writes if exists)
-// GUARD: don't create a new doc for default/empty state — prevents resurrecting deleted profiles
+// Deleted profile protection is handled in GameContext initLoad (clearFarmerId + early return)
 export async function ensureProfile(state: Parameters<typeof syncProfile>[0]): Promise<void> {
   const id = getFarmerId();
   const profileName = state.profile.name || 'Фермер';
   const score = calcScore(state);
   const snap = await getDoc(doc(db, 'farmers', id));
   if (!snap.exists()) {
-    // Don't create doc for default state (level 1, no earnings) — likely a deleted profile
-    if (state.level <= 1 && (state.totalEarned ?? 0) === 0) return;
-
     const data: Record<string, unknown> = {
       id,
       name: profileName,
