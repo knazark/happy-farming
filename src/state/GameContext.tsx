@@ -3,7 +3,7 @@ import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { saveGame, loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
-import { ensureProfile, getFarmerIdIfExists } from '../firebase/db';
+import { ensureProfile, getFarmerIdIfExists, clearFarmerId } from '../firebase/db';
 import { loadGameFromFirestore, saveGameAndProfile } from '../firebase/gameStateSync';
 import { shouldBlockFirestoreSave, pickBetterSave } from './saveGuards';
 
@@ -97,10 +97,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const localState = loadGame();
 
         if (!cancelled) {
-          // If farmerId exists but Firestore doc was deleted — clear localStorage, treat as fresh
+          // If farmerId exists but Firestore doc was deleted — wipe everything, treat as new user
           const farmerId = getFarmerIdIfExists();
           if (farmerId && !firestoreState && localState) {
             clearSave();
+            clearFarmerId();
+            setLoading(false);
+            return; // stop — user will see login/new game screen
           }
 
           let best: GameState | null = null;
