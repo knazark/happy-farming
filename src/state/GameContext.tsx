@@ -104,8 +104,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
 
-      // Step 2: verify farmerId exists in Firestore (async, non-blocking)
-      if (farmerId) {
+      // Step 2: verify farmerId exists in Firestore (only if localStorage had data)
+      // Skip for new games — doc doesn't exist yet and that's expected
+      if (farmerId && localState) {
         try {
           const { docExists } = await loadGameFromFirestoreEx();
           if (!cancelled && !docExists) {
