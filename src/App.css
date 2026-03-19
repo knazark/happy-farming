@@ -194,8 +194,6 @@ body::after {
   width: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  display: flex;
-  flex-direction: column;
 }
 
 /* ===== HUD — Colorful Bubble Header ===== */

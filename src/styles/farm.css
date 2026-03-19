@@ -5,8 +5,6 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
 }
 
 /* ===== Plot Grid ===== */
@@ -19,7 +17,6 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 10px;
-  flex: 1;
 }
 
 .plot-cell {
