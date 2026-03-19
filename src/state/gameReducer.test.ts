@@ -719,12 +719,12 @@ describe('START_CRAFT action', () => {
 
   it('does nothing if unlock level too high', () => {
     const state = makeState({
-      inventory: { wheat: 10 },
+      inventory: { wheat: 10, cabbage: 10 },
       crafting: [],
       craftingSlots: 1,
-      level: 1, // bread requires level 2
+      level: 1, // cake requires level 3
     });
-    const result = gameReducer(state, { type: 'START_CRAFT', recipeId: 'bread' });
+    const result = gameReducer(state, { type: 'START_CRAFT', recipeId: 'cake' });
     expect(result.crafting.length).toBe(0);
   });
 

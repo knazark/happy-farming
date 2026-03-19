@@ -5,7 +5,7 @@ import { saveGame, loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
 import { ensureProfile, getFarmerIdIfExists, clearFarmerId } from '../firebase/db';
 import { loadGameFromFirestoreEx, saveGameAndProfile } from '../firebase/gameStateSync';
-import { shouldBlockFirestoreSave, pickBetterSave } from './saveGuards';
+import { shouldBlockFirestoreSave } from './saveGuards';
 
 interface GameContextValue {
   state: GameState;
@@ -86,66 +86,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch(action);
   }, []);
 
-  // Load: try Firestore first (cross-device sync), fall back to localStorage
-  // PRIORITY: always pick the save with higher progress to prevent data loss
+  // Load: localStorage first (instant), then verify farmerId exists in Firestore
+  // If farmerId not in Firestore → account deleted → clear everything → login screen
   useEffect(() => {
     let cancelled = false;
 
     async function initLoad() {
-      try {
-        const { gameState: firestoreState, docExists } = await loadGameFromFirestoreEx();
-        const localState = loadGame();
+      const farmerId = getFarmerIdIfExists();
+      const localState = loadGame();
 
-        if (!cancelled) {
-          const farmerId = getFarmerIdIfExists();
+      // Step 1: load from localStorage immediately (primary source)
+      if (localState) {
+        const migrated = tick(migrateSave(localState), Date.now());
+        dispatch({ type: 'LOAD_SAVE', state: migrated });
+        hasRealDataRef.current = true;
+        highWaterMarkRef.current = migrated.totalEarned ?? 0;
+      }
+      setLoading(false);
 
-          // Doc was DELETED from Firestore (not just missing gameState) — wipe and reload
-          if (farmerId && !docExists && localState) {
+      // Step 2: verify farmerId exists in Firestore (async, non-blocking)
+      if (farmerId) {
+        try {
+          const { docExists } = await loadGameFromFirestoreEx();
+          if (!cancelled && !docExists) {
+            // Account was deleted from Firestore → wipe and redirect to login
             clearSave();
             clearFarmerId();
             window.location.reload();
-            return;
           }
-
-          let best: GameState | null = null;
-          if (firestoreState && localState) {
-            const winner = pickBetterSave({
-              localTotalEarned: localState.totalEarned ?? 0,
-              localLevel: localState.level ?? 1,
-              firestoreTotalEarned: firestoreState.totalEarned ?? 0,
-              firestoreLevel: firestoreState.level ?? 1,
-            });
-            best = winner === 'local' ? localState : firestoreState;
-          } else {
-            // Doc exists but no gameState yet (new profile) → use localStorage
-            // Doc doesn't exist and no farmerId → use localStorage
-            // Otherwise Firestore wins
-            best = firestoreState ?? localState;
-          }
-
-          if (best) {
-            const migrated = tick(migrateSave(best), Date.now());
-            dispatch({ type: 'LOAD_SAVE', state: migrated });
-            hasRealDataRef.current = true;
-            highWaterMarkRef.current = migrated.totalEarned ?? 0;
-          }
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          // Firestore failed — only use localStorage if NO farmerId (truly offline new game)
-          // If farmerId exists, DON'T load from localStorage — it could overwrite deleted data
-          const farmerId = getFarmerIdIfExists();
-          if (!farmerId) {
-            const localState = loadGame();
-            if (localState) {
-              const migrated = tick(migrateSave(localState), Date.now());
-              dispatch({ type: 'LOAD_SAVE', state: migrated });
-              hasRealDataRef.current = true;
-              highWaterMarkRef.current = migrated.totalEarned ?? 0;
-            }
-          }
-          setLoading(false);
+        } catch {
+          // Firestore unavailable — that's OK, localStorage is primary
         }
       }
     }
