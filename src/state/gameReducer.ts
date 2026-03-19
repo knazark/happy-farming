@@ -547,7 +547,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const newStreak = isExpired ? 0 : Math.min((state.orderStreak ?? 0) + 1, 10);
       const streakBonus = isExpired ? 1 : (1 + (state.orderStreak ?? 0) * 0.1);
 
-      const finalReward = isExpired ? 0 : Math.round(order.reward * (state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1) * streakBonus);
+      const baseReward = Math.round(order.reward * (state.season === 'winter' ? WINTER_CRAFT_ORDER_BONUS : 1) * streakBonus);
+      const finalReward = isExpired ? Math.round(order.reward * 0.25) : baseReward;
       const finalXp = isExpired ? 0 : Math.round(order.xpReward * (state.season === 'winter' ? WINTER_ORDER_XP_BONUS : 1));
 
       let fulfilled: GameState = {

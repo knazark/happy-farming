@@ -859,7 +859,7 @@ describe('FULFILL_ORDER action', () => {
     expect(result.orderStreak).toBe(1);
   });
 
-  it('expired order gives zero reward and zero xp', () => {
+  it('expired order gives 25% reward and zero xp', () => {
     const order: NpcOrder = {
       id: 'o1',
       customerName: 'Test',
@@ -881,8 +881,8 @@ describe('FULFILL_ORDER action', () => {
       level: 1,
     });
     const result = gameReducer(state, { type: 'FULFILL_ORDER', orderId: 'o1' });
-    expect(result.coins).toBe(50); // no reward
-    expect(result.totalEarned).toBe(0);
+    expect(result.coins).toBe(50 + 50); // 25% of 200 = 50
+    expect(result.totalEarned).toBe(50);
     expect(result.totalOrdersFulfilled).toBe(0); // not counted
     expect(result.orderStreak).toBe(0); // reset
     expect(result.xp).toBe(0); // no xp
