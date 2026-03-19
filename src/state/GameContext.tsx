@@ -86,7 +86,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch(action);
   }, []);
 
-  // Load: localStorage first (instant), then verify farmerId exists in Firestore
+  // Load: localStorage first (instant), then verify/fallback from Firestore
   // If farmerId not in Firestore → account deleted → clear everything → login screen
   useEffect(() => {
     let cancelled = false;
@@ -95,29 +95,53 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const farmerId = getFarmerIdIfExists();
       const localState = loadGame();
 
-      // Step 1: load from localStorage immediately (primary source)
       if (localState) {
+        // Primary: load from localStorage (instant)
         const migrated = tick(migrateSave(localState), Date.now());
         dispatch({ type: 'LOAD_SAVE', state: migrated });
         hasRealDataRef.current = true;
         highWaterMarkRef.current = migrated.totalEarned ?? 0;
-      }
-      setLoading(false);
+        setLoading(false);
 
-      // Step 2: verify farmerId exists in Firestore (only if localStorage had data)
-      // Skip for new games — doc doesn't exist yet and that's expected
-      if (farmerId && localState) {
+        // Verify doc still exists in Firestore (background)
+        if (farmerId) {
+          try {
+            const { docExists } = await loadGameFromFirestoreEx();
+            if (!cancelled && !docExists) {
+              clearSave();
+              clearFarmerId();
+              window.location.reload();
+            }
+          } catch {
+            // Firestore unavailable — OK, localStorage is primary
+          }
+        }
+      } else if (farmerId) {
+        // Fallback: localStorage empty but farmerId exists → load from Firestore
         try {
-          const { docExists } = await loadGameFromFirestoreEx();
-          if (!cancelled && !docExists) {
-            // Account was deleted from Firestore → wipe and redirect to login
+          const { gameState, docExists } = await loadGameFromFirestoreEx();
+          if (cancelled) return;
+          if (docExists && gameState) {
+            const migrated = tick(migrateSave(gameState), Date.now());
+            dispatch({ type: 'LOAD_SAVE', state: migrated });
+            hasRealDataRef.current = true;
+            highWaterMarkRef.current = migrated.totalEarned ?? 0;
+            // Save back to localStorage for next time
+            saveGame(migrated);
+          } else if (!docExists) {
+            // Account deleted from Firestore → redirect to login
             clearSave();
             clearFarmerId();
             window.location.reload();
+            return;
           }
         } catch {
-          // Firestore unavailable — that's OK, localStorage is primary
+          // Firestore unavailable — show initial state
         }
+        setLoading(false);
+      } else {
+        // No farmerId, no localStorage — fresh new user
+        setLoading(false);
       }
     }
 
