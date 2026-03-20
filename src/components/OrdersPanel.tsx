@@ -55,12 +55,12 @@ export function OrdersPanel() {
 
     const isExpired = !!order.expired;
     const bonus = isExpired ? 0 : (1 + streak * 0.1);
-    const finalReward = isExpired ? 0 : Math.round(order.reward * bonus);
+    const finalReward = isExpired ? Math.round(order.reward * 0.25) : Math.round(order.reward * bonus);
 
     dispatch({ type: 'FULFILL_ORDER', orderId });
 
     if (isExpired) {
-      showToast(`💀 Протухле! Без нагороди — серія скинута`, 'spend');
+      showToast(`💀 Протухле! Лише 25% нагороди: +${finalReward}💰`, 'spend');
     } else if (streak >= 2) {
       showToast(`🔥 Серія ${streak + 1}! +${finalReward}💰 (+${streakBonus + 10}%)`, 'earn');
     } else {
