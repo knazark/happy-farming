@@ -22,7 +22,7 @@ export function FriendFarmPage() {
       <WeatherEffects />
       <ToastContainer />
       <HarvestEffectLayer effects={effects} />
-      <HUD onProfileClick={() => navigate('/profile')} />
+      <HUD />
       <div className="game-center">
         <FriendFarmView friendId={id} onBack={() => navigate('/game')} />
       </div>

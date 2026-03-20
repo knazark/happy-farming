@@ -208,7 +208,7 @@ function GameContent() {
       <WeatherEffects />
       <ToastContainer />
       <HarvestEffectLayer effects={effects} />
-      <HUD onProfileClick={() => navigate('/profile')} />
+      <HUD />
 
       <div className="game-center">
         <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} onOpenShop={() => setActivePanel('shop')} />
@@ -296,7 +296,7 @@ function GameContent() {
               {activePanel === 'crafting' && <CraftingPanel />}
               {activePanel === 'orders' && <OrdersPanel />}
               {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
-              {activePanel === 'friends' && <NeighborsPanel onVisitFriend={(id) => navigate(`/friend/${id}`)} />}
+              {activePanel === 'friends' && <NeighborsPanel />}
             </motion.div>
           </motion.div>
         )}

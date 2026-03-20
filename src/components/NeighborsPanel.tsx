@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { showToast } from './Toast';
 import {
   getFarmerId,
@@ -13,11 +14,8 @@ import { useFriends } from '../hooks/useFriends';
 
 type Tab = 'friends' | 'leaderboard' | 'invite';
 
-interface NeighborsPanelProps {
-  onVisitFriend: (friendId: string) => void;
-}
-
-export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
+export function NeighborsPanel() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('friends');
   const [leaderboard, setLeaderboard] = useState<FarmerProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -226,7 +224,7 @@ export function NeighborsPanel({ onVisitFriend }: NeighborsPanelProps) {
                   <span style={{ color: '#666', marginRight: '8px' }}>{friend.level}⭐</span>
                   <button
                     className="btn btn-buy"
-                    onClick={() => onVisitFriend(friend.id)}
+                    onClick={() => navigate(`/friend/${friend.id}`)}
                     style={{ padding: '4px 12px', fontSize: '13px' }}
                   >
                     Відвідати

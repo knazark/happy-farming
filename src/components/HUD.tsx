@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGame } from '../state/GameContext';
 import { xpForLevel, MAX_LEVEL } from '../constants/game';
 import { SEASON_INFO, WEATHER_INFO, SEASON_CROP_MULTIPLIER, SEASON_PRICE_MULTIPLIER, SEASON_DURATION } from '../constants/seasons';
-
-interface HUDProps {
-  onProfileClick: () => void;
-}
 
 function formatTime(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -13,7 +10,8 @@ function formatTime(sec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function HUD({ onProfileClick }: HUDProps) {
+export function HUD() {
+  const navigate = useNavigate();
   const { state } = useGame();
   const xpNeeded = state.level >= MAX_LEVEL ? 0 : xpForLevel(state.level);
   const xpProgress = xpNeeded > 0 ? state.xp / xpNeeded : 1;
@@ -38,7 +36,7 @@ export function HUD({ onProfileClick }: HUDProps) {
   return (
     <div className="hud">
       <div className="hud-left">
-        <button className="hud-profile-btn" onClick={onProfileClick} title="Редагувати профіль" aria-label="Редагувати профіль">
+        <button className="hud-profile-btn" onClick={() => navigate('/profile')} title="Редагувати профіль" aria-label="Редагувати профіль">
           {state.profile.avatar}
         </button>
         <div>
