@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
 import { clearFarmerId, ensureProfile, isNameTaken } from '../firebase/db';
@@ -10,6 +11,7 @@ interface ProfileEditorProps {
 
 export function ProfileEditor({ onClose }: ProfileEditorProps) {
   const { state, dispatch } = useGame();
+  const navigate = useNavigate();
   const [name, setName] = useState(state.profile.name);
   const [avatar, setAvatar] = useState(state.profile.avatar);
   const [password, setPassword] = useState(state.profile.password || '');
@@ -135,7 +137,7 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
               // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
               try { await saveGameAndProfile(state); } catch { /* ignore */ }
               clearFarmerId();
-              window.location.reload();
+              navigate('/');
             }}
           >
             🚪 Вийти з акаунта
@@ -156,7 +158,7 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
             }}
             onClick={() => {
               clearFarmerId();
-              window.location.reload();
+              navigate('/');
             }}
           >
             ← Назад
