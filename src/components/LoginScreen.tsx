@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { loginByNameAndPassword } from '../firebase/db';
+import { useNavigate } from 'react-router-dom';
+import { createFarmerId, setFarmerId, loginByNameAndPassword } from '../firebase/db';
 
-interface LoginScreenProps {
-  onNewGame: () => void;
-  onLogin: (farmerId: string) => void;
-}
-
-export function LoginScreen({ onNewGame, onLogin }: LoginScreenProps) {
+export function LoginScreen() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'menu' | 'login'>('menu');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleNewGame = () => {
+    localStorage.removeItem('happyFarmer_save');
+    createFarmerId();
+    navigate('/profile');
+  };
 
   const handleLogin = async () => {
     if (!name.trim() || !password) {
@@ -23,7 +26,9 @@ export function LoginScreen({ onNewGame, onLogin }: LoginScreenProps) {
     try {
       const farmerId = await loginByNameAndPassword(name, password);
       if (farmerId) {
-        onLogin(farmerId);
+        localStorage.removeItem('happyFarmer_save');
+        setFarmerId(farmerId);
+        navigate('/game');
       } else {
         setError("Невірне ім'я або пароль");
       }
@@ -43,7 +48,7 @@ export function LoginScreen({ onNewGame, onLogin }: LoginScreenProps) {
           <h1 className="login-title">Happy Farming</h1>
           <p className="login-subtitle">Ваша маленька ферма</p>
 
-          <button className="login-btn login-btn-new" onClick={onNewGame}>
+          <button className="login-btn login-btn-new" onClick={handleNewGame}>
             🌱 Нова гра
           </button>
           <button className="login-btn login-btn-login" onClick={() => setMode('login')}>
