@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type ReactNode, type Dispatch } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { saveGame, loadGame, clearSave } from './storage';
@@ -18,6 +19,7 @@ const GameContext = createContext<GameContextValue | null>(null);
 const FIRESTORE_SYNC_MS = 2 * 60 * 1000;
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [state, dispatch] = useReducer(gameReducer, null, () => createInitialState());
   const [loading, setLoading] = useState(true);
 
@@ -110,7 +112,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             if (!cancelled && !docExists) {
               clearSave();
               clearFarmerId();
-              window.location.reload();
+              navigate('/', { replace: true });
             }
           } catch {
             // Firestore unavailable — OK, localStorage is primary
@@ -132,7 +134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             // Account deleted from Firestore → redirect to login
             clearSave();
             clearFarmerId();
-            window.location.reload();
+            navigate('/', { replace: true });
             return;
           }
         } catch {
@@ -147,7 +149,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     initLoad();
     return () => { cancelled = true; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   // After loading: ensure profile exists (only if profile is set up — name + password + farmerId)
   useEffect(() => {
