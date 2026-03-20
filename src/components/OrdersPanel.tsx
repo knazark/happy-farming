@@ -114,7 +114,7 @@ export function OrdersPanel() {
               <div className="order-footer">
                 <span className="order-reward">
                   {isExpired ? (
-                    <span style={{ color: '#E53935' }}>💀 <s>{order.reward}💰</s> <s>{order.xpReward} XP</s> — без нагороди</span>
+                    <span style={{ color: '#E53935' }}>💀 <s>{order.reward}💰</s> → {Math.round(order.reward * 0.25)}💰 (25%)</span>
                   ) : streak > 0 ? (
                     <>💰 {Math.round(order.reward * (1 + streak * 0.1))} · ⭐ {order.xpReward} XP · 🔥+{streakBonus}%</>
                   ) : (
