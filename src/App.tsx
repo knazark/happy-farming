@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Routes, Route, Outlet, useSearchParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GameProvider, useGame } from './state/GameContext';
-import { getFarmerId, getFarmerIdIfExists, createFarmerId, setFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
+import { getFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
 import { LoginScreen } from './components/LoginScreen';
+import { RequireAuth } from './components/guards/RequireAuth';
+import { GuestOnly } from './components/guards/GuestOnly';
+import { ProfilePage } from './pages/ProfilePage';
+import { FriendFarmPage } from './pages/FriendFarmPage';
 import { useFriends } from './hooks/useFriends';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { FarmView } from './components/FarmView';
@@ -19,10 +23,8 @@ import { CropSelector } from './components/CropSelector';
 import { WinterSelector } from './components/WinterSelector';
 import { CraftingPanel } from './components/CraftingPanel';
 import { OrdersPanel } from './components/OrdersPanel';
-import { ProfileEditor } from './components/ProfileEditor';
 import { SeasonalBackground } from './components/SeasonalBackground';
 import { NeighborsPanel } from './components/NeighborsPanel';
-import { FriendFarmView } from './components/FriendFarmView';
 import { useHarvestEffect, HarvestEffectLayer } from './components/HarvestEffect';
 import './App.css';
 import './styles/farm.css';
@@ -32,6 +34,14 @@ type PanelId = 'shop' | 'crafting' | 'orders' | 'inventory' | 'friends' | null;
 function GameContent() {
   const { state, dispatch } = useGame();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Redirect to profile if name or password is missing
+  useEffect(() => {
+    if (!state.profile.name || !state.profile.password) {
+      navigate('/profile', { replace: true });
+    }
+  }, [state.profile.name, state.profile.password, navigate]);
 
   // Handle invite link
   useEffect(() => {
@@ -42,7 +52,7 @@ function GameContent() {
       ).then(ok => {
         if (ok) showToast('📨 Запит на дружбу надіслано!', 'info');
         else showToast('🏘️ Вже друзі або запит вже надіслано', 'info');
-        window.history.replaceState({}, '', '/');
+        navigate('/game', { replace: true });
       }).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,29 +83,17 @@ function GameContent() {
     plotIndex: number;
     position: { x: number; y: number };
   } | null>(null);
-  const [showProfile, setShowProfile] = useState(false);
-
-  // Show profile editor if name or password is missing
-  useEffect(() => {
-    if (!state.profile.name || !state.profile.password) {
-      setShowProfile(true);
-    }
-  }, [state.profile.name, state.profile.password]);
   const [activePanel, setActivePanel] = useState<PanelId>(null);
-  const [visitingFriendId, setVisitingFriendId] = useState<string | null>(null);
   const { pendingRequests } = useFriends();
   const { effects, spawnEffect } = useHarvestEffect();
 
   // Focus trap refs for modals
   const panelRef = useRef<HTMLDivElement>(null);
   const cropRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
   const closePanelCb = useCallback(() => setActivePanel(null), []);
   const closeCropCb = useCallback(() => setCropSelector(null), []);
-  const closeProfileCb = useCallback(() => setShowProfile(false), []);
   useFocusTrap(panelRef, !!activePanel, closePanelCb);
   useFocusTrap(cropRef, !!cropSelector, closeCropCb);
-  useFocusTrap(profileRef, showProfile, closeProfileCb);
 
   // Track last click position for harvest effects
   const lastClickRef = useRef({ clientX: 0, clientY: 0 });
@@ -110,11 +108,6 @@ function GameContent() {
   const togglePanel = (id: PanelId) => {
     setActivePanel((prev) => (prev === id ? null : id));
   };
-
-  const handleVisitFriend = useCallback((friendId: string) => {
-    setVisitingFriendId(friendId);
-    setActivePanel(null);
-  }, []);
 
   const handlePlotClick = useCallback(
     (plotIndex: number) => {
@@ -215,21 +208,13 @@ function GameContent() {
       <WeatherEffects />
       <ToastContainer />
       <HarvestEffectLayer effects={effects} />
-      <HUD onProfileClick={() => setShowProfile(true)} />
+      <HUD onProfileClick={() => navigate('/profile')} />
 
       <div className="game-center">
-        {visitingFriendId ? (
-          <FriendFarmView
-            friendId={visitingFriendId}
-            onBack={() => setVisitingFriendId(null)}
-          />
-        ) : (
-          <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} onOpenShop={() => setActivePanel('shop')} />
-        )}
+        <FarmView onPlotClick={handlePlotClick} onAnimalClick={handleAnimalClick} onOpenShop={() => setActivePanel('shop')} />
       </div>
 
       {/* Bottom bar */}
-      {!visitingFriendId && (
       <div className="bottom-bar">
         <button
           className={`bar-btn ${activePanel === 'shop' ? 'bar-btn-active' : ''}`}
@@ -281,7 +266,6 @@ function GameContent() {
           {pendingRequests.length > 0 && <span className="bar-badge">{pendingRequests.length}</span>}
         </button>
       </div>
-      )}
 
       {/* Panel popup */}
       <AnimatePresence>
@@ -312,7 +296,7 @@ function GameContent() {
               {activePanel === 'crafting' && <CraftingPanel />}
               {activePanel === 'orders' && <OrdersPanel />}
               {activePanel === 'inventory' && <Inventory onClose={() => setActivePanel(null)} />}
-              {activePanel === 'friends' && <NeighborsPanel onVisitFriend={handleVisitFriend} />}
+              {activePanel === 'friends' && <NeighborsPanel onVisitFriend={(id) => navigate(`/friend/${id}`)} />}
             </motion.div>
           </motion.div>
         )}
@@ -357,80 +341,29 @@ function GameContent() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <AnimatePresence>
-        {showProfile && (
-          <motion.div
-            key="profile-overlay"
-            className="panel-popup-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, pointerEvents: 'auto' as const }}
-            exit={{ opacity: 0, pointerEvents: 'none' as const }}
-            transition={{ duration: 0.15 }}
-            onClick={state.profile.password ? () => setShowProfile(false) : undefined}
-          >
-            <motion.div
-              ref={profileRef}
-              className="panel-popup"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Профіль"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.12 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className="panel-popup-close" aria-label="Закрити" onClick={() => setShowProfile(false)} style={{ display: state.profile.password ? undefined : 'none' }}>✕</button>
-              <ProfileEditor onClose={() => setShowProfile(false)} />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
-export default function App() {
-  const [hasId, setHasId] = useState(() => !!getFarmerIdIfExists());
-
-  // Detect if farmer ID was removed → show LoginScreen immediately
-  useEffect(() => {
-    if (!hasId) return;
-    // Check quickly on mount + periodic fallback
-    const check = () => {
-      if (!getFarmerIdIfExists()) setHasId(false);
-    };
-    // Immediate check after potential clearFarmerId in GameContext
-    const t = setTimeout(check, 100);
-    const id = setInterval(check, 1000);
-    // Listen for storage events (cross-tab)
-    window.addEventListener('storage', check);
-    return () => { clearTimeout(t); clearInterval(id); window.removeEventListener('storage', check); };
-  }, [hasId]);
-
-  if (!hasId) {
-    return (
-      <LoginScreen
-        onNewGame={() => {
-          // Clear old localStorage save to prevent mixing with new account
-          localStorage.removeItem('happyFarmer_save');
-          createFarmerId();
-          setHasId(true);
-        }}
-        onLogin={(id) => {
-          // Clear old localStorage save to prevent mixing accounts
-          localStorage.removeItem('happyFarmer_save');
-          setFarmerId(id);
-          setHasId(true);
-        }}
-      />
-    );
-  }
-
+function AuthenticatedLayout() {
   return (
     <GameProvider>
-      <GameContent />
+      <Outlet />
     </GameProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<GuestOnly><LoginScreen /></GuestOnly>} />
+      <Route element={<RequireAuth />}>
+        <Route element={<AuthenticatedLayout />}>
+          <Route path="/game" element={<GameContent />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/friend/:id" element={<FriendFarmPage />} />
+        </Route>
+      </Route>
+    </Routes>
   );
 }
