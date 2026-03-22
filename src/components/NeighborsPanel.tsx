@@ -9,7 +9,7 @@ import {
   declineFriendRequest,
   removeFriend,
   type FarmerProfile,
-} from '../firebase/db';
+} from '../firebase/rtdb';
 import { useFriends } from '../hooks/useFriends';
 
 type Tab = 'friends' | 'leaderboard' | 'invite';

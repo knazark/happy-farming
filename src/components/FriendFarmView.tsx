@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { loadFriendGameState, harvestFriendPlot } from '../firebase/gameStateSync';
-import { getFarmer, getFarmerId, getInteraction, recordHelp, type FarmerProfile } from '../firebase/db';
+import { loadGameState, harvestFriendPlot, getFarmerProfile, getFarmerId, getInteraction, recordHelp, type FarmerProfile } from '../firebase/rtdb';
 import { useGame } from '../state/GameContext';
 import { PlotCell } from './PlotCell';
 import { AnimalCard, groupAnimals } from './AnimalCard';
@@ -32,8 +31,8 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
       try {
         const myId = getFarmerId();
         const [gs, fp, interaction] = await Promise.all([
-          loadFriendGameState(friendId),
-          getFarmer(friendId),
+          loadGameState(friendId),
+          getFarmerProfile(friendId),
           getInteraction(myId, friendId),
         ]);
         if (!cancelled) {

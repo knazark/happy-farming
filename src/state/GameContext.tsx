@@ -2,11 +2,9 @@ import { createContext, useContext, useReducer, useEffect, useRef, useState, use
 import { useNavigate } from 'react-router-dom';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
-import { saveGame, loadGame, clearSave } from './storage';
 import { tick } from '../engine/gameLoop';
-import { ensureProfile, getFarmerIdIfExists, clearFarmerId } from '../firebase/db';
-import { loadGameFromFirestoreEx, saveGameAndProfile } from '../firebase/gameStateSync';
-import { shouldBlockFirestoreSave } from './saveGuards';
+import { getFarmerIdIfExists, clearFarmerId } from '../firebase/rtdb';
+import { saveGameState, loadGameState, subscribeGameState, setupPresence, ensureProfileRTDB } from '../firebase/rtdb';
 
 interface GameContextValue {
   state: GameState;
@@ -15,8 +13,8 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null);
 
-// Firestore sync interval: 2 minutes
-const FIRESTORE_SYNC_MS = 2 * 60 * 1000;
+// Debounce interval for RTDB writes (5 seconds)
+const RTDB_DEBOUNCE_MS = 5000;
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -28,134 +26,125 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // Track whether we successfully loaded real data (not initial state)
   const hasRealDataRef = useRef(false);
-  // High-water mark: highest totalEarned ever seen for this session
-  const highWaterMarkRef = useRef(0);
+  // Debounce timer for RTDB writes
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Flag to skip onValue updates while we're writing
+  const isWritingRef = useRef(false);
+  // Last saved JSON to prevent redundant writes
+  const lastSavedJsonRef = useRef('');
 
-  // --- localStorage save (fast, free, every 5s) ---
-  const saveToLocal = useCallback(() => {
-    if (!getFarmerIdIfExists() || !hasRealDataRef.current) return;
-    // Update high-water mark
-    if (stateRef.current.totalEarned > highWaterMarkRef.current) {
-      highWaterMarkRef.current = stateRef.current.totalEarned;
-    }
-    saveGame(stateRef.current);
-  }, []);
+  // --- Debounced RTDB save ---
+  const flushToRTDB = useCallback(async () => {
+    const farmerId = getFarmerIdIfExists();
+    if (!farmerId || !hasRealDataRef.current) return;
+    if (!stateRef.current.profile.name || !stateRef.current.profile.password) return;
 
-  // --- Firestore save (remote backup, every 2 min) ---
-  const savingRef = useRef(false);
-  const lastFirestoreJsonRef = useRef('');
-  const saveToFirestore = useCallback(() => {
-    if (savingRef.current) return;
-    const blockReason = shouldBlockFirestoreSave({
-      hasFarmerId: !!getFarmerIdIfExists(),
-      hasRealData: hasRealDataRef.current,
-      highWaterMark: highWaterMarkRef.current,
-      profileName: stateRef.current.profile.name,
-      profilePassword: stateRef.current.profile.password,
-      level: stateRef.current.level,
-      totalEarned: stateRef.current.totalEarned,
-    });
-    if (blockReason) {
-      if (blockReason === 'regression_below_high_water') {
-        console.warn(`Blocked Firestore write: totalEarned ${stateRef.current.totalEarned} << highWater ${highWaterMarkRef.current}`);
-      }
-      return;
-    }
     const snapshot = JSON.stringify(stateRef.current);
-    if (snapshot === lastFirestoreJsonRef.current) return;
-    savingRef.current = true;
-    lastFirestoreJsonRef.current = snapshot;
-    saveGameAndProfile(stateRef.current).catch(() => {
-      lastFirestoreJsonRef.current = '';
-    }).finally(() => { savingRef.current = false; });
+    if (snapshot === lastSavedJsonRef.current) return;
+
+    isWritingRef.current = true;
+    lastSavedJsonRef.current = snapshot;
+    try {
+      await saveGameState(farmerId, stateRef.current);
+    } catch {
+      lastSavedJsonRef.current = ''; // allow retry on next flush
+    } finally {
+      isWritingRef.current = false;
+    }
   }, []);
 
-  // Track level for event-based Firestore saves
-  const prevLevelRef = useRef(state.level);
+  const scheduleRTDBWrite = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(flushToRTDB, RTDB_DEBOUNCE_MS);
+  }, [flushToRTDB]);
 
-  // Event-based Firestore save: triggers on level-up
+  // Immediate flush (for important events)
+  const immediateFlush = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = null;
+    flushToRTDB();
+  }, [flushToRTDB]);
+
+  // Dispatch wrapper — schedules RTDB write after each action
+  const smartDispatch = useCallback((action: GameAction) => {
+    dispatch(action);
+    scheduleRTDBWrite();
+  }, [scheduleRTDBWrite]);
+
+  // Track level for immediate saves on level-up
+  const prevLevelRef = useRef(state.level);
   useEffect(() => {
     if (loading) return;
     if (state.level > prevLevelRef.current) {
       prevLevelRef.current = state.level;
-      // Level up — save immediately to Firestore
-      saveToFirestore();
+      immediateFlush();
     }
-  }, [state.level, loading, saveToFirestore]);
+  }, [state.level, loading, immediateFlush]);
 
-  // Dispatch wrapper
-  const smartDispatch = useCallback((action: GameAction) => {
-    dispatch(action);
-  }, []);
-
-  // Load: localStorage first (instant), then verify/fallback from Firestore
-  // If farmerId not in Firestore → account deleted → clear everything → login screen
+  // --- Load from RTDB + subscribe to real-time updates ---
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
 
     async function initLoad() {
       const farmerId = getFarmerIdIfExists();
-      const localState = loadGame();
 
-      if (localState) {
-        // Primary: load from localStorage (instant)
-        const migrated = tick(migrateSave(localState), Date.now());
-        dispatch({ type: 'LOAD_SAVE', state: migrated });
-        hasRealDataRef.current = true;
-        highWaterMarkRef.current = migrated.totalEarned ?? 0;
+      if (!farmerId) {
+        // No farmerId — fresh new user
         setLoading(false);
-
-        // Verify doc still exists in Firestore (background)
-        if (farmerId) {
-          try {
-            const { docExists } = await loadGameFromFirestoreEx();
-            if (!cancelled && !docExists) {
-              clearSave();
-              clearFarmerId();
-              navigate('/', { replace: true });
-            }
-          } catch {
-            // Firestore unavailable — OK, localStorage is primary
-          }
-        }
-      } else if (farmerId) {
-        // Fallback: localStorage empty but farmerId exists → load from Firestore
-        try {
-          const { gameState, docExists } = await loadGameFromFirestoreEx();
-          if (cancelled) return;
-          if (docExists && gameState) {
-            const migrated = tick(migrateSave(gameState), Date.now());
-            dispatch({ type: 'LOAD_SAVE', state: migrated });
-            hasRealDataRef.current = true;
-            highWaterMarkRef.current = migrated.totalEarned ?? 0;
-            // Save back to localStorage for next time
-            saveGame(migrated);
-          } else if (!docExists) {
-            // Account deleted from Firestore → redirect to login
-            clearSave();
-            clearFarmerId();
-            navigate('/', { replace: true });
-            return;
-          }
-        } catch {
-          // Firestore unavailable — show initial state
-        }
-        setLoading(false);
-      } else {
-        // No farmerId, no localStorage — fresh new user
-        setLoading(false);
+        return;
       }
+
+      try {
+        // Load game state from RTDB
+        const gameState = await loadGameState(farmerId);
+        if (cancelled) return;
+
+        if (gameState) {
+          const migrated = tick(migrateSave(gameState), Date.now());
+          dispatch({ type: 'LOAD_SAVE', state: migrated });
+          hasRealDataRef.current = true;
+          lastSavedJsonRef.current = JSON.stringify(migrated);
+        } else {
+          // No data in RTDB — account doesn't exist
+          clearFarmerId();
+          navigate('/', { replace: true });
+          return;
+        }
+      } catch {
+        // RTDB unavailable — show initial state, will retry on next action
+      }
+
+      setLoading(false);
+
+      // Subscribe to real-time updates (e.g., friend harvested your plot)
+      unsubscribe = subscribeGameState(farmerId, (serverState) => {
+        if (isWritingRef.current || !serverState) return;
+        // Only accept server updates if they have newer data
+        // (e.g., friend harvest added to helpLog or totalHarvested increased)
+        const current = stateRef.current;
+        if (serverState.totalHarvested > current.totalHarvested ||
+            (serverState.helpLog?.length ?? 0) > (current.helpLog?.length ?? 0)) {
+          dispatch({ type: 'LOAD_SAVE', state: migrateSave(serverState) });
+        }
+      });
+
+      // Setup presence (online/offline status)
+      setupPresence(farmerId);
     }
 
     initLoad();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
-  // After loading: ensure profile exists (only if profile is set up — name + password + farmerId)
+  // After loading: ensure profile exists in RTDB
   useEffect(() => {
     if (!loading && getFarmerIdIfExists() && stateRef.current.profile.name && stateRef.current.profile.password) {
-      ensureProfile(stateRef.current).catch(() => {});
+      ensureProfileRTDB(getFarmerIdIfExists()!, stateRef.current).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
@@ -169,49 +158,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [loading]);
 
-  // localStorage: save every 5s (free, instant)
-  useEffect(() => {
-    if (loading) return;
-    const id = setInterval(saveToLocal, 5000);
-    return () => clearInterval(id);
-  }, [loading, saveToLocal]);
-
-  // Firestore: sync every 2 min + on visibility change + on beforeunload
+  // Flush on tab hide / page close
   useEffect(() => {
     if (loading) return;
 
-    const id = setInterval(saveToFirestore, FIRESTORE_SYNC_MS);
-
-    // Save on tab hide/close — visibilitychange is more reliable on mobile
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        saveToLocal();
-        saveToFirestore();
+        immediateFlush();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    // Also try on beforeunload (desktop browsers)
-    const onBeforeUnload = () => {
-      saveToLocal();
-      saveToFirestore();
-    };
+    const onBeforeUnload = () => immediateFlush();
     window.addEventListener('beforeunload', onBeforeUnload);
 
-    // pagehide fires reliably on mobile Safari/Chrome when closing tab
-    const onPageHide = () => {
-      saveToLocal();
-      saveToFirestore();
-    };
+    const onPageHide = () => immediateFlush();
     window.addEventListener('pagehide', onPageHide);
 
     return () => {
-      clearInterval(id);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('beforeunload', onBeforeUnload);
       window.removeEventListener('pagehide', onPageHide);
+      // Flush any pending changes on unmount
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        flushToRTDB();
+      }
     };
-  }, [loading, saveToLocal, saveToFirestore]);
+  }, [loading, immediateFlush, flushToRTDB]);
 
   if (loading) {
     return (

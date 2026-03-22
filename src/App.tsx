@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Routes, Route, Outlet, useSearchParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GameProvider, useGame } from './state/GameContext';
-import { getFarmerId, sendFriendRequest, ensureProfile } from './firebase/db';
+import { getFarmerId, sendFriendRequest, ensureProfileRTDB } from './firebase/rtdb';
 import { LoginScreen } from './components/LoginScreen';
 import { RequireAuth } from './components/guards/RequireAuth';
 import { GuestOnly } from './components/guards/GuestOnly';
@@ -47,7 +47,7 @@ function GameContent() {
   useEffect(() => {
     const inviteId = searchParams.get('invite');
     if (inviteId && inviteId !== getFarmerId()) {
-      ensureProfile(state).then(() =>
+      ensureProfileRTDB(getFarmerId(), state).then(() =>
         sendFriendRequest(getFarmerId(), inviteId)
       ).then(ok => {
         if (ok) showToast('📨 Запит на дружбу надіслано!', 'info');

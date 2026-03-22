@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { saveGame, loadGame, clearSave } from './storage';
-import { calcChecksum } from '../firebase/db';
+import { calcChecksum } from '../firebase/pure';
 import { createInitialState } from './gameReducer';
 import type { GameState } from '../types';
 

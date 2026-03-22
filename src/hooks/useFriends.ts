@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getFarmerId, getFarmer, getNeighborProfiles, getPendingRequests, type FarmerProfile } from '../firebase/db';
+import { getFarmerId, getFriendIds, getNeighborProfiles, getPendingRequests, type FarmerProfile } from '../firebase/rtdb';
 
 export function useFriends() {
   const [friends, setFriends] = useState<FarmerProfile[]>([]);
@@ -10,11 +10,10 @@ export function useFriends() {
     setLoading(true);
     try {
       const myId = getFarmerId();
-      const [me, pending] = await Promise.all([
-        getFarmer(myId),
+      const [ids, pending] = await Promise.all([
+        getFriendIds(myId),
         getPendingRequests(myId),
       ]);
-      const ids = me?.neighborIds ?? [];
       if (ids.length > 0) {
         const profiles = await getNeighborProfiles(ids);
         setFriends(profiles);

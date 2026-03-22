@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calcScore, calcChecksum, verifyChecksum, hashPassword } from './db';
+import { calcScore, calcChecksum, verifyChecksum, hashPassword } from './pure';
 
 describe('calcScore', () => {
   it('returns level * 100 + floor(totalEarned / 100)', () => {

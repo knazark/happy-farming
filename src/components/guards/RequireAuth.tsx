@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { getFarmerIdIfExists } from '../../firebase/db';
+import { getFarmerIdIfExists } from '../../firebase/rtdb';
 
 export function RequireAuth() {
   const farmerId = getFarmerIdIfExists();

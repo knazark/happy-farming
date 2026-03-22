@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createFarmerId, setFarmerId, loginByNameAndPassword } from '../firebase/db';
+import { createFarmerId, setFarmerId, loginByNameAndPassword } from '../firebase/rtdb';
 
 export function LoginScreen() {
   const navigate = useNavigate();

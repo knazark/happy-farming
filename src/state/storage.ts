@@ -1,5 +1,5 @@
 import type { GameState } from '../types';
-import { calcChecksum, verifyChecksum } from '../firebase/db';
+import { calcChecksum, verifyChecksum } from '../firebase/pure';
 
 const STORAGE_KEY = 'happyFarmer_save';
 

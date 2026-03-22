@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../state/GameContext';
 import { AVATARS } from '../constants/neighbors';
-import { clearFarmerId, ensureProfile, isNameTaken } from '../firebase/db';
-import { saveGameAndProfile } from '../firebase/gameStateSync';
+import { clearFarmerId, ensureProfileRTDB, isNameTaken, getFarmerIdIfExists, saveGameState } from '../firebase/rtdb';
 
 interface ProfileEditorProps {
   onClose: () => void;
@@ -50,7 +49,8 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
       const profile = { name: trimmedName, avatar, password: password.trim() };
       dispatch({ type: 'SET_PROFILE', profile });
       // Create/update Firestore profile + gameState in one call
-      await ensureProfile({ ...state, profile });
+      const farmerId = getFarmerIdIfExists();
+      if (farmerId) await ensureProfileRTDB(farmerId, { ...state, profile } as any);
     } catch { /* ignore */ }
     setSaving(false);
     onClose();
@@ -134,8 +134,9 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
               width: '100%',
             }}
             onClick={async () => {
-              // Save to Firestore BEFORE clearing ID (so data is synced for other devices)
-              try { await saveGameAndProfile(state); } catch { /* ignore */ }
+              // Save to RTDB BEFORE clearing ID (so data is synced for other devices)
+              const fid = getFarmerIdIfExists();
+              if (fid) { try { await saveGameState(fid, state); } catch { /* ignore */ } }
               clearFarmerId();
               navigate('/');
             }}

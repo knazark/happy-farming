@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
@@ -8,12 +9,15 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || '',
 };
 
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
 
-// Connect to Firestore Emulator in development (set VITE_USE_EMULATOR=true in .env.local)
+// Connect to emulators in development (set VITE_USE_EMULATOR=true in .env.local)
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, 'localhost', 8080);
+  connectDatabaseEmulator(rtdb, 'localhost', 9000);
 }
