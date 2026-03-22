@@ -2,7 +2,7 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, TRACTOR_REQUIRED_LEVEL, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_REQUIRED_LEVEL, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_REQUIRED_LEVEL, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
 import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
@@ -633,6 +633,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_TRACTOR': {
       if (state.hasTractor) return state;
+      if (state.level < TRACTOR_REQUIRED_LEVEL) return state;
       if (state.coins < TRACTOR_PRICE) return state;
 
       // Must have crafted all required items (at least 1 in inventory)
@@ -661,6 +662,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_AUTO_COLLECTOR': {
       if (state.hasAutoCollector) return state;
+      if (state.level < AUTO_COLLECTOR_REQUIRED_LEVEL) return state;
       if (state.coins < AUTO_COLLECTOR_PRICE) return state;
 
       for (const craftId of AUTO_COLLECTOR_REQUIRED_CRAFTS) {
@@ -687,6 +689,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_AUTO_PLANTER': {
       if (state.hasAutoPlanter) return state;
+      if (state.level < AUTO_PLANTER_REQUIRED_LEVEL) return state;
       if (state.coins < AUTO_PLANTER_PRICE) return state;
 
       for (const craftId of AUTO_PLANTER_REQUIRED_CRAFTS) {

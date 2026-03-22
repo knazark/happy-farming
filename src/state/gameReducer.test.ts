@@ -1142,6 +1142,7 @@ describe('BUY_TRACTOR action', () => {
     }
     const state = makeState({
       coins: TRACTOR_PRICE + 100,
+      level: 7,
       inventory: inv,
       hasTractor: false,
     });
@@ -1185,6 +1186,7 @@ describe('BUY_AUTO_COLLECTOR action', () => {
     for (const id of AUTO_COLLECTOR_REQUIRED_CRAFTS) inv[id] = 1;
     const state = makeState({
       coins: AUTO_COLLECTOR_PRICE + 100,
+      level: 5,
       inventory: inv,
       hasAutoCollector: false,
     });
@@ -1222,6 +1224,7 @@ describe('BUY_AUTO_PLANTER action', () => {
     for (const id of AUTO_PLANTER_REQUIRED_CRAFTS) inv[id] = 1;
     const state = makeState({
       coins: AUTO_PLANTER_PRICE + 100,
+      level: 3,
       inventory: inv,
       hasAutoPlanter: false,
     });

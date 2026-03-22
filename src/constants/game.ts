@@ -33,17 +33,20 @@ export function craftingUpgradeCost(currentSlots: number): number {
   return CRAFTING_UPGRADE_COST_BASE * currentSlots; // 200, 400, 600...
 }
 
-// Tractor — late game (level 7-8), auto-harvests ready crops
-export const TRACTOR_PRICE = 7000;
-export const TRACTOR_REQUIRED_CRAFTS = ['farmer_pie', 'jam', 'pickle'] as const;
+// Auto-planter — early-mid game, auto-replants after harvest
+export const AUTO_PLANTER_PRICE = 2000;
+export const AUTO_PLANTER_REQUIRED_LEVEL = 3;
+export const AUTO_PLANTER_REQUIRED_CRAFTS = ['bread'] as const;
 
-// Auto-collector (Kaleb) — mid game (level 5-6), auto-collects animal products
+// Auto-collector (Kaleb) — mid game, auto-collects animal products
 export const AUTO_COLLECTOR_PRICE = 4000;
+export const AUTO_COLLECTOR_REQUIRED_LEVEL = 5;
 export const AUTO_COLLECTOR_REQUIRED_CRAFTS = ['cheese', 'butter'] as const;
 
-// Auto-planter — early-mid game (level 3-4), auto-replants after harvest
-export const AUTO_PLANTER_PRICE = 2000;
-export const AUTO_PLANTER_REQUIRED_CRAFTS = ['bread'] as const;
+// Tractor — late game, auto-harvests ready crops
+export const TRACTOR_PRICE = 7000;
+export const TRACTOR_REQUIRED_LEVEL = 7;
+export const TRACTOR_REQUIRED_CRAFTS = ['farmer_pie', 'jam', 'pickle'] as const;
 export const AUTO_PLANTER_MAX_PLOTS = 3;
 
 export function xpForLevel(level: number): number {
