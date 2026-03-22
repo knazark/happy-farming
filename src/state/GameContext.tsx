@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { GameState, GameAction } from '../types';
 import { gameReducer, createInitialState, migrateSave } from './gameReducer';
 import { tick } from '../engine/gameLoop';
-import { getFarmerIdIfExists, clearFarmerId } from '../firebase/rtdb';
+import { getFarmerIdIfExists } from '../firebase/rtdb';
 import { saveGameState, loadGameState, subscribeGameState, setupPresence, ensureProfileRTDB } from '../firebase/rtdb';
 
 interface GameContextValue {
@@ -105,12 +105,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'LOAD_SAVE', state: migrated });
           hasRealDataRef.current = true;
           lastSavedJsonRef.current = JSON.stringify(migrated);
-        } else {
-          // No data in RTDB — account doesn't exist
-          clearFarmerId();
-          navigate('/', { replace: true });
-          return;
         }
+        // If no data in RTDB — new user, keep initial state (don't redirect)
       } catch {
         // RTDB unavailable — show initial state, will retry on next action
       }
