@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
 
@@ -12,12 +12,15 @@ const firebaseConfig = {
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || '',
 };
 
-export const app = initializeApp(firebaseConfig);
+// Prevent duplicate-app error during HMR
+export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
 
 // Connect to emulators in development (set VITE_USE_EMULATOR=true in .env.local)
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectDatabaseEmulator(rtdb, 'localhost', 9000);
+  try {
+    connectFirestoreEmulator(db, 'localhost', 8080);
+    connectDatabaseEmulator(rtdb, 'localhost', 9000);
+  } catch { /* already connected */ }
 }
