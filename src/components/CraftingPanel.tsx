@@ -122,9 +122,9 @@ export function CraftingPanel() {
                   </span>
                   {max > 1 && (
                     <div className="craft-qty">
-                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty - 1)} aria-label="Зменшити кількість">−</button>
+                      <button className="craft-qty-btn" disabled={qty <= 1} onClick={() => setQty(recipe.id, qty - 1)} aria-label="Зменшити кількість">−</button>
                       <span className="craft-qty-val">{qty}</span>
-                      <button className="craft-qty-btn" onClick={() => setQty(recipe.id, qty + 1)} aria-label="Збільшити кількість">+</button>
+                      <button className="craft-qty-btn" disabled={qty >= max} onClick={() => setQty(recipe.id, Math.min(qty + 1, max))} aria-label="Збільшити кількість">+</button>
                     </div>
                   )}
                   <button
