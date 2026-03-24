@@ -8,6 +8,7 @@ import { showToast } from './Toast';
 import type { CraftedId, ItemId } from '../types';
 
 function getItemEmoji(itemId: string): string {
+  if (itemId === 'firewood') return '🪵';
   if (itemId in CROPS) return CROPS[itemId as keyof typeof CROPS].emoji;
   if (itemId.endsWith('_product')) {
     const animalId = itemId.replace('_product', '') as keyof typeof ANIMALS;
