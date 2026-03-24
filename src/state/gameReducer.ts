@@ -168,29 +168,8 @@ function checkAchievements(state: GameState): GameState {
   if (state.level >= 5) grant('level_5');
   if (state.level >= MAX_LEVEL) grant('level_max');
 
-  // Rainbow easter egg: 6 identical crops in a row — awards 500💰 every time
-  let rainbowBonus = 0;
-  {
-    const cols = 6;
-    for (let row = 0; row + cols <= state.plots.length; row += cols) {
-      const rowPlots = state.plots.slice(row, row + cols);
-      const first = rowPlots[0];
-      if ((first.status === 'growing' || first.status === 'ready')) {
-        const targetCrop = first.cropId;
-        const match = rowPlots.every((p) =>
-          (p.status === 'growing' || p.status === 'ready') && p.cropId === targetCrop
-        );
-        if (match) {
-          if (!earned.includes('rainbow')) grant('rainbow');
-          else rainbowBonus = 500; // repeat bonus without duplicate achievement
-          break;
-        }
-      }
-    }
-  }
-
-  if (earned.length === state.achievements.length && rainbowBonus === 0) return state;
-  return { ...state, achievements: earned, coins: state.coins + bonus + rainbowBonus };
+  if (earned.length === state.achievements.length) return state;
+  return { ...state, achievements: earned, coins: state.coins + bonus };
 }
 
 function addXp(state: GameState, amount: number): GameState {

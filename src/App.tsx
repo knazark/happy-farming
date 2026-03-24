@@ -17,7 +17,6 @@ import { ANIMALS } from './constants/animals';
 import { CROPS } from './constants/crops';
 import { HUD } from './components/HUD';
 import { WeatherEffects } from './components/WeatherEffects';
-import { RainbowAnimation } from './components/RainbowAnimation';
 import { Inventory } from './components/Inventory';
 import { ShopPanel } from './components/ShopPanel';
 import { CropSelector } from './components/CropSelector';
@@ -76,28 +75,6 @@ function GameContent() {
   }, []);
 
   // Rainbow easter egg animation
-  const [showRainbow, setShowRainbow] = useState(false);
-  const prevPlotsRef = useRef('');
-  useEffect(() => {
-    // Check rainbow: 6 identical crops in any row
-    const cols = 6;
-    for (let row = 0; row + cols <= state.plots.length; row += cols) {
-      const rowPlots = state.plots.slice(row, row + cols);
-      const first = rowPlots[0];
-      if ((first.status === 'growing' || first.status === 'ready')) {
-        const target = first.cropId;
-        if (rowPlots.every((p) => (p.status === 'growing' || p.status === 'ready') && p.cropId === target)) {
-          // Check it's a new match (not same as last check)
-          const key = `${row}:${target}`;
-          if (prevPlotsRef.current !== key) {
-            prevPlotsRef.current = key;
-            setShowRainbow(true);
-          }
-          break;
-        }
-      }
-    }
-  }, [state.plots]);
 
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;
@@ -227,7 +204,6 @@ function GameContent() {
       <SeasonalBackground />
       <WeatherEffects />
       <ToastContainer />
-      {showRainbow && <RainbowAnimation onComplete={() => setShowRainbow(false)} />}
       <HarvestEffectLayer effects={effects} />
       <HUD />
 
