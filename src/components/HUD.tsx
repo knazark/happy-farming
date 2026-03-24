@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../state/GameContext';
 import { xpForLevel, MAX_LEVEL } from '../constants/game';
@@ -33,20 +33,6 @@ export function HUD() {
   const now = Date.now();
   const seasonTimeLeft = Math.max(0, Math.ceil(SEASON_DURATION - (now - state.seasonStartedAt) / 1000));
   const weatherTimeLeft = Math.max(0, Math.ceil((state.weather.changesAt - now) / 1000));
-
-  // Easter egg: 3 clicks on weather → night mode toggle
-  const clickCountRef = useRef(0);
-  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleWeatherClick = useCallback(() => {
-    clickCountRef.current++;
-    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-    if (clickCountRef.current >= 3) {
-      clickCountRef.current = 0;
-      toggleNightMode();
-    } else {
-      clickTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 1000);
-    }
-  }, []);
 
   const [nightMode, setNightMode] = useState(false);
 
@@ -101,7 +87,7 @@ export function HUD() {
               <span className="hud-env-timer">{formatTime(seasonTimeLeft)}</span>
             </div>
           </div>
-          <div className="hud-env-item" onClick={handleWeatherClick} style={{ cursor: 'pointer' }}>
+          <div className="hud-env-item">
             <span className="hud-env-emoji">{weather.emoji}</span>
             <div className="hud-env-col">
               <span className="hud-env-name">{weather.name}</span>

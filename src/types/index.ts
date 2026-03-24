@@ -112,7 +112,8 @@ export type AchievementId =
   | 'order_champion'
   | 'social_butterfly'
   | 'level_5'
-  | 'level_max';
+  | 'level_max'
+  | 'rainbow';
 
 export interface AchievementDef {
   id: AchievementId;

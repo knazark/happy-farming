@@ -71,6 +71,13 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementDef> = {
     description: 'Досягніть максимального рівня',
     reward: 200,
   },
+  rainbow: {
+    id: 'rainbow',
+    name: 'Веселка',
+    emoji: '🌈',
+    description: 'Посадіть 🍅🥕🌽🥒🫐🍆 в один ряд',
+    reward: 500,
+  },
 };
 
 export const ACHIEVEMENT_LIST = Object.values(ACHIEVEMENTS);

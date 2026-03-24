@@ -1,4 +1,4 @@
-import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId, DailyQuest } from '../types';
+import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId, DailyQuest, CropId } from '../types';
 import { CROPS } from '../constants/crops';
 import { ANIMALS, INITIAL_FEEDS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
@@ -167,6 +167,22 @@ function checkAchievements(state: GameState): GameState {
   if (state.neighbors.every((n) => n.helpedToday)) grant('social_butterfly');
   if (state.level >= 5) grant('level_5');
   if (state.level >= MAX_LEVEL) grant('level_max');
+
+  // Rainbow easter egg: 🍅🥕🌽🥒🫐🍆 in a single row (any row of 6)
+  if (!earned.includes('rainbow')) {
+    const RAINBOW: CropId[] = ['tomato', 'carrot', 'corn', 'cucumber', 'blueberry', 'eggplant'];
+    const cols = 6;
+    for (let row = 0; row + cols <= state.plots.length; row += cols) {
+      const rowPlots = state.plots.slice(row, row + cols);
+      const match = rowPlots.every((p, i) => {
+        if (p.status === 'growing' || p.status === 'ready') {
+          return p.cropId === RAINBOW[i];
+        }
+        return false;
+      });
+      if (match) { grant('rainbow'); break; }
+    }
+  }
 
   if (earned.length === state.achievements.length) return state;
   return { ...state, achievements: earned, coins: state.coins + bonus };
