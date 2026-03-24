@@ -2215,7 +2215,9 @@ body {
 
 .night-mode .hud-title,
 .night-mode .hud-coins {
-  color: #E2E8F0 !important;
+  color: #FFD700 !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: #475569 !important;
 }
 
 .night-mode .hud-env-name,
