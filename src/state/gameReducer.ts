@@ -240,7 +240,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if ((plot as any).autoCropId) (growingPlot as any).autoCropId = (plot as any).autoCropId;
       newPlots[plotIndex] = growingPlot;
 
-      return { ...state, plots: newPlots, coins: state.coins - crop.seedPrice };
+      return checkAchievements({ ...state, plots: newPlots, coins: state.coins - crop.seedPrice });
     }
 
     case 'HARVEST': {
