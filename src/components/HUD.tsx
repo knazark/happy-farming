@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../state/GameContext';
 import { xpForLevel, MAX_LEVEL } from '../constants/game';
 import { SEASON_INFO, WEATHER_INFO, SEASON_CROP_MULTIPLIER, SEASON_PRICE_MULTIPLIER, SEASON_DURATION } from '../constants/seasons';
+import { showToast } from './Toast';
 
 function formatTime(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -32,6 +33,31 @@ export function HUD() {
   const now = Date.now();
   const seasonTimeLeft = Math.max(0, Math.ceil(SEASON_DURATION - (now - state.seasonStartedAt) / 1000));
   const weatherTimeLeft = Math.max(0, Math.ceil((state.weather.changesAt - now) / 1000));
+
+  // Easter egg: 3 clicks on weather → night mode toggle
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleWeatherClick = useCallback(() => {
+    clickCountRef.current++;
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    if (clickCountRef.current >= 3) {
+      clickCountRef.current = 0;
+      const isNight = document.documentElement.classList.toggle('night-mode');
+      showToast(isNight ? '🌙 Нічний режим!' : '☀️ День повернувся!', 'earn');
+      try { localStorage.setItem('hf_night', isNight ? '1' : ''); } catch {}
+    } else {
+      clickTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 1000);
+    }
+  }, []);
+
+  // Restore night mode on mount
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('hf_night') === '1') {
+        document.documentElement.classList.add('night-mode');
+      }
+    } catch {}
+  }, []);
 
   return (
     <div className="hud">
@@ -67,7 +93,7 @@ export function HUD() {
               <span className="hud-env-timer">{formatTime(seasonTimeLeft)}</span>
             </div>
           </div>
-          <div className="hud-env-item">
+          <div className="hud-env-item" onClick={handleWeatherClick} style={{ cursor: 'pointer' }}>
             <span className="hud-env-emoji">{weather.emoji}</span>
             <div className="hud-env-col">
               <span className="hud-env-name">{weather.name}</span>
