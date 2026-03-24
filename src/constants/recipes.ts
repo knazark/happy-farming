@@ -264,7 +264,7 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
   wooden_chest: {
     id: 'wooden_chest',
     name: "Дерев'яна скринька",
-    emoji: '📦',
+    emoji: '🪵',
     ingredients: { firewood: 5 },
     craftTime: 240,
     sellPrice: 150,
