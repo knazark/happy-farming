@@ -118,7 +118,7 @@ export function CraftingPanel() {
                     })}
                   </div>
                   <span className="recipe-card__info">
-                    💰{recipe.sellPrice} · ⭐{recipe.xpReward}
+                    💰{recipe.sellPrice} · ✨{recipe.xpReward}
                   </span>
                   {max > 1 && (
                     <div className="craft-qty">

@@ -71,7 +71,7 @@ export function SeasonWeatherBar() {
             <span className="mod-info">🪵 Збір дров</span>
             <span className="mod-good">🐾 ×2 продукти</span>
             <span className="mod-good">📋 +50% за крафт</span>
-            <span className="mod-good">⭐ +25% XP</span>
+            <span className="mod-good">✨ +25% XP</span>
           </>
         )}
       </div>

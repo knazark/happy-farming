@@ -36,7 +36,7 @@ export function QuestsPanel() {
                 </span>
               </div>
               <div className="quest-footer">
-                <span className="quest-reward">💰 {quest.reward} · ⭐ {quest.xpReward} XP</span>
+                <span className="quest-reward">💰 {quest.reward} · ✨ {quest.xpReward} XP</span>
                 {quest.completed ? (
                   <span className="quest-done-label">✅ Отримано</span>
                 ) : done ? (
