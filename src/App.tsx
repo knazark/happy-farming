@@ -77,22 +77,27 @@ function GameContent() {
 
   // Rainbow easter egg animation
   const [showRainbow, setShowRainbow] = useState(false);
-  const prevAchievementsRef = useRef(state.achievements.length);
+  const prevPlotsRef = useRef('');
   useEffect(() => {
-    if (state.achievements.length > prevAchievementsRef.current) {
-      if (state.achievements.includes('rainbow') && !prevAchievementsRef.current) {
-        // Check if rainbow was just earned
-        setShowRainbow(true);
-      }
-      // More general: check if rainbow is the new one
-      const prevCount = prevAchievementsRef.current;
-      const newAchievements = state.achievements.slice(prevCount);
-      if (newAchievements.includes('rainbow')) {
-        setShowRainbow(true);
+    // Check rainbow: 6 identical crops in any row
+    const cols = 6;
+    for (let row = 0; row + cols <= state.plots.length; row += cols) {
+      const rowPlots = state.plots.slice(row, row + cols);
+      const first = rowPlots[0];
+      if ((first.status === 'growing' || first.status === 'ready')) {
+        const target = first.cropId;
+        if (rowPlots.every((p) => (p.status === 'growing' || p.status === 'ready') && p.cropId === target)) {
+          // Check it's a new match (not same as last check)
+          const key = `${row}:${target}`;
+          if (prevPlotsRef.current !== key) {
+            prevPlotsRef.current = key;
+            setShowRainbow(true);
+          }
+          break;
+        }
       }
     }
-    prevAchievementsRef.current = state.achievements.length;
-  }, [state.achievements]);
+  }, [state.plots]);
 
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;

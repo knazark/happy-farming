@@ -10,8 +10,8 @@ export function RainbowAnimation({ onComplete }: RainbowAnimationProps) {
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('show'), 100);
-    const t2 = setTimeout(() => setPhase('exit'), 3500);
-    const t3 = setTimeout(onComplete, 4500);
+    const t2 = setTimeout(() => setPhase('exit'), 9000);
+    const t3 = setTimeout(onComplete, 10000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onComplete]);
 
