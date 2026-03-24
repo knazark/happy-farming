@@ -30,11 +30,25 @@ function resetDailyIfNeeded(state: GameState): GameState {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function migrateInventory(inv: any): Inventory {
+  const result = { ...(inv ?? {}) } as Inventory;
+  // Rename radish → pepper
+  if ('radish' in result) {
+    (result as any).pepper = ((result as any).pepper ?? 0) + ((result as any).radish ?? 0);
+    delete (result as any).radish;
+  }
+  return result;
+}
+
 export function migrateSave(state: any): GameState {
   return resetDailyIfNeeded({
     coins: state.coins ?? STARTING_COINS,
-    plots: (state.plots as PlotState[]) ?? [],
-    inventory: (state.inventory as Inventory) ?? {},
+    plots: ((state.plots ?? []) as any[]).map((p: any) => {
+      if (p.cropId === 'radish') return { ...p, cropId: 'pepper' };
+      if (p.autoCropId === 'radish') return { ...p, autoCropId: 'pepper' };
+      return p;
+    }) as PlotState[],
+    inventory: migrateInventory(state.inventory),
     animals: (state.animals ?? []).map((a: any) => ({ ...a, feedsLeft: a.feedsLeft ?? INITIAL_FEEDS })),
     lastTickAt: state.lastTickAt ?? Date.now(),
     totalEarned: state.totalEarned ?? 0,
