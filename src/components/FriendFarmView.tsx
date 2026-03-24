@@ -215,22 +215,13 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   }
 
   const groups = groupAnimals(state.animals, now, state.feedActiveUntil);
-  const canHarvest = !helpedToday && !harvesting && !friendOnline;
+  const canHarvest = !helpedToday && !harvesting;
 
   return (
     <div className={`friend-farm ${canHarvest ? 'friend-farm-harvest' : ''}`}>
       {header}
 
-      {friendOnline && (
-        <div style={{
-          textAlign: 'center', padding: '8px', marginBottom: '8px',
-          background: 'rgba(33, 150, 243, 0.15)', borderRadius: '10px',
-          fontSize: '13px', color: '#1565C0',
-        }}>
-          🟢 {profile.name} зараз онлайн — збирати можна коли друг офлайн
-        </div>
-      )}
-      {!friendOnline && !helpedToday && readyCount > 0 && (
+      {!helpedToday && readyCount > 0 && (
         <div style={{
           textAlign: 'center', padding: '8px', marginBottom: '8px',
           background: 'rgba(76, 175, 80, 0.15)', borderRadius: '10px',
