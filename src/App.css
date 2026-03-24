@@ -304,14 +304,12 @@ body {
   display: flex;
   justify-content: center;
   gap: 2px;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #FFFFFF;
   padding: 6px 12px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(124,77,255,0.12);
+  border-top: 2px solid #E0E0E0;
   z-index: 90;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
 }
 
 .bar-btn {
