@@ -74,10 +74,7 @@ function GameContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Apply season class to body for background
-  useEffect(() => {
-    document.body.className = `season-${state.season}`;
-  }, [state.season]);
+  // Season class no longer used for background (unified day theme)
 
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;
