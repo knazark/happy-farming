@@ -5,7 +5,7 @@ import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
 import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, TRACTOR_REQUIRED_LEVEL, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_REQUIRED_LEVEL, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_REQUIRED_LEVEL, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, TRACTOR_FUEL_PREMIUM_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT, KALEB_FOOD_PREMIUM_AMOUNT } from '../constants/game';
 import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
-import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
+import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_AMOUNT, STORAGE_MAX, storageUpgradeCost } from '../constants/recipes';
 import { SEASON_CROP_MULTIPLIER, WEATHER_CROP_MULTIPLIER, SEASONAL_CROP_BONUS, SEASONAL_BONUS_MULTIPLIER, SEASON_PRICE_MULTIPLIER } from '../constants/seasons';
 import { ACHIEVEMENTS } from '../constants/achievements';
 import { generateDailyQuests } from '../constants/quests';
@@ -571,12 +571,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'UPGRADE_STORAGE': {
-      if (state.coins < STORAGE_UPGRADE_COST) return state;
+      if (state.storageCapacity >= STORAGE_MAX) return state;
+      const upgradeCost = storageUpgradeCost(state.storageCapacity);
+      if (state.coins < upgradeCost) return state;
 
       return {
         ...state,
-        coins: state.coins - STORAGE_UPGRADE_COST,
-        storageCapacity: state.storageCapacity + STORAGE_UPGRADE_AMOUNT,
+        coins: state.coins - upgradeCost,
+        storageCapacity: Math.min(state.storageCapacity + STORAGE_UPGRADE_AMOUNT, STORAGE_MAX),
       };
     }
 

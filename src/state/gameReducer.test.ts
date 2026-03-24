@@ -3,7 +3,7 @@ import { createInitialState, gameReducer, migrateSave } from './gameReducer';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, xpForLevel } from '../constants/game';
-import { RECIPES, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT, STORAGE_BASE } from '../constants/recipes';
+import { RECIPES, STORAGE_UPGRADE_AMOUNT, STORAGE_BASE, STORAGE_MAX, storageUpgradeCost } from '../constants/recipes';
 import { WOOD_GATHER_TIME, WOOD_SELL_PRICE, WOOD_XP_REWARD, SOIL_UPGRADE_COSTS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL } from '../constants/winter';
 import { HELP_COIN_REWARD, HELP_XP_REWARD, GIFT_COIN_REWARD } from '../constants/neighbors';
 import { INITIAL_UNLOCKED, TOTAL_PLOTS } from '../constants/grid';
@@ -1002,17 +1002,31 @@ describe('FULFILL_ORDER action', () => {
 });
 
 describe('UPGRADE_STORAGE action', () => {
-  it('upgrades storage capacity', () => {
+  it('upgrades storage capacity with scaling cost', () => {
     const state = makeState({ coins: 500, storageCapacity: STORAGE_BASE });
+    const cost = storageUpgradeCost(STORAGE_BASE);
     const result = gameReducer(state, { type: 'UPGRADE_STORAGE' });
     expect(result.storageCapacity).toBe(STORAGE_BASE + STORAGE_UPGRADE_AMOUNT);
-    expect(result.coins).toBe(500 - STORAGE_UPGRADE_COST);
+    expect(result.coins).toBe(500 - cost);
   });
 
   it('does nothing if not enough coins', () => {
     const state = makeState({ coins: 0, storageCapacity: STORAGE_BASE });
     const result = gameReducer(state, { type: 'UPGRADE_STORAGE' });
     expect(result.storageCapacity).toBe(STORAGE_BASE);
+  });
+
+  it('does nothing if at max capacity', () => {
+    const state = makeState({ coins: 99999, storageCapacity: STORAGE_MAX });
+    const result = gameReducer(state, { type: 'UPGRADE_STORAGE' });
+    expect(result.storageCapacity).toBe(STORAGE_MAX);
+    expect(result.coins).toBe(99999);
+  });
+
+  it('cost increases with each upgrade', () => {
+    const cost0 = storageUpgradeCost(STORAGE_BASE);
+    const cost1 = storageUpgradeCost(STORAGE_BASE + STORAGE_UPGRADE_AMOUNT);
+    expect(cost1).toBeGreaterThan(cost0);
   });
 });
 

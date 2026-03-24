@@ -2,7 +2,7 @@ import { useGame } from '../state/GameContext';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { RECIPES } from '../constants/recipes';
-import { STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
+import { STORAGE_UPGRADE_AMOUNT, STORAGE_MAX, storageUpgradeCost } from '../constants/recipes';
 import { WOOD_SELL_PRICE } from '../constants/winter';
 import { showToast } from './Toast';
 import type { ItemId } from '../types';
@@ -135,16 +135,23 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
         </>
       )}
 
-      <button
-        className="btn btn-buy shop-upgrade-btn"
-        disabled={state.coins < STORAGE_UPGRADE_COST}
-        onClick={() => {
-          dispatch({ type: 'UPGRADE_STORAGE' });
-          showToast(`🧺 Інвентар збільшено! +${STORAGE_UPGRADE_AMOUNT} місць −${STORAGE_UPGRADE_COST}💰`, 'spend');
-        }}
-      >
-        🧺 Збільшити +{STORAGE_UPGRADE_AMOUNT} ({STORAGE_UPGRADE_COST}💰)
-      </button>
+      {state.storageCapacity < STORAGE_MAX ? (
+        <button
+          className="btn btn-buy shop-upgrade-btn"
+          disabled={state.coins < storageUpgradeCost(state.storageCapacity)}
+          onClick={() => {
+            const cost = storageUpgradeCost(state.storageCapacity);
+            dispatch({ type: 'UPGRADE_STORAGE' });
+            showToast(`🧺 Інвентар збільшено! +${STORAGE_UPGRADE_AMOUNT} місць −${cost}💰`, 'spend');
+          }}
+        >
+          🧺 Збільшити +{STORAGE_UPGRADE_AMOUNT} ({storageUpgradeCost(state.storageCapacity)}💰)
+        </button>
+      ) : (
+        <div style={{ textAlign: 'center', color: '#9E86B8', fontSize: '13px', padding: '8px' }}>
+          📦 Максимальний інвентар ({STORAGE_MAX})
+        </div>
+      )}
     </div>
   );
 }
