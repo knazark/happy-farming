@@ -2,7 +2,7 @@ import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, TRACTOR_REQUIRED_LEVEL, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_REQUIRED_LEVEL, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_REQUIRED_LEVEL, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, TRACTOR_REQUIRED_LEVEL, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_REQUIRED_LEVEL, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_REQUIRED_LEVEL, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT } from '../constants/game';
 import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
 import { DEFAULT_NEIGHBORS, HELP_XP_REWARD, HELP_COIN_REWARD, GIFT_COIN_REWARD, GIFT_FERTILIZER_CHANCE } from '../constants/neighbors';
 import { RECIPES, STORAGE_BASE, STORAGE_UPGRADE_COST, STORAGE_UPGRADE_AMOUNT } from '../constants/recipes';
@@ -64,6 +64,8 @@ export function migrateSave(state: any): GameState {
     hasTractor: state.hasTractor ?? false,
     hasAutoCollector: state.hasAutoCollector ?? false,
     hasAutoPlanter: state.hasAutoPlanter ?? false,
+    tractorFuel: state.tractorFuel ?? 0,
+    kalebFood: state.kalebFood ?? 0,
   } as GameState);
 }
 
@@ -105,6 +107,8 @@ export function createInitialState(): GameState {
     hasTractor: false,
     hasAutoCollector: false,
     hasAutoPlanter: false,
+    tractorFuel: 0,
+    kalebFood: 0,
   };
 }
 
@@ -741,6 +745,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       delete (cleaned as any).autoCropId;
       newPlots[plotIndex] = cleaned as PlotState;
       return { ...state, plots: newPlots };
+    }
+
+    case 'BUY_TRACTOR_FUEL': {
+      if (!state.hasTractor) return state;
+      if (state.coins < TRACTOR_FUEL_PRICE) return state;
+      return {
+        ...state,
+        coins: state.coins - TRACTOR_FUEL_PRICE,
+        tractorFuel: state.tractorFuel + TRACTOR_FUEL_AMOUNT,
+      };
+    }
+
+    case 'BUY_KALEB_FOOD': {
+      if (!state.hasAutoCollector) return state;
+      if (state.coins < KALEB_FOOD_PRICE) return state;
+      return {
+        ...state,
+        coins: state.coins - KALEB_FOOD_PRICE,
+        kalebFood: state.kalebFood + KALEB_FOOD_AMOUNT,
+      };
     }
 
     case 'FRIEND_HARVEST_REWARD': {

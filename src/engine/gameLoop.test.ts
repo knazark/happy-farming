@@ -113,7 +113,7 @@ describe('tick — tractor auto-harvest', () => {
   it('harvests all ready crops when hasTractor is true', () => {
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       plots: [
         { status: 'ready', cropId: 'wheat' },
         { status: 'ready', cropId: 'carrot' },
@@ -151,7 +151,7 @@ describe('tick — tractor auto-harvest', () => {
   it('decrements soil harvests on tractor harvest', () => {
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       plots: [
         { status: 'ready', cropId: 'wheat', soilLevel: 1, soilHarvestsLeft: 2 },
         ...Array(23).fill({ status: 'locked' }),
@@ -170,7 +170,7 @@ describe('tick — tractor auto-harvest', () => {
   it('clears soil when harvests depleted by tractor', () => {
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       plots: [
         { status: 'ready', cropId: 'wheat', soilLevel: 1, soilHarvestsLeft: 1 },
         ...Array(23).fill({ status: 'locked' }),
@@ -188,7 +188,7 @@ describe('tick — tractor auto-harvest', () => {
   it('preserves autoCropId through tractor harvest', () => {
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       plots: [
         { status: 'ready', cropId: 'wheat', autoCropId: 'wheat' } as PlotState,
         ...Array(23).fill({ status: 'locked' }),
@@ -205,7 +205,7 @@ describe('tick — auto-collector', () => {
     const lastCollectedAt = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasAutoCollector: true,
+      hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
       animals: [{ animalId: 'chicken', lastCollectedAt }],
     });
@@ -219,7 +219,7 @@ describe('tick — auto-collector', () => {
     const lastCollectedAt = NOW - 10 * 1000; // only 10 seconds
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasAutoCollector: true,
+      hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
       animals: [{ animalId: 'chicken', lastCollectedAt }],
     });
@@ -248,7 +248,7 @@ describe('tick — auto-collector', () => {
     const lastCollectedAt = NOW - (halfTime + 1) * 1000;
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasAutoCollector: true,
+      hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: NOW + 60000, // feed still active
       animals: [{ animalId: 'chicken', lastCollectedAt }],
     });
@@ -580,7 +580,7 @@ describe('tick — inventory full guards', () => {
     const inv: Record<string, number> = { wheat: 50 };
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       inventory: inv,
       storageCapacity: 50,
       plots: [
@@ -599,7 +599,7 @@ describe('tick — inventory full guards', () => {
     const inv: Record<string, number> = { wheat: 10 };
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasTractor: true,
+      hasTractor: true, tractorFuel: 999,
       inventory: inv,
       storageCapacity: 50,
       plots: [
@@ -618,7 +618,7 @@ describe('tick — inventory full guards', () => {
     const inv: Record<string, number> = { wheat: 50 };
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasAutoCollector: true,
+      hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
       inventory: inv,
       storageCapacity: 50,
@@ -636,7 +636,7 @@ describe('tick — inventory full guards', () => {
     const inv: Record<string, number> = { wheat: 10 };
     const state = makeState({
       lastTickAt: NOW - 1000,
-      hasAutoCollector: true,
+      hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
       inventory: inv,
       storageCapacity: 50,

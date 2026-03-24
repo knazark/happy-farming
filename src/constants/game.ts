@@ -49,6 +49,14 @@ export const TRACTOR_REQUIRED_LEVEL = 7;
 export const TRACTOR_REQUIRED_CRAFTS = ['farmer_pie', 'jam', 'pickle'] as const;
 export const AUTO_PLANTER_MAX_PLOTS = 3;
 
+// Tractor fuel & Kaleb food (consumables for auto-collectors)
+export const TRACTOR_FUEL_PRICE = 50;       // 50💰 = 100 units
+export const TRACTOR_FUEL_AMOUNT = 100;
+export const TRACTOR_FUEL_PREMIUM_AMOUNT = 200; // craft = 200 units
+export const KALEB_FOOD_PRICE = 30;         // 30💰 = 100 units
+export const KALEB_FOOD_AMOUNT = 100;
+export const KALEB_FOOD_PREMIUM_AMOUNT = 200;  // craft = 200 units
+
 export function xpForLevel(level: number): number {
   return Math.floor(XP_BASE * Math.pow(level, XP_EXPONENT));
 }

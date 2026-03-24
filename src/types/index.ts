@@ -166,6 +166,8 @@ export interface GameState {
   hasTractor: boolean;
   hasAutoCollector: boolean;
   hasAutoPlanter: boolean;
+  tractorFuel: number;
+  kalebFood: number;
   helpLog?: { helper: string; cropId: CropId; at: number }[];
   checksum?: string;
 }
@@ -200,6 +202,8 @@ export type GameAction =
   | { type: 'COLLECT_WOOD'; plotIndex: number }
   | { type: 'UPGRADE_SOIL'; plotIndex: number }
   | { type: 'FRIEND_HARVEST_REWARD'; coins: number; xp: number }
+  | { type: 'BUY_TRACTOR_FUEL'; premium?: boolean }
+  | { type: 'BUY_KALEB_FOOD'; premium?: boolean }
   | { type: 'CLEAR_HELP_LOG' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };

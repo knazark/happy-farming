@@ -84,13 +84,15 @@ export function tick(state: GameState, now: number): GameState {
     newState = { ...newState, plots: newPlots };
   }
 
-  // Tractor: auto-harvest ready crops (skip if inventory full)
+  // Tractor: auto-harvest ready crops (skip if inventory full or no fuel)
   const totalItemsForTractor = Object.values(newState.inventory).reduce((s, n) => s + (n ?? 0), 0);
-  if (newState.hasTractor && totalItemsForTractor < newState.storageCapacity) {
+  if (newState.hasTractor && newState.tractorFuel > 0 && totalItemsForTractor < newState.storageCapacity) {
     let tractorHarvested = false;
+    let fuelUsed = 0;
     const tractorPlots: PlotState[] = newState.plots.map((plot) => {
-      if (plot.status === 'ready') {
+      if (plot.status === 'ready' && fuelUsed < newState.tractorFuel) {
         tractorHarvested = true;
+        fuelUsed++;
         // Decrement soil harvests
         let soilLevel = plot.soilLevel;
         let soilHarvestsLeft = plot.soilHarvestsLeft;
@@ -113,8 +115,9 @@ export function tick(state: GameState, now: number): GameState {
       let earned = 0;
       let harvestCount = 0;
 
-      for (const plot of newState.plots) {
-        if (plot.status === 'ready') {
+      for (let i = 0; i < newState.plots.length; i++) {
+        const plot = newState.plots[i];
+        if (plot.status === 'ready' && tractorPlots[i].status !== 'ready') {
           const crop = CROPS[plot.cropId];
           inv = { ...inv, [plot.cropId]: (inv[plot.cropId] ?? 0) + 1 };
           earned += crop.sellPrice;
@@ -128,36 +131,36 @@ export function tick(state: GameState, now: number): GameState {
         inventory: inv,
         totalEarned: newState.totalEarned + earned,
         totalHarvested: newState.totalHarvested + harvestCount,
+        tractorFuel: newState.tractorFuel - fuelUsed,
       };
     }
   }
 
-  // Auto-collector: auto-collect ready animal products (skip if inventory full)
+  // Auto-collector: auto-collect ready animal products (skip if inventory full or no food)
   const totalItemsForCollector = Object.values(newState.inventory).reduce((s, n) => s + (n ?? 0), 0);
-  if (newState.hasAutoCollector && totalItemsForCollector < newState.storageCapacity) {
-    let collectorCollected = false;
+  if (newState.hasAutoCollector && newState.kalebFood > 0 && totalItemsForCollector < newState.storageCapacity) {
+    let foodUsed = 0;
     const collectorAnimals = newState.animals.map((slot) => {
+      if (foodUsed >= newState.kalebFood) return slot;
       const animal = ANIMALS[slot.animalId];
       const isFeedActive = now < newState.feedActiveUntil;
       const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
       const elapsed = (now - slot.lastCollectedAt) / 1000;
       if (elapsed >= effectiveTime) {
-        collectorCollected = true;
+        foodUsed++;
         return { ...slot, lastCollectedAt: now };
       }
       return slot;
     });
 
-    if (collectorCollected) {
+    if (foodUsed > 0) {
       let inv: Inventory = { ...newState.inventory };
 
       for (let i = 0; i < newState.animals.length; i++) {
         const slot = newState.animals[i];
-        const animal = ANIMALS[slot.animalId];
-        const isFeedActive = now < newState.feedActiveUntil;
-        const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
-        const elapsed = (now - slot.lastCollectedAt) / 1000;
-        if (elapsed >= effectiveTime) {
+        const newSlot = collectorAnimals[i];
+        // Only count animals that were actually collected (lastCollectedAt changed)
+        if (slot.lastCollectedAt !== newSlot.lastCollectedAt) {
           const itemId = `${slot.animalId}_product` as ItemId;
           inv = { ...inv, [itemId]: (inv[itemId] ?? 0) + 1 };
         }
@@ -167,6 +170,7 @@ export function tick(state: GameState, now: number): GameState {
         ...newState,
         animals: collectorAnimals,
         inventory: inv,
+        kalebFood: newState.kalebFood - foodUsed,
       };
     }
   }
