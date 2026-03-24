@@ -37,6 +37,11 @@ function migrateInventory(inv: any): Inventory {
     (result as any).pepper = ((result as any).pepper ?? 0) + ((result as any).radish ?? 0);
     delete (result as any).radish;
   }
+  // Rename beet → peas
+  if ('beet' in result) {
+    (result as any).peas = ((result as any).peas ?? 0) + ((result as any).beet ?? 0);
+    delete (result as any).beet;
+  }
   return result;
 }
 
@@ -44,9 +49,12 @@ export function migrateSave(state: any): GameState {
   return resetDailyIfNeeded({
     coins: state.coins ?? STARTING_COINS,
     plots: ((state.plots ?? []) as any[]).map((p: any) => {
-      if (p.cropId === 'radish') return { ...p, cropId: 'pepper' };
-      if (p.autoCropId === 'radish') return { ...p, autoCropId: 'pepper' };
-      return p;
+      let plot = p;
+      if (plot.cropId === 'radish') plot = { ...plot, cropId: 'pepper' };
+      if (plot.cropId === 'beet') plot = { ...plot, cropId: 'peas' };
+      if (plot.autoCropId === 'radish') plot = { ...plot, autoCropId: 'pepper' };
+      if (plot.autoCropId === 'beet') plot = { ...plot, autoCropId: 'peas' };
+      return plot;
     }) as PlotState[],
     inventory: migrateInventory(state.inventory),
     animals: (state.animals ?? []).map((a: any) => ({ ...a, feedsLeft: a.feedsLeft ?? INITIAL_FEEDS })),

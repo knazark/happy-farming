@@ -37,9 +37,9 @@ export const SEASON_PRICE_MULTIPLIER: Record<Season, number> = {
 
 // Seasonal crop bonuses — these crops grow extra fast in their preferred season
 export const SEASONAL_CROP_BONUS: Partial<Record<Season, CropId[]>> = {
-  spring: ['carrot', 'potato', 'cherry', 'pepper', 'strawberry'],
+  spring: ['carrot', 'potato', 'cherry', 'pepper', 'strawberry', 'peas'],
   summer: ['tomato', 'sunflower', 'watermelon', 'melon', 'peach', 'cucumber', 'eggplant'],
-  autumn: ['wheat', 'corn', 'pumpkin', 'grape', 'cabbage', 'beet'],
+  autumn: ['wheat', 'corn', 'pumpkin', 'grape', 'cabbage'],
 };
 
 export const SEASONAL_BONUS_MULTIPLIER = 0.6; // extra speed for bonus crops

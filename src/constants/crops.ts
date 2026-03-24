@@ -163,17 +163,17 @@ export const CROPS: Record<CropId, CropDef> = {
     xpReward: 30,
     seasonOnly: 'spring',
   },
-  beet: {
-    id: 'beet',
-    name: 'Буряк',
-    emoji: '🟣',
+  peas: {
+    id: 'peas',
+    name: 'Горох',
+    emoji: '🫛',
     seedEmoji: '🌱',
     growthTime: 360,      // 6 хв
     seedPrice: 22,
     sellPrice: 60,
     unlockLevel: 6,
     xpReward: 24,
-    seasonOnly: 'autumn',
+    seasonOnly: 'spring',
   },
   blueberry: {
     id: 'blueberry',
