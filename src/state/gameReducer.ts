@@ -1,6 +1,6 @@
 import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId, DailyQuest } from '../types';
 import { CROPS } from '../constants/crops';
-import { ANIMALS } from '../constants/animals';
+import { ANIMALS, INITIAL_FEEDS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
 import { STARTING_COINS, MAX_ANIMALS, penUpgradeCost, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, xpForLevel, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, TRACTOR_REQUIRED_LEVEL, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_REQUIRED_LEVEL, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_REQUIRED_LEVEL, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, TRACTOR_FUEL_PREMIUM_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT, KALEB_FOOD_PREMIUM_AMOUNT } from '../constants/game';
 import { WOOD_GATHER_TIME, WOOD_XP_REWARD, WOOD_SELL_PRICE, SOIL_UPGRADE_COSTS, SOIL_GROWTH_BONUS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL, WINTER_CRAFT_ORDER_BONUS, WINTER_ORDER_XP_BONUS } from '../constants/winter';
@@ -35,7 +35,7 @@ export function migrateSave(state: any): GameState {
     coins: state.coins ?? STARTING_COINS,
     plots: (state.plots as PlotState[]) ?? [],
     inventory: (state.inventory as Inventory) ?? {},
-    animals: state.animals ?? [],
+    animals: (state.animals ?? []).map((a: any) => ({ ...a, feedsLeft: a.feedsLeft ?? INITIAL_FEEDS })),
     lastTickAt: state.lastTickAt ?? Date.now(),
     totalEarned: state.totalEarned ?? 0,
     xp: state.xp ?? 0,
@@ -326,7 +326,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const bought: GameState = {
         ...state,
         coins: state.coins - price,
-        animals: [...state.animals, { animalId, lastCollectedAt: Date.now() }],
+        animals: [...state.animals, { animalId, lastCollectedAt: Date.now(), feedsLeft: INITIAL_FEEDS }],
       };
       return checkAchievements(bought);
     }
@@ -335,13 +335,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { animalIndex } = action;
       const slot = state.animals[animalIndex];
       if (!slot) return state;
+      if ((slot.feedsLeft ?? 0) <= 0) return state; // hungry — can't produce
 
       const animal = ANIMALS[slot.animalId];
       const elapsed = (Date.now() - slot.lastCollectedAt) / 1000;
       if (elapsed < animal.productionTime) return state;
 
       const newAnimals = [...state.animals];
-      newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now() };
+      newAnimals[animalIndex] = { ...slot, lastCollectedAt: Date.now(), feedsLeft: (slot.feedsLeft ?? 0) - 1 };
       const itemId: ItemId = `${slot.animalId}_product`;
 
       const qty = state.season === 'summer' ? 2 : 1;
@@ -777,6 +778,42 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
       if (state.coins < KALEB_FOOD_PRICE) return state;
       return { ...state, coins: state.coins - KALEB_FOOD_PRICE, kalebFood: state.kalebFood + KALEB_FOOD_AMOUNT };
+    }
+
+    case 'FEED_ANIMAL': {
+      const { animalIndex } = action;
+      const slot = state.animals[animalIndex];
+      if (!slot) return state;
+
+      const animal = ANIMALS[slot.animalId];
+      const feedCrop = animal.feedCrop;
+      const have = state.inventory[feedCrop] ?? 0;
+      if (have < 1) return state;
+
+      const newInvFeed = { ...state.inventory };
+      const remaining = have - 1;
+      if (remaining <= 0) { delete newInvFeed[feedCrop]; } else { newInvFeed[feedCrop] = remaining; }
+
+      const newAnimals = [...state.animals];
+      newAnimals[animalIndex] = { ...slot, feedsLeft: (slot.feedsLeft ?? 0) + animal.feedsPerUnit };
+
+      return { ...state, inventory: newInvFeed, animals: newAnimals };
+    }
+
+    case 'FEED_ALL_ANIMALS': {
+      let inv = { ...state.inventory };
+      const newAnimals = state.animals.map((slot) => {
+        if ((slot.feedsLeft ?? 0) > 0) return slot; // still has food, skip
+        const animal = ANIMALS[slot.animalId];
+        const feedCrop = animal.feedCrop;
+        const have = inv[feedCrop] ?? 0;
+        if (have < 1) return slot; // no food available
+        const remaining = have - 1;
+        if (remaining <= 0) { delete inv[feedCrop]; } else { inv[feedCrop] = remaining; }
+        return { ...slot, feedsLeft: animal.feedsPerUnit };
+      });
+
+      return { ...state, inventory: inv, animals: newAnimals };
     }
 
     case 'FRIEND_HARVEST_REWARD': {

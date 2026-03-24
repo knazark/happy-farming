@@ -4,6 +4,7 @@ import { ANIMALS } from '../constants/animals';
 import { getPerPlotUnlockInfo } from '../engine/economy';
 import { PlotCell } from './PlotCell';
 import { AnimalCard, groupAnimals } from './AnimalCard';
+import { showToast } from './Toast';
 
 interface FarmViewProps {
   onPlotClick: (plotIndex: number) => void;
@@ -12,7 +13,7 @@ interface FarmViewProps {
 }
 
 export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewProps) {
-  const { state } = useGame();
+  const { state, dispatch } = useGame();
   const [hoveredPlot, setHoveredPlot] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -44,6 +45,7 @@ export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewPro
       const readySlotIdx = state.animals.findIndex(
         (s) =>
           s.animalId === group.animalId &&
+          (s.feedsLeft ?? 0) > 0 &&
           (now - s.lastCollectedAt) / 1000 >= effectiveTime,
       );
       if (readySlotIdx !== -1) {
@@ -52,6 +54,40 @@ export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewPro
     },
     [groups, now, state.feedActiveUntil, state.animals, onAnimalClick],
   );
+
+  const handleFeedGroup = useCallback(
+    (groupIndex: number) => {
+      const group = groups[groupIndex];
+      if (!group) return;
+      const animal = ANIMALS[group.animalId];
+      const have = state.inventory[animal.feedCrop] ?? 0;
+      if (have < 1) {
+        showToast(`Потрібно ${animal.feedCrop === 'corn' ? '🌽' : animal.feedCrop === 'carrot' ? '🥕' : animal.feedCrop === 'sunflower' ? '🌻' : '🌾'} для годування!`, 'info');
+        return;
+      }
+      // Feed the first hungry animal in this group
+      const hungryIdx = state.animals.findIndex(
+        (s) => s.animalId === group.animalId && (s.feedsLeft ?? 0) <= 0,
+      );
+      if (hungryIdx !== -1) {
+        dispatch({ type: 'FEED_ANIMAL', animalIndex: hungryIdx });
+        showToast(`${animal.emoji} нагодовано!`, 'earn');
+      }
+    },
+    [groups, state.inventory, state.animals, dispatch],
+  );
+
+  const handleFeedAll = useCallback(() => {
+    const hungryCount = state.animals.filter((s) => (s.feedsLeft ?? 0) <= 0).length;
+    if (hungryCount === 0) {
+      showToast('Всі тварини ситі! 😊', 'info');
+      return;
+    }
+    dispatch({ type: 'FEED_ALL_ANIMALS' });
+    showToast(`🌾 Нагодовано тварин!`, 'earn');
+  }, [state.animals, dispatch]);
+
+  const hasHungryAnimals = state.animals.some((s) => (s.feedsLeft ?? 0) <= 0);
 
   return (
     <div className="farm-view">
@@ -75,7 +111,19 @@ export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewPro
 
       {/* Animal pen */}
       <div className="animal-pen">
-        <div className="animal-pen-label">Тварини</div>
+        <div className="animal-pen-label">
+          Тварини
+          {hasHungryAnimals && (
+            <button
+              type="button"
+              className="btn btn-buy"
+              style={{ fontSize: '11px', padding: '2px 8px', marginLeft: '8px' }}
+              onClick={handleFeedAll}
+            >
+              🌾 Годувати всіх
+            </button>
+          )}
+        </div>
         <div className="animal-grid">
           {groups.map((group, i) => (
             <AnimalCard
@@ -85,6 +133,8 @@ export function FarmView({ onPlotClick, onAnimalClick, onOpenShop }: FarmViewPro
               feedActiveUntil={state.feedActiveUntil}
               season={state.season}
               onClick={() => handleAnimalClick(i)}
+              onFeed={() => handleFeedGroup(i)}
+              canFeed={(state.inventory[ANIMALS[group.animalId].feedCrop] ?? 0) > 0}
             />
           ))}
           {state.animals.length < (state.maxAnimals ?? 16) && (

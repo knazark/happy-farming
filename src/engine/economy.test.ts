@@ -105,7 +105,7 @@ describe('getAnimalPrice', () => {
 
   it('doubles price for each existing animal of same type', () => {
     const animals: AnimalSlot[] = [
-      { animalId: 'chicken', lastCollectedAt: 0 },
+      { animalId: 'chicken', feedsLeft: 5, lastCollectedAt: 0 },
     ];
     const price = getAnimalPrice('chicken', animals);
     expect(price).toBe(ANIMALS.chicken.buyPrice * 2);
@@ -113,8 +113,8 @@ describe('getAnimalPrice', () => {
 
   it('quadruples for 2 owned', () => {
     const animals: AnimalSlot[] = [
-      { animalId: 'chicken', lastCollectedAt: 0 },
-      { animalId: 'chicken', lastCollectedAt: 0 },
+      { animalId: 'chicken', feedsLeft: 5, lastCollectedAt: 0 },
+      { animalId: 'chicken', feedsLeft: 5, lastCollectedAt: 0 },
     ];
     const price = getAnimalPrice('chicken', animals);
     expect(price).toBe(ANIMALS.chicken.buyPrice * 4);
@@ -122,8 +122,8 @@ describe('getAnimalPrice', () => {
 
   it('is not affected by other animal types', () => {
     const animals: AnimalSlot[] = [
-      { animalId: 'cow', lastCollectedAt: 0 },
-      { animalId: 'pig', lastCollectedAt: 0 },
+      { animalId: 'cow', feedsLeft: 5, lastCollectedAt: 0 },
+      { animalId: 'pig', feedsLeft: 5, lastCollectedAt: 0 },
     ];
     const price = getAnimalPrice('chicken', animals);
     expect(price).toBe(ANIMALS.chicken.buyPrice);
@@ -131,7 +131,7 @@ describe('getAnimalPrice', () => {
 
   it('works for expensive animals', () => {
     const animals: AnimalSlot[] = [
-      { animalId: 'horse', lastCollectedAt: 0 },
+      { animalId: 'horse', feedsLeft: 5, lastCollectedAt: 0 },
     ];
     const price = getAnimalPrice('horse', animals);
     expect(price).toBe(ANIMALS.horse.buyPrice * 2);

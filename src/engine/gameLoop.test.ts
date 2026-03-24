@@ -207,7 +207,7 @@ describe('tick — auto-collector', () => {
       lastTickAt: NOW - 1000,
       hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);
@@ -221,7 +221,7 @@ describe('tick — auto-collector', () => {
       lastTickAt: NOW - 1000,
       hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: 0,
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);
@@ -235,7 +235,7 @@ describe('tick — auto-collector', () => {
       lastTickAt: NOW - 1000,
       hasAutoCollector: false,
       feedActiveUntil: 0,
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);
@@ -250,7 +250,7 @@ describe('tick — auto-collector', () => {
       lastTickAt: NOW - 1000,
       hasAutoCollector: true, kalebFood: 999,
       feedActiveUntil: NOW + 60000, // feed still active
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);
@@ -622,7 +622,7 @@ describe('tick — inventory full guards', () => {
       feedActiveUntil: 0,
       inventory: inv,
       storageCapacity: 50,
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);
@@ -640,7 +640,7 @@ describe('tick — inventory full guards', () => {
       feedActiveUntil: 0,
       inventory: inv,
       storageCapacity: 50,
-      animals: [{ animalId: 'chicken', lastCollectedAt }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt }],
     });
 
     const result = tick(state, NOW);

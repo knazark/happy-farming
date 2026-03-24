@@ -346,7 +346,7 @@ describe('BUY_ANIMAL action', () => {
   });
 
   it('does nothing if at max animals', () => {
-    const animals = Array(MAX_ANIMALS).fill(null).map(() => ({ animalId: 'chicken' as const, lastCollectedAt: NOW }));
+    const animals = Array(MAX_ANIMALS).fill(null).map(() => ({ animalId: 'chicken' as const, feedsLeft: 5, lastCollectedAt: NOW }));
     const state = makeState({ animals, coins: 99999, level: 10 });
     const result = gameReducer(state, { type: 'BUY_ANIMAL', animalId: 'chicken' });
     expect(result.animals.length).toBe(MAX_ANIMALS);
@@ -362,7 +362,7 @@ describe('BUY_ANIMAL action', () => {
     const state = makeState({
       coins: 99999,
       level: 1,
-      animals: [{ animalId: 'chicken', lastCollectedAt: NOW }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: NOW }],
       achievements: ['first_animal'], // pre-grant to avoid bonus coins
     });
     const result = gameReducer(state, { type: 'BUY_ANIMAL', animalId: 'chicken' });
@@ -377,7 +377,7 @@ describe('COLLECT_PRODUCT action', () => {
     const past = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
-      animals: [{ animalId: 'chicken', lastCollectedAt: past }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: past }],
     });
     const result = gameReducer(state, { type: 'COLLECT_PRODUCT', animalIndex: 0 });
     expect(result.inventory.chicken_product).toBe(1);
@@ -389,7 +389,7 @@ describe('COLLECT_PRODUCT action', () => {
     const past = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
-      animals: [{ animalId: 'chicken', lastCollectedAt: past }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: past }],
       season: 'summer',
     });
     const result = gameReducer(state, { type: 'COLLECT_PRODUCT', animalIndex: 0 });
@@ -400,7 +400,7 @@ describe('COLLECT_PRODUCT action', () => {
   it('does nothing if production time not elapsed', () => {
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
-      animals: [{ animalId: 'chicken', lastCollectedAt: NOW - 10 * 1000 }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: NOW - 10 * 1000 }],
     });
     const result = gameReducer(state, { type: 'COLLECT_PRODUCT', animalIndex: 0 });
     expect(result.inventory.chicken_product).toBeUndefined();
@@ -417,7 +417,7 @@ describe('COLLECT_PRODUCT action', () => {
     const past = NOW - (ANIMALS.chicken.productionTime + 1) * 1000;
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
-      animals: [{ animalId: 'chicken', lastCollectedAt: past }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: past }],
       xp: 0,
       level: 1,
     });
@@ -1095,7 +1095,7 @@ describe('SELL_ANIMAL action', () => {
   it('sells an animal for half buy price', () => {
     vi.spyOn(Date, 'now').mockReturnValue(NOW);
     const state = makeState({
-      animals: [{ animalId: 'chicken', lastCollectedAt: NOW }],
+      animals: [{ animalId: 'chicken', feedsLeft: 5, lastCollectedAt: NOW }],
       coins: 50,
     });
     const result = gameReducer(state, { type: 'SELL_ANIMAL', animalIndex: 0 });

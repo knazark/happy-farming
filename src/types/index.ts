@@ -26,6 +26,8 @@ export interface AnimalDef {
   productSellPrice: number;
   unlockLevel: number;
   xpReward: number;
+  feedCrop: ItemId;
+  feedsPerUnit: number;
 }
 
 export type PlotState =
@@ -67,6 +69,7 @@ export interface NpcOrder {
 export interface AnimalSlot {
   animalId: AnimalId;
   lastCollectedAt: number;
+  feedsLeft: number;
 }
 
 export interface PlayerProfile {
@@ -204,6 +207,8 @@ export type GameAction =
   | { type: 'FRIEND_HARVEST_REWARD'; coins: number; xp: number }
   | { type: 'BUY_TRACTOR_FUEL'; premium?: boolean }
   | { type: 'BUY_KALEB_FOOD'; premium?: boolean }
+  | { type: 'FEED_ANIMAL'; animalIndex: number }
+  | { type: 'FEED_ALL_ANIMALS' }
   | { type: 'CLEAR_HELP_LOG' }
   | { type: 'LOAD_SAVE'; state: GameState }
   | { type: 'RESET_GAME' };

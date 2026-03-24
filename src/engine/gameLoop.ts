@@ -136,19 +136,20 @@ export function tick(state: GameState, now: number): GameState {
     }
   }
 
-  // Auto-collector: auto-collect ready animal products (skip if inventory full or no food)
+  // Auto-collector: auto-collect ready animal products (skip if inventory full, no Kaleb food, or animal hungry)
   const totalItemsForCollector = Object.values(newState.inventory).reduce((s, n) => s + (n ?? 0), 0);
   if (newState.hasAutoCollector && newState.kalebFood > 0 && totalItemsForCollector < newState.storageCapacity) {
     let foodUsed = 0;
     const collectorAnimals = newState.animals.map((slot) => {
       if (foodUsed >= newState.kalebFood) return slot;
+      if ((slot.feedsLeft ?? 0) <= 0) return slot; // hungry — skip
       const animal = ANIMALS[slot.animalId];
       const isFeedActive = now < newState.feedActiveUntil;
       const effectiveTime = isFeedActive ? animal.productionTime * 0.5 : animal.productionTime;
       const elapsed = (now - slot.lastCollectedAt) / 1000;
       if (elapsed >= effectiveTime) {
         foodUsed++;
-        return { ...slot, lastCollectedAt: now };
+        return { ...slot, lastCollectedAt: now, feedsLeft: (slot.feedsLeft ?? 0) - 1 };
       }
       return slot;
     });
