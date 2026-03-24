@@ -42,21 +42,29 @@ export function HUD() {
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
     if (clickCountRef.current >= 3) {
       clickCountRef.current = 0;
-      const isNight = document.documentElement.classList.toggle('night-mode');
-      showToast(isNight ? '🌙 Нічний режим!' : '☀️ День повернувся!', 'earn');
-      try { localStorage.setItem('hf_night', isNight ? '1' : ''); } catch {}
+      toggleNightMode();
     } else {
       clickTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 1000);
     }
   }, []);
+
+  const [nightMode, setNightMode] = useState(false);
 
   // Restore night mode on mount
   useEffect(() => {
     try {
       if (localStorage.getItem('hf_night') === '1') {
         document.documentElement.classList.add('night-mode');
+        setNightMode(true);
       }
     } catch {}
+  }, []);
+
+  const toggleNightMode = useCallback(() => {
+    const isNight = document.documentElement.classList.toggle('night-mode');
+    setNightMode(isNight);
+    showToast(isNight ? '🌙 Нічний режим!' : '☀️ День повернувся!', 'earn');
+    try { localStorage.setItem('hf_night', isNight ? '1' : ''); } catch {}
   }, []);
 
   return (
@@ -116,6 +124,14 @@ export function HUD() {
             </div>
           )}
         </div>
+        <button
+          className="hud-night-btn"
+          onClick={toggleNightMode}
+          title={nightMode ? 'Денний режим' : 'Нічний режим'}
+          aria-label={nightMode ? 'Денний режим' : 'Нічний режим'}
+        >
+          {nightMode ? '☀️' : '🌙'}
+        </button>
         <span className="hud-coins">💰 {state.coins}</span>
       </div>
     </div>
