@@ -1,4 +1,4 @@
-export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry' | 'watermelon' | 'melon' | 'pumpkin' | 'grape' | 'cherry' | 'peach' | 'beet' | 'radish';
+export type CropId = 'wheat' | 'tomato' | 'corn' | 'carrot' | 'potato' | 'sunflower' | 'parsley' | 'cucumber' | 'cabbage' | 'eggplant' | 'strawberry' | 'blueberry' | 'watermelon' | 'melon' | 'pumpkin' | 'grape' | 'cherry' | 'peach' | 'beet' | 'pepper';
 
 export interface CropDef {
   id: CropId;
