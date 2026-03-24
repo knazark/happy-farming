@@ -1,6 +1,6 @@
 import type { AnimalId, AnimalDef } from '../types';
 
-export const INITIAL_FEEDS = 5; // starting feeds when buying an animal
+export const INITIAL_FEEDS = 3; // starting feeds when buying an animal
 
 export const ANIMALS: Record<AnimalId, AnimalDef> = {
   chicken: {
@@ -15,7 +15,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 1,
     xpReward: 8,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   duck: {
     id: 'duck',
@@ -29,7 +29,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 2,
     xpReward: 10,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   rabbit: {
     id: 'rabbit',
@@ -43,7 +43,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 3,
     xpReward: 15,
     feedCrop: 'carrot',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   sheep: {
     id: 'sheep',
@@ -57,7 +57,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 4,
     xpReward: 20,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   goat: {
     id: 'goat',
@@ -71,7 +71,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 5,
     xpReward: 25,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   cow: {
     id: 'cow',
@@ -85,7 +85,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 6,
     xpReward: 30,
     feedCrop: 'corn',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   pig: {
     id: 'pig',
@@ -99,7 +99,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 7,
     xpReward: 40,
     feedCrop: 'carrot',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   cat: {
     id: 'cat',
@@ -113,7 +113,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 8,
     xpReward: 50,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   dog: {
     id: 'dog',
@@ -127,7 +127,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 8,
     xpReward: 50,
     feedCrop: 'meat_pie',
-    feedsPerUnit: 10,
+    feedsPerUnit: 5,
   },
   goose: {
     id: 'goose',
@@ -141,7 +141,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 4,
     xpReward: 18,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   turkey: {
     id: 'turkey',
@@ -155,7 +155,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 5,
     xpReward: 22,
     feedCrop: 'wheat',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   bee: {
     id: 'bee',
@@ -169,7 +169,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 6,
     xpReward: 28,
     feedCrop: 'sunflower',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
   horse: {
     id: 'horse',
@@ -183,7 +183,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     unlockLevel: 7,
     xpReward: 35,
     feedCrop: 'corn',
-    feedsPerUnit: 5,
+    feedsPerUnit: 3,
   },
 };
 
