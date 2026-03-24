@@ -48,9 +48,13 @@ export function ProfileEditor({ onClose }: ProfileEditorProps) {
 
       const profile = { name: trimmedName, avatar, password: password.trim() };
       dispatch({ type: 'SET_PROFILE', profile });
-      // Create/update Firestore profile + gameState in one call
+      // Save profile + gameState to RTDB immediately
       const farmerId = getFarmerIdIfExists();
-      if (farmerId) await ensureProfileRTDB(farmerId, { ...state, profile } as any);
+      const updatedState = { ...state, profile };
+      if (farmerId) {
+        await ensureProfileRTDB(farmerId, updatedState as any);
+        await saveGameState(farmerId, updatedState as any);
+      }
     } catch { /* ignore */ }
     setSaving(false);
     onClose();
