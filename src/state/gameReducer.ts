@@ -1,4 +1,4 @@
-import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId, DailyQuest, CropId } from '../types';
+import type { GameState, GameAction, PlotState, Inventory, ItemId, AchievementId, DailyQuest } from '../types';
 import { CROPS } from '../constants/crops';
 import { ANIMALS, INITIAL_FEEDS } from '../constants/animals';
 import { TOTAL_PLOTS, INITIAL_UNLOCKED } from '../constants/grid';
