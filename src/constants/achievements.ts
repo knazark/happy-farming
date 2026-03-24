@@ -75,7 +75,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementDef> = {
     id: 'rainbow',
     name: 'Веселка',
     emoji: '🌈',
-    description: 'Посадіть 🍅🥕🌽🥒🫐🍆 в один ряд',
+    description: 'Посадіть 🍅🥕🌽🥒🍇🍆 в один ряд',
     reward: 500,
   },
 };

@@ -170,7 +170,7 @@ function checkAchievements(state: GameState): GameState {
 
   // Rainbow easter egg: 🍅🥕🌽🥒🫐🍆 in a single row (any row of 6)
   if (!earned.includes('rainbow')) {
-    const RAINBOW: CropId[] = ['tomato', 'carrot', 'corn', 'cucumber', 'blueberry', 'eggplant'];
+    const RAINBOW: CropId[] = ['tomato', 'carrot', 'corn', 'cucumber', 'grape', 'eggplant'];
     const cols = 6;
     for (let row = 0; row + cols <= state.plots.length; row += cols) {
       const rowPlots = state.plots.slice(row, row + cols);

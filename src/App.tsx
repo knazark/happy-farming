@@ -17,6 +17,7 @@ import { ANIMALS } from './constants/animals';
 import { CROPS } from './constants/crops';
 import { HUD } from './components/HUD';
 import { WeatherEffects } from './components/WeatherEffects';
+import { RainbowAnimation } from './components/RainbowAnimation';
 import { Inventory } from './components/Inventory';
 import { ShopPanel } from './components/ShopPanel';
 import { CropSelector } from './components/CropSelector';
@@ -74,7 +75,24 @@ function GameContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Season class no longer used for background (unified day theme)
+  // Rainbow easter egg animation
+  const [showRainbow, setShowRainbow] = useState(false);
+  const prevAchievementsRef = useRef(state.achievements.length);
+  useEffect(() => {
+    if (state.achievements.length > prevAchievementsRef.current) {
+      if (state.achievements.includes('rainbow') && !prevAchievementsRef.current) {
+        // Check if rainbow was just earned
+        setShowRainbow(true);
+      }
+      // More general: check if rainbow is the new one
+      const prevCount = prevAchievementsRef.current;
+      const newAchievements = state.achievements.slice(prevCount);
+      if (newAchievements.includes('rainbow')) {
+        setShowRainbow(true);
+      }
+    }
+    prevAchievementsRef.current = state.achievements.length;
+  }, [state.achievements]);
 
   const [cropSelector, setCropSelector] = useState<{
     plotIndex: number;
@@ -204,6 +222,7 @@ function GameContent() {
       <SeasonalBackground />
       <WeatherEffects />
       <ToastContainer />
+      {showRainbow && <RainbowAnimation onComplete={() => setShowRainbow(false)} />}
       <HarvestEffectLayer effects={effects} />
       <HUD />
 
