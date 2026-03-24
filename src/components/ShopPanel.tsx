@@ -83,10 +83,6 @@ export function ShopPanel() {
         })}
       </div>
 
-      {isFull && (
-        <p className="shop-full">Загін повний!</p>
-      )}
-
       <button
         className="btn btn-buy shop-upgrade-btn"
         disabled={state.coins < PEN_UPGRADE_COST}
@@ -95,8 +91,11 @@ export function ShopPanel() {
           showToast(`🏠 Загін збільшено! +${PEN_UPGRADE_AMOUNT} місць −${PEN_UPGRADE_COST}💰`, 'spend');
         }}
       >
-        🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰)
+        🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰) · Зараз: {state.maxAnimals}
       </button>
+      {isFull && (
+        <p className="shop-full">⚠️ Загін повний! Збільшіть загін щоб купити ще тварин</p>
+      )}
 
       {/* ─── Автопосів ─── */}
       <div className="market-item" style={{ marginTop: '12px' }}>
