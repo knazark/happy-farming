@@ -218,6 +218,7 @@ export async function ensureProfileRTDB(farmerId: string, state: GameState): Pro
 
     updates[`profiles/${farmerId}/name`] = profileName;
     updates[`profiles/${farmerId}/nameLower`] = profileName.toLowerCase().trim();
+    updates[`profiles/${farmerId}/avatar`] = state.profile.avatar || '👨‍🌾';
     updates[`profiles/${farmerId}/score`] = score;
     updates[`profiles/${farmerId}/level`] = state.level;
     updates[`profiles/${farmerId}/lastSeen`] = serverTimestamp();
