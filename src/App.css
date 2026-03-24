@@ -63,53 +63,9 @@ body {
 /* ===== Seasonal Backgrounds ===== */
 /* Spring — bright sky, fresh green fields */
 body {
-  background: linear-gradient(
-    180deg,
-    #7EC8E3 0%, #A8D8EA 20%, #C5E1A5 40%,
-    #A5D6A7 55%, #81C784 70%, #66BB6A 85%,
-    #4CAF50 100%
-  );
+  background: linear-gradient(180deg, #F5F7FA 0%, #EEF2F7 40%, #E8F0E4 100%);
 }
 
-/* Soft rolling hills */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 180% 55% at 20% 40%, rgba(102, 187, 106, 0.3) 0%, transparent 60%),
-    radial-gradient(ellipse 200% 50% at 80% 38%, rgba(129, 199, 132, 0.25) 0%, transparent 55%),
-    radial-gradient(ellipse 160% 40% at 50% 45%, rgba(165, 214, 167, 0.2) 0%, transparent 50%);
-}
-
-/* Subtle field rows pattern */
-body::after {
-  content: '';
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 55%;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 28px,
-      rgba(0, 0, 0, 0.03) 28px,
-      rgba(0, 0, 0, 0.03) 30px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 80px,
-      rgba(255, 255, 255, 0.02) 80px,
-      rgba(255, 255, 255, 0.02) 82px
-    );
-}
 
 #root {
   height: 100vh;
