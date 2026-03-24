@@ -75,7 +75,7 @@ export const ACHIEVEMENTS: Record<AchievementId, AchievementDef> = {
     id: 'rainbow',
     name: 'Веселка',
     emoji: '🌈',
-    description: 'Посадіть 6 однакових 🍓 або 🍅 в один ряд',
+    description: 'Посадіть 6 однакових культур в один ряд',
     reward: 500,
   },
 };
