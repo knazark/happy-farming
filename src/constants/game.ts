@@ -7,8 +7,13 @@ export const ANIMAL_CELL_H = 65; // animal cell height (half-height of crop cell
 export const ANIMAL_PEN_HEIGHT = 24 + ANIMAL_CELL_H * 2 + 18; // label + 2 rows + padding
 export const ANIMAL_PEN_COLS = GRID_COLS; // match farm grid columns
 export const MAX_ANIMALS = 16;
-export const PEN_UPGRADE_COST = 300;
+export const PEN_UPGRADE_BASE_COST = 300;
 export const PEN_UPGRADE_AMOUNT = 4;
+// Cost doubles each upgrade: 300, 600, 1200, 2400...
+export function penUpgradeCost(currentMax: number): number {
+  const upgradesDone = Math.max(0, (currentMax - MAX_ANIMALS) / PEN_UPGRADE_AMOUNT);
+  return PEN_UPGRADE_BASE_COST * Math.pow(2, upgradesDone);
+}
 
 // Level system: XP needed = BASE * level^EXPONENT
 // ~48 hours of active play to reach level 10

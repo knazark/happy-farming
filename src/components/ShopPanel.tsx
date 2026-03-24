@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, TRACTOR_FUEL_PREMIUM_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT, KALEB_FOOD_PREMIUM_AMOUNT } from '../constants/game';
+import { MAX_ANIMALS, penUpgradeCost, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, TRACTOR_FUEL_PREMIUM_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT, KALEB_FOOD_PREMIUM_AMOUNT } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
 import { getAnimalPrice } from '../engine/economy';
 import { showToast } from './Toast';
@@ -85,13 +85,14 @@ export function ShopPanel() {
 
       <button
         className="btn btn-buy shop-upgrade-btn"
-        disabled={state.coins < PEN_UPGRADE_COST}
+        disabled={state.coins < penUpgradeCost(state.maxAnimals)}
         onClick={() => {
+          const cost = penUpgradeCost(state.maxAnimals);
           dispatch({ type: 'UPGRADE_PEN' });
-          showToast(`🏠 Загін збільшено! +${PEN_UPGRADE_AMOUNT} місць −${PEN_UPGRADE_COST}💰`, 'spend');
+          showToast(`🏠 Загін збільшено! +${PEN_UPGRADE_AMOUNT} місць −${cost}💰`, 'spend');
         }}
       >
-        🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({PEN_UPGRADE_COST}💰) · Зараз: {state.maxAnimals}
+        🏠 Збільшити загін +{PEN_UPGRADE_AMOUNT} ({penUpgradeCost(state.maxAnimals)}💰) · Зараз: {state.maxAnimals}
       </button>
       {isFull && (
         <p className="shop-full">⚠️ Загін повний! Збільшіть загін щоб купити ще тварин</p>

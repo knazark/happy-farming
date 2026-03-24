@@ -356,10 +356,10 @@ export const RECIPES: Record<CraftedId, RecipeDef> = {
 export const STORAGE_BASE = 50;
 export const STORAGE_UPGRADE_AMOUNT = 25;
 export const STORAGE_MAX = 300; // max storage capacity
-// Cost scales: 200 for first upgrade, +100 each time (200, 300, 400, 500...)
+// Cost doubles each upgrade: 200, 400, 800, 1600...
 export function storageUpgradeCost(currentCapacity: number): number {
   const upgradesDone = Math.floor((currentCapacity - STORAGE_BASE) / STORAGE_UPGRADE_AMOUNT);
-  return 200 + upgradesDone * 100;
+  return 200 * Math.pow(2, upgradesDone);
 }
 
 export const MARKET_FLUCTUATION_MIN = 0.7;

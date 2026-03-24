@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createInitialState, gameReducer, migrateSave } from './gameReducer';
 import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
-import { STARTING_COINS, MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, xpForLevel } from '../constants/game';
+import { STARTING_COINS, MAX_ANIMALS, penUpgradeCost, PEN_UPGRADE_AMOUNT, FERTILIZER_PRICE, FERTILIZER_SPEED_MULTIPLIER, MAX_LEVEL, CRAFTING_SLOTS_BASE, CRAFTING_SLOTS_MAX, craftingUpgradeCost, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, xpForLevel } from '../constants/game';
 import { RECIPES, STORAGE_UPGRADE_AMOUNT, STORAGE_BASE, STORAGE_MAX, storageUpgradeCost } from '../constants/recipes';
 import { WOOD_GATHER_TIME, WOOD_SELL_PRICE, WOOD_XP_REWARD, SOIL_UPGRADE_COSTS, MAX_SOIL_LEVEL, SOIL_HARVESTS_PER_LEVEL } from '../constants/winter';
 import { HELP_COIN_REWARD, HELP_XP_REWARD, GIFT_COIN_REWARD } from '../constants/neighbors';
@@ -1134,11 +1134,18 @@ describe('UPGRADE_CRAFTING action', () => {
 });
 
 describe('UPGRADE_PEN action', () => {
-  it('upgrades pen capacity', () => {
-    const state = makeState({ coins: PEN_UPGRADE_COST + 100, maxAnimals: MAX_ANIMALS });
+  it('upgrades pen capacity with scaling cost', () => {
+    const cost = penUpgradeCost(MAX_ANIMALS);
+    const state = makeState({ coins: cost + 100, maxAnimals: MAX_ANIMALS });
     const result = gameReducer(state, { type: 'UPGRADE_PEN' });
     expect(result.maxAnimals).toBe(MAX_ANIMALS + PEN_UPGRADE_AMOUNT);
     expect(result.coins).toBe(100);
+  });
+
+  it('cost doubles with each upgrade', () => {
+    const cost0 = penUpgradeCost(MAX_ANIMALS);
+    const cost1 = penUpgradeCost(MAX_ANIMALS + PEN_UPGRADE_AMOUNT);
+    expect(cost1).toBe(cost0 * 2);
   });
 
   it('does nothing if not enough coins', () => {
