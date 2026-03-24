@@ -68,14 +68,15 @@ export function applyFriendHarvest(
   helperName: string,
 ): GameState | null {
   const plot = gs.plots[plotIndex];
-  if (!plot || plot.status !== 'ready') return null;
+  if (!plot || (plot.status !== 'ready' && plot.status !== 'wood_ready')) return null;
 
-  const cropId = plot.cropId;
+  const isWood = plot.status === 'wood_ready';
+  const itemId: ItemId = isWood ? 'firewood' : plot.cropId;
 
   const newPlots = [...gs.plots];
   let soilLevel = plot.soilLevel;
   let soilHarvestsLeft = plot.soilHarvestsLeft;
-  if (soilLevel && soilLevel > 0 && soilHarvestsLeft != null) {
+  if (!isWood && soilLevel && soilLevel > 0 && soilHarvestsLeft != null) {
     soilHarvestsLeft -= 1;
     if (soilHarvestsLeft <= 0) {
       soilLevel = undefined;
@@ -86,11 +87,11 @@ export function applyFriendHarvest(
   const emptyPlot: Record<string, unknown> = { status: 'empty' };
   if (soilLevel != null) emptyPlot.soilLevel = soilLevel;
   if (soilHarvestsLeft != null) emptyPlot.soilHarvestsLeft = soilHarvestsLeft;
-  if (plot.autoCropId) emptyPlot.autoCropId = plot.autoCropId;
+  if (!isWood && plot.autoCropId) emptyPlot.autoCropId = plot.autoCropId;
   newPlots[plotIndex] = emptyPlot as PlotState;
 
-  const newInv: Inventory = { ...gs.inventory, [cropId]: ((gs.inventory[cropId as ItemId] ?? 0) + 1) };
-  const helpLog = [...(gs.helpLog ?? []), { helper: helperName, cropId, at: Date.now() }];
+  const newInv: Inventory = { ...gs.inventory, [itemId]: ((gs.inventory[itemId] ?? 0) + 1) };
+  const helpLog = [...(gs.helpLog ?? []), { helper: helperName, cropId: isWood ? 'wheat' as any : plot.cropId, at: Date.now() }];
 
   return {
     ...gs,

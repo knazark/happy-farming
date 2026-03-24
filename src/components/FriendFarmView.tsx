@@ -67,9 +67,10 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
   const handlePlotClick = useCallback(async (plotIndex: number) => {
     if (!state || harvesting || helpedToday) return;
     const plot = state.plots[plotIndex];
-    if (!plot || plot.status !== 'ready') return;
+    if (!plot || (plot.status !== 'ready' && plot.status !== 'wood_ready')) return;
 
-    const crop = CROPS[plot.cropId];
+    const isWood = plot.status === 'wood_ready';
+    const crop = isWood ? null : CROPS[plot.cropId];
     setHarvesting(true);
 
     try {
@@ -105,17 +106,18 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
       }
 
       // Step 3: reward myself
-      const rewardCoins = Math.max(1, Math.floor(crop.sellPrice * HARVEST_REWARD_PERCENT));
-      const rewardXp = Math.max(1, Math.floor(crop.xpReward * 0.5));
+      const rewardCoins = isWood ? 3 : Math.max(1, Math.floor(crop!.sellPrice * HARVEST_REWARD_PERCENT));
+      const rewardXp = isWood ? 2 : Math.max(1, Math.floor(crop!.xpReward * 0.5));
       dispatch({ type: 'FRIEND_HARVEST_REWARD', coins: rewardCoins, xp: rewardXp });
 
+      const emoji = isWood ? '🪵' : crop!.emoji;
       showToast(
-        `${crop.emoji} Зібрано для ${profile?.name ?? 'друга'}! +${rewardCoins}💰 +${rewardXp}⭐`,
+        `${emoji} Зібрано для ${profile?.name ?? 'друга'}! +${rewardCoins}💰 +${rewardXp}✨`,
         'earn',
       );
 
       // Check if all ready plots are now harvested
-      const remainingReady = updated.plots.filter(p => p.status === 'ready').length;
+      const remainingReady = updated.plots.filter(p => p.status === 'ready' || p.status === 'wood_ready').length;
       if (remainingReady === 0) {
         setHelpedToday(true);
       }
@@ -149,8 +151,8 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
 
   const noop = () => {};
 
-  // Count ready plots
-  const readyCount = state ? state.plots.filter(p => p.status === 'ready').length : 0;
+  // Count ready plots (crops + wood)
+  const readyCount = state ? state.plots.filter(p => p.status === 'ready' || p.status === 'wood_ready').length : 0;
 
   const header = (
     <div style={{
@@ -240,7 +242,7 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
               index={i}
               now={now}
               isHovered={false}
-              onClick={canHarvest && plot.status === 'ready' ? () => handlePlotClick(i) : noop}
+              onClick={canHarvest && (plot.status === 'ready' || plot.status === 'wood_ready') ? () => handlePlotClick(i) : noop}
               onMouseEnter={noop}
               onMouseLeave={noop}
             />
