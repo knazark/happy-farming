@@ -167,7 +167,7 @@ export const CROPS: Record<CropId, CropDef> = {
     id: 'beet',
     name: 'Буряк',
     emoji: '🟣',
-    seedEmoji: '🟣',
+    seedEmoji: '🌱',
     growthTime: 360,      // 6 хв
     seedPrice: 22,
     sellPrice: 60,
