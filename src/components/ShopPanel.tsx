@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext';
 import { ANIMAL_LIST } from '../constants/animals';
-import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS } from '../constants/game';
+import { MAX_ANIMALS, PEN_UPGRADE_COST, PEN_UPGRADE_AMOUNT, TRACTOR_PRICE, TRACTOR_REQUIRED_CRAFTS, AUTO_COLLECTOR_PRICE, AUTO_COLLECTOR_REQUIRED_CRAFTS, AUTO_PLANTER_PRICE, AUTO_PLANTER_REQUIRED_CRAFTS, AUTO_PLANTER_MAX_PLOTS, TRACTOR_FUEL_PRICE, TRACTOR_FUEL_AMOUNT, TRACTOR_FUEL_PREMIUM_AMOUNT, KALEB_FOOD_PRICE, KALEB_FOOD_AMOUNT, KALEB_FOOD_PREMIUM_AMOUNT } from '../constants/game';
 import { RECIPES } from '../constants/recipes';
 import { getAnimalPrice } from '../engine/economy';
 import { showToast } from './Toast';
@@ -166,9 +166,36 @@ export function ShopPanel() {
           </div>
         </div>
         {state.hasAutoCollector ? (
-          <p className="market-item-how" style={{ color: '#2E7D32' }}>
-            🐕 Калеб автоматично збирає продукти від тварин!
-          </p>
+          <div>
+            <p className="market-item-how" style={{ color: '#2E7D32' }}>
+              🐕 Калеб автоматично збирає продукти від тварин!
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>🦴 Корм: {state.kalebFood}</span>
+              <button
+                className="btn btn-buy"
+                style={{ fontSize: '12px', padding: '4px 10px' }}
+                disabled={state.coins < KALEB_FOOD_PRICE}
+                onClick={() => {
+                  dispatch({ type: 'BUY_KALEB_FOOD' });
+                  showToast(`🦴 +${KALEB_FOOD_AMOUNT} корму для Калеба! −${KALEB_FOOD_PRICE}💰`, 'spend');
+                }}
+              >
+                +{KALEB_FOOD_AMOUNT} ({KALEB_FOOD_PRICE}💰)
+              </button>
+              <button
+                className="btn btn-sell"
+                style={{ fontSize: '12px', padding: '4px 10px' }}
+                disabled={state.coins < 10 || (state.inventory.wheat ?? 0) < 2}
+                onClick={() => {
+                  dispatch({ type: 'BUY_KALEB_FOOD', premium: true });
+                  showToast(`🦴 +${KALEB_FOOD_PREMIUM_AMOUNT} преміум корму! −2🌾 −10💰`, 'spend');
+                }}
+              >
+                ⭐ +{KALEB_FOOD_PREMIUM_AMOUNT} (2🌾+10💰)
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <p className="market-item-how">
@@ -220,9 +247,36 @@ export function ShopPanel() {
           </div>
         </div>
         {state.hasTractor ? (
-          <p className="market-item-how" style={{ color: '#2E7D32' }}>
-            🚜 Трактор автоматично збирає готові рослини!
-          </p>
+          <div>
+            <p className="market-item-how" style={{ color: '#2E7D32' }}>
+              🚜 Трактор автоматично збирає готові рослини!
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>🛢️ Паливо: {state.tractorFuel}</span>
+              <button
+                className="btn btn-buy"
+                style={{ fontSize: '12px', padding: '4px 10px' }}
+                disabled={state.coins < TRACTOR_FUEL_PRICE}
+                onClick={() => {
+                  dispatch({ type: 'BUY_TRACTOR_FUEL' });
+                  showToast(`🛢️ +${TRACTOR_FUEL_AMOUNT} палива! −${TRACTOR_FUEL_PRICE}💰`, 'spend');
+                }}
+              >
+                +{TRACTOR_FUEL_AMOUNT} ({TRACTOR_FUEL_PRICE}💰)
+              </button>
+              <button
+                className="btn btn-sell"
+                style={{ fontSize: '12px', padding: '4px 10px' }}
+                disabled={state.coins < 20 || (state.inventory.firewood ?? 0) < 2}
+                onClick={() => {
+                  dispatch({ type: 'BUY_TRACTOR_FUEL', premium: true });
+                  showToast(`🛢️ +${TRACTOR_FUEL_PREMIUM_AMOUNT} преміум палива! −2🪵 −20💰`, 'spend');
+                }}
+              >
+                ⭐ +{TRACTOR_FUEL_PREMIUM_AMOUNT} (2🪵+20💰)
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <p className="market-item-how">
