@@ -42,10 +42,8 @@ export function FriendFarmView({ friendId, onBack }: FriendFarmViewProps) {
           setHelpRecorded(interaction.helpedToday);
           // Check if friend is online (lastSeen < 5 min ago)
           if (fp?.lastSeen) {
-            const lastSeenMs = (fp.lastSeen as { toMillis?: () => number })?.toMillis?.()
-              ?? (fp.lastSeen as { seconds?: number })?.seconds ? (fp.lastSeen as { seconds: number }).seconds * 1000
-              : 0;
-            setFriendOnline(Date.now() - lastSeenMs < 5 * 60 * 1000);
+            const lastSeenMs = typeof fp.lastSeen === 'number' ? fp.lastSeen : 0;
+            setFriendOnline(lastSeenMs > 0 && Date.now() - lastSeenMs < 5 * 60 * 1000);
           }
         }
       } catch (err) {
