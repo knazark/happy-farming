@@ -31,10 +31,37 @@ export function CraftingPanel() {
   const upgradeCost = craftingUpgradeCost(totalSlots);
   const canUpgrade = totalSlots < CRAFTING_SLOTS_MAX && state.coins >= upgradeCost;
 
+  // Check if an ingredient is obtainable at current level
+  const getIngredientLockLevel = (itemId: string): number | null => {
+    if (itemId === 'firewood') return null; // always available in winter
+    if (itemId in CROPS) {
+      const crop = CROPS[itemId as keyof typeof CROPS];
+      return crop.unlockLevel > state.level ? crop.unlockLevel : null;
+    }
+    if (itemId.endsWith('_product')) {
+      const animalId = itemId.replace('_product', '') as keyof typeof ANIMALS;
+      if (animalId in ANIMALS) {
+        const animal = ANIMALS[animalId];
+        return animal.unlockLevel > state.level ? animal.unlockLevel : null;
+      }
+    }
+    if (itemId in RECIPES) {
+      const recipe = RECIPES[itemId as keyof typeof RECIPES];
+      return recipe.unlockLevel > state.level ? recipe.unlockLevel : null;
+    }
+    return null;
+  };
+
+  const hasLockedIngredients = (recipeId: CraftedId): boolean => {
+    const recipe = RECIPES[recipeId];
+    return Object.keys(recipe.ingredients).some(id => getIngredientLockLevel(id) !== null);
+  };
+
   const maxCraftable = (recipeId: CraftedId): number => {
     const recipe = RECIPES[recipeId];
     if (recipe.unlockLevel > state.level) return 0;
     if (!canStartNew) return 0;
+    if (hasLockedIngredients(recipeId)) return 0;
     let max = Infinity;
     for (const [itemId, needed] of Object.entries(recipe.ingredients)) {
       const have = state.inventory[itemId as ItemId] ?? 0;
@@ -110,10 +137,11 @@ export function CraftingPanel() {
                     {Object.entries(recipe.ingredients).map(([itemId, baseQty]) => {
                       const need = (baseQty ?? 0) * qty;
                       const have = state.inventory[itemId as ItemId] ?? 0;
-                      const enough = have >= need;
+                      const lockLevel = getIngredientLockLevel(itemId);
+                      const enough = !lockLevel && have >= need;
                       return (
-                        <span key={itemId} className={`recipe-card__ing ${enough ? 'ingredient-ok' : 'ingredient-missing'}`}>
-                          {getItemEmoji(itemId)}{have}/{need}
+                        <span key={itemId} className={`recipe-card__ing ${lockLevel ? 'ingredient-locked' : enough ? 'ingredient-ok' : 'ingredient-missing'}`}>
+                          {lockLevel ? `🔒 Рів.${lockLevel}` : `${getItemEmoji(itemId)}${have}/${need}`}
                         </span>
                       );
                     })}

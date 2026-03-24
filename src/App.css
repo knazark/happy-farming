@@ -1758,16 +1758,23 @@ body::after {
   white-space: nowrap;
 }
 
-.recipe-ingredient.ingredient-ok {
+.recipe-ingredient.ingredient-ok, .ingredient-ok {
   color: #2E7D32;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   border: 1px solid #A5D6A7;
 }
 
-.recipe-ingredient.ingredient-missing {
+.recipe-ingredient.ingredient-missing, .ingredient-missing {
   color: #C62828;
   background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
   border: 1px solid #EF9A9A;
+}
+
+.ingredient-locked {
+  color: #9E86B8;
+  background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+  border: 1px solid #CE93D8;
+  font-size: 10px;
 }
 
 /* ===== Orders ===== */
