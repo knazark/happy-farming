@@ -470,6 +470,20 @@ body {
   gap: 6px;
 }
 
+.inventory-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7C6A9E;
+  padding: 10px 0 4px;
+  border-bottom: 1px solid #E8E0F0;
+  margin-bottom: 2px;
+}
+
+.night-mode .inventory-group-label {
+  color: #94A3B8 !important;
+  border-bottom-color: #334155 !important;
+}
+
 .btn-sell-all {
   width: 100%;
   padding: 12px;
@@ -499,24 +513,59 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #FAFAFE;
-  border-radius: 14px;
-  border: 1.5px solid #E8E0F0;
-  transition: background 0.15s;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  transition: background 0.15s, border-color 0.15s;
+  gap: 8px;
 }
 
 .inventory-item:hover {
   background: #F5F0FF;
+  border-color: #C8B8E8;
 }
 
 .inventory-item-info {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  color: #2D1B4E;
+  flex: 1;
+  min-width: 0;
 }
 
 .inventory-buttons {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Night mode inventory */
+.night-mode .inventory-item {
+  background: #1E293B !important;
+  border-color: #475569 !important;
+}
+
+.night-mode .inventory-item:hover {
+  background: #334155 !important;
+  border-color: #64748B !important;
+}
+
+.night-mode .inventory-item-info {
+  color: #E2E8F0 !important;
+}
+
+.night-mode .panel-empty {
+  color: #94A3B8 !important;
+}
+
+.night-mode .btn-sell {
+  background: #334155 !important;
+  color: #FFD700 !important;
+  border-color: #475569 !important;
+}
+
+.night-mode .btn-sell:hover {
+  background: #475569 !important;
 }
 
 /* ===== Buttons ===== */

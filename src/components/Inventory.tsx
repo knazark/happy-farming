@@ -92,7 +92,7 @@ export function Inventory({ onClose }: { onClose?: () => void }) {
 
             return groups.map(group => (
               <div key={group.label}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#9E86B8', padding: '8px 0 4px', borderBottom: '1px solid #F0E8F8' }}>
+                <div className="inventory-group-label">
                   {group.label}
                 </div>
                 <ul className="inventory-list">
