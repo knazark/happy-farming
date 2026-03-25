@@ -86,22 +86,25 @@ export const AnimalCard = memo(function AnimalCard({
     ? `${animal.name} — ${group.readyCount} готово, натисніть щоб зібрати`
     : `${animal.name}${group.count > 1 ? ` ×${group.count}` : ''}`;
 
+  const hasHungry = group.hungryCount > 0;
+  const canInteract = isReady || hasHungry;
+
   const handleClick = () => {
-    if (allHungry && onFeed) {
-      onFeed();
-    } else if (isReady) {
+    if (isReady) {
       onClick();
+    } else if (hasHungry && onFeed) {
+      onFeed();
     }
   };
 
   return (
     <button
       type="button"
-      className={`animal-card ${isReady ? 'animal-ready' : ''} ${allHungry ? 'animal-hungry' : ''}`}
+      className={`animal-card ${isReady ? 'animal-ready' : ''} ${allHungry ? 'animal-hungry' : ''} ${hasHungry && !allHungry ? 'animal-partial-hungry' : ''}`}
       onClick={handleClick}
-      disabled={!isReady && !allHungry}
+      disabled={!canInteract}
       aria-label={ariaLabel}
-      style={{ cursor: (isReady || allHungry) ? 'pointer' : 'default' }}
+      style={{ cursor: canInteract ? 'pointer' : 'default' }}
     >
       <div className="animal-left">
         <div className={`animal-emoji-disc ${isReady ? 'disc-ready' : ''} ${allHungry ? 'disc-hungry' : ''}`}>
@@ -117,6 +120,10 @@ export const AnimalCard = memo(function AnimalCard({
         {allHungry ? (
           <div className="animal-hungry-pill">
             {feedEmoji} Голодні!
+          </div>
+        ) : hasHungry && !isReady ? (
+          <div className="animal-hungry-pill" style={{ opacity: 0.8 }}>
+            {feedEmoji} {group.hungryCount}/{group.count} голодні
           </div>
         ) : isReady ? (
           <div className="animal-collect-pill">
