@@ -5,18 +5,8 @@ import { CROPS } from '../constants/crops';
 import { ANIMALS } from '../constants/animals';
 import { CRAFTING_SLOTS_MAX, craftingUpgradeCost } from '../constants/game';
 import { showToast } from './Toast';
+import { getItemEmoji } from '../utils/items';
 import type { CraftedId, ItemId } from '../types';
-
-function getItemEmoji(itemId: string): string {
-  if (itemId === 'firewood') return '🪵';
-  if (itemId in CROPS) return CROPS[itemId as keyof typeof CROPS].emoji;
-  if (itemId.endsWith('_product')) {
-    const animalId = itemId.replace('_product', '') as keyof typeof ANIMALS;
-    if (animalId in ANIMALS) return ANIMALS[animalId].productEmoji;
-  }
-  if (itemId in RECIPES) return RECIPES[itemId as keyof typeof RECIPES].emoji;
-  return '❓';
-}
 
 export function CraftingPanel() {
   const { state, dispatch } = useGame();

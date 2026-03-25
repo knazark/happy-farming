@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import type { AnimalSlot } from '../types';
 import { ANIMALS } from '../constants/animals';
-import { CROPS } from '../constants/crops';
+import { getItemEmoji } from '../utils/items';
 
 export interface AnimalGroup {
   animalId: AnimalSlot['animalId'];
@@ -54,8 +54,7 @@ export const AnimalCard = memo(function AnimalCard({
   const isReady = group.readyCount > 0;
   const allHungry = group.hungryCount === group.count;
   const isSummer = season === 'summer';
-  const feedCropDef = CROPS[animal.feedCrop as keyof typeof CROPS];
-  const feedEmoji = feedCropDef?.emoji ?? '🌾';
+  const feedEmoji = getItemEmoji(animal.feedCrop);
 
   const progressInfo = useMemo(() => {
     if (isReady || allHungry) return null;

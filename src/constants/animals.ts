@@ -105,11 +105,11 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     id: 'cat',
     name: 'Котик',
     emoji: '😺',
-    productEmoji: '💛',
-    productName: 'Щастя',
-    productionTime: 180,    // 3 хв
+    productEmoji: '🐟',
+    productName: 'Риба',
+    productionTime: 240,    // 4 хв
     buyPrice: 1500,
-    productSellPrice: 5,
+    productSellPrice: 25,
     unlockLevel: 8,
     xpReward: 50,
     feedCrop: 'cow_product',
@@ -120,10 +120,10 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     name: 'Песик',
     emoji: '🐶',
     productEmoji: '🦴',
-    productName: 'Вірність',
-    productionTime: 180,    // 3 хв
+    productName: 'Кістка',
+    productionTime: 240,    // 4 хв
     buyPrice: 1500,
-    productSellPrice: 5,
+    productSellPrice: 20,
     unlockLevel: 8,
     xpReward: 50,
     feedCrop: 'rabbit_product',
