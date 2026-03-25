@@ -112,7 +112,7 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productSellPrice: 5,
     unlockLevel: 8,
     xpReward: 50,
-    feedCrop: 'wheat',
+    feedCrop: 'cow_product',
     feedsPerUnit: 3,
   },
   dog: {
@@ -126,8 +126,8 @@ export const ANIMALS: Record<AnimalId, AnimalDef> = {
     productSellPrice: 5,
     unlockLevel: 8,
     xpReward: 50,
-    feedCrop: 'meat_pie',
-    feedsPerUnit: 5,
+    feedCrop: 'rabbit_product',
+    feedsPerUnit: 3,
   },
   goose: {
     id: 'goose',
